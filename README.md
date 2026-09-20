@@ -1,5 +1,4 @@
-[index.html](https://github.com/user-attachments/files/32438540/index.html)
-<!DOCTYPE html>
+[index.html](https://github.com/user-attachments/files/32440055/index.html)<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -76,6 +75,8 @@ button{cursor:pointer; border:none; border-radius:7px; padding:9px 12px; font-si
       </select>
       <label>Motorista</label>
       <select id="fMot"><option value="">Todos</option></select>
+      <label>Ano</label>
+      <select id="fAno"><option value="">Todos</option></select>
     </div>
 
     <div class="panel" id="editGate" style="margin-top:16px;">
@@ -103,6 +104,8 @@ button{cursor:pointer; border:none; border-radius:7px; padding:9px 12px; font-si
         </select>
         <label>Mês</label>
         <select id="in_mes"></select>
+        <label>Ano</label>
+        <input id="in_ano" type="number" placeholder="Ex: 2026" min="2000" max="2100">
         <button class="btn-primary" id="btnSalvar">Salvar NF</button>
       </div>
       <div class="readonly-note">Link público: qualquer pessoa vê o painel ao vivo. Só quem tiver o PIN consegue lançar/editar NFs.</div>
@@ -135,7 +138,7 @@ button{cursor:pointer; border:none; border-radius:7px; padding:9px 12px; font-si
       <h3>Notas Fiscais</h3>
       <div class="tablewrap">
         <table>
-          <thead><tr><th>NF</th><th>Bairro/RA</th><th>Motorista</th><th>Valor</th><th>Status</th><th>Mês</th><th></th></tr></thead>
+          <thead><tr><th>NF</th><th>Bairro/RA</th><th>Motorista</th><th>Valor</th><th>Status</th><th>Mês</th><th>Ano</th><th></th></tr></thead>
           <tbody id="tbody"></tbody>
         </table>
       </div>
@@ -203,7 +206,8 @@ const MESES = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov"
 const STATUS_LABEL = {ok:"Entregue no prazo", late:"Entregue com atraso", transit:"Em trânsito", pending:"Pendente"};
 
 const selNf=document.getElementById('fNf'), selRegiao=document.getElementById('fRegiao'),
-      selStatus=document.getElementById('fStatus'), selMot=document.getElementById('fMot');
+      selStatus=document.getElementById('fStatus'), selMot=document.getElementById('fMot'), selAno=document.getElementById('fAno');
+document.getElementById('in_ano').value = new Date().getFullYear();
 REGIOES.forEach(r=>selRegiao.insertAdjacentHTML('beforeend',`<option value="${r}">${r}</option>`));
 const inRegiao=document.getElementById('in_regiao'), inMes=document.getElementById('in_mes');
 REGIOES.forEach(r=>inRegiao.insertAdjacentHTML('beforeend',`<option value="${r}">${r}</option>`));
@@ -219,11 +223,15 @@ function populateMotFilter(rows){
   const names = Array.from(new Set(rows.map(r=>r.motorista).filter(Boolean))).sort();
   selMot.innerHTML = '<option value="">Todos</option>' + names.map(n=>`<option value="${n}">${n}</option>`).join('');
   selMot.value = cur;
+  const curAno = selAno.value;
+  const anos = Array.from(new Set(rows.map(r=>r.ano).filter(Boolean))).sort();
+  selAno.innerHTML = '<option value="">Todos</option>' + anos.map(a=>`<option value="${a}">${a}</option>`).join('');
+  selAno.value = curAno;
 }
 
 function filtered(){
-  const nf=selNf.value.trim(), reg=selRegiao.value, st=selStatus.value, mot=selMot.value;
-  return allRows.filter(d=> (!nf||String(d.nf).includes(nf)) && (!reg||d.regiao===reg) && (!st||d.status===st) && (!mot||d.motorista===mot) );
+  const nf=selNf.value.trim(), reg=selRegiao.value, st=selStatus.value, mot=selMot.value, ano=selAno.value;
+  return allRows.filter(d=> (!nf||String(d.nf).includes(nf)) && (!reg||d.regiao===reg) && (!st||d.status===st) && (!mot||d.motorista===mot) && (!ano||String(d.ano)===ano) );
 }
 
 function renderKpis(rows){
@@ -255,11 +263,12 @@ function renderRegions(rows){
 
 function renderTable(rows){
   const tbody = document.getElementById('tbody');
-  if(!rows.length){ tbody.innerHTML = '<tr><td colspan="7"><div class="empty">Nenhuma NF lançada ainda para esses filtros.</div></td></tr>'; return; }
+  if(!rows.length){ tbody.innerHTML = '<tr><td colspan="8"><div class="empty">Nenhuma NF lançada ainda para esses filtros.</div></td></tr>'; return; }
   tbody.innerHTML = rows.slice(0,80).map(r=>`<tr>
     <td>${r.nf}</td><td>${r.regiao}</td><td>${r.motorista||'—'}</td><td>${fmtMoney(r.valor)}</td>
     <td><span class="tag status ${r.status}">${STATUS_LABEL[r.status]||r.status}</span></td>
     <td>${MESES[r.mes]||'—'}</td>
+    <td>${r.ano||'—'}</td>
     <td>${canWrite ? `<button class="del" data-nf="${r.nf}">Excluir</button>` : ''}</td>
   </tr>`).join('');
   if(canWrite){
@@ -344,7 +353,7 @@ function renderAll(){
   renderKpis(rows); renderRegions(rows); renderTable(rows);
   drawGauge(rows); drawBarChart(rows); drawLineChart(rows);
 }
-[selNf,selRegiao,selStatus,selMot].forEach(el=>el.addEventListener('input',renderAll));
+[selNf,selRegiao,selStatus,selMot,selAno].forEach(el=>el.addEventListener('input',renderAll));
 window.addEventListener('resize', renderAll);
 
 document.getElementById('btnUnlock').addEventListener('click', async ()=>{
@@ -365,6 +374,7 @@ document.getElementById('btnSalvar').addEventListener('click', async ()=>{
     valor: Number(document.getElementById('in_valor').value)||0,
     status: document.getElementById('in_status').value,
     mes: Number(inMes.value),
+    ano: Number(document.getElementById('in_ano').value) || new Date().getFullYear(),
   };
   const btn = document.getElementById('btnSalvar');
   btn.disabled = true;
