@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rastreamento de Cargas — DF e Entorno</title>
+<style>
+:root{
+  --bg:#0E1B22; --surface:#132630; --surface2:#0B1920; --line:#1F3A46;
+  --ink:#EAF2F2; --muted:#8FB0B8; --teal:#2BD4C4; --amber:#F0A93B; --red:#E2665B; --blue:#4E9CE0;
+}
+*{box-sizing:border-box;}
+body{margin:0; background:var(--bg); color:var(--ink); font-family:-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;}
+header{position:sticky; top:0; z-index:5; display:flex; align-items:center; justify-content:space-between; gap:10px; padding:16px 22px; background:var(--surface2); border-bottom:1px solid var(--line); flex-wrap:wrap;}
+header h1{font-size:18px; margin:0; font-weight:650;}
+.tag{font-size:12px; padding:4px 10px; border-radius:20px; background:rgba(43,212,196,.15); color:var(--teal); font-weight:650;}
+.wrap{max-width:1280px; margin:0 auto; padding:20px;}
+.layout{display:grid; grid-template-columns:230px 1fr; gap:18px;}
+@media (max-width:860px){.layout{grid-template-columns:1fr;}}
+.panel{background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:16px;}
+.filters label,.form label{display:block; font-size:12px; color:var(--muted); margin:10px 0 5px;}
+.filters select,.filters input,.form select,.form input{width:100%; padding:8px 9px; background:var(--surface2); border:1px solid var(--line); color:var(--ink); border-radius:7px; font-size:13.5px;}
+.filters h2,.form h2{font-size:13px; margin:0; color:var(--muted); font-weight:650;}
+.kpis{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px; margin-bottom:16px;}
+.kpi{background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:14px 16px;}
+.kpi .n{font-size:22px; font-weight:700;}
+.kpi .l{font-size:12px; color:var(--muted); margin-top:3px;}
+.grid2{display:grid; grid-template-columns:1.1fr 1fr; gap:16px; margin-bottom:16px;}
+@media (max-width:860px){.grid2{grid-template-columns:1fr;}}
+.panel h3{margin:0 0 12px; font-size:14.5px; font-weight:650;}
+.region-row{display:flex; align-items:center; gap:10px; margin:9px 0; font-size:13px;}
+.region-row .name{width:150px; color:var(--muted); flex-shrink:0; font-size:12.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.region-row .bar-track{flex:1; height:9px; background:var(--surface2); border-radius:5px; overflow:hidden; border:1px solid var(--line);}
+.region-row .bar-fill{height:100%; background:linear-gradient(90deg,var(--teal),var(--blue));}
+.region-row .val{width:78px; text-align:right; color:var(--muted); flex-shrink:0;}
+table{width:100%; border-collapse:collapse; font-size:13px;}
+th{text-align:left; color:var(--muted); font-weight:600; font-size:11.5px; padding:8px 10px; border-bottom:1px solid var(--line);}
+td{padding:8px 10px; border-bottom:1px solid var(--line); vertical-align:middle;}
+.tablewrap{overflow-x:auto; max-height:340px; overflow-y:auto;}
+.tag.status{padding:3px 9px; border-radius:20px; font-size:11.5px; font-weight:600; white-space:nowrap;}
+.tag.ok{background:rgba(43,212,196,.15); color:var(--teal);}
+.tag.late{background:rgba(226,102,91,.15); color:var(--red);}
+.tag.transit{background:rgba(78,156,224,.15); color:var(--blue);}
+.tag.pending{background:rgba(240,169,59,.15); color:var(--amber);}
+canvas{width:100%; display:block;}
+.empty{color:var(--muted); font-size:13px; padding:20px 0; text-align:center;}
+button{cursor:pointer; border:none; border-radius:7px; padding:9px 12px; font-size:13px; font-weight:650;}
+.btn-primary{background:var(--teal); color:#04201C; width:100%; margin-top:12px;}
+.btn-ghost{background:transparent; border:1px solid var(--line); color:var(--muted); width:100%;}
+.del{background:transparent; color:var(--red); font-size:12px; padding:4px 8px; border:1px solid rgba(226,102,91,.3);}
+.readonly-note{font-size:12px; color:var(--muted); margin-top:10px; line-height:1.5;}
+</style>
+</head>
+<body>
+<header>
+  <h1>Rastreamento de Cargas <span style="color:var(--teal); font-weight:650;">· DF e Entorno</span></h1>
+  <span class="tag" id="statusTag">conectando…</span>
+</header>
+<div class="wrap">
+<div class="layout">
+  <div>
+    <div class="panel filters">
+      <h2>Filtros</h2>
+      <label>Buscar NF</label>
+      <input id="fNf" type="text" placeholder="Ex: 48213">
+      <label>Bairro / Região Administrativa</label>
+      <select id="fRegiao"><option value="">Todas</option></select>
+      <label>Status</label>
+      <select id="fStatus">
+        <option value="">Todos</option>
+        <option value="ok">Entregue no prazo</option>
+        <option value="late">Entregue com atraso</option>
+        <option value="transit">Em trânsito</option>
+        <option value="pending">Pendente</option>
+      </select>
+      <label>Motorista</label>
+      <select id="fMot"><option value="">Todos</option></select>
+    </div>
+
+    <div class="panel" id="editGate" style="margin-top:16px;">
+      <h2>Modo edição</h2>
+      <div id="gateLocked">
+        <label>PIN de edição</label>
+        <input id="pinInput" type="password" placeholder="••••">
+        <button class="btn-ghost" id="btnUnlock" style="margin-top:12px;">Entrar</button>
+      </div>
+      <div id="formPanel" class="form" style="display:none; margin-top:8px;">
+        <label>Número da NF</label>
+        <input id="in_nf" type="number" placeholder="Ex: 48301">
+        <label>Bairro / RA</label>
+        <select id="in_regiao"></select>
+        <label>Motorista</label>
+        <input id="in_motorista" type="text" placeholder="Nome do motorista">
+        <label>Valor (R$)</label>
+        <input id="in_valor" type="number" placeholder="Ex: 3200">
+        <label>Status</label>
+        <select id="in_status">
+          <option value="ok">Entregue no prazo</option>
+          <option value="late">Entregue com atraso</option>
+          <option value="transit">Em trânsito</option>
+          <option value="pending">Pendente</option>
+        </select>
+        <label>Mês</label>
+        <select id="in_mes"></select>
+        <button class="btn-primary" id="btnSalvar">Salvar NF</button>
+      </div>
+      <div class="readonly-note">Link público: qualquer pessoa vê o painel ao vivo. Só quem tiver o PIN consegue lançar/editar NFs.</div>
+    </div>
+  </div>
+
+  <div>
+    <div class="kpis" id="kpis"></div>
+    <div class="grid2">
+      <div class="panel">
+        <h3>OTD (On Time Delivery)</h3>
+        <canvas id="gauge" height="150"></canvas>
+      </div>
+      <div class="panel">
+        <h3>Pendências por Bairro/RA</h3>
+        <div id="regions"></div>
+      </div>
+    </div>
+    <div class="grid2">
+      <div class="panel">
+        <h3>Ranking de Motoristas — Entregas no Prazo</h3>
+        <canvas id="barChart" height="180"></canvas>
+      </div>
+      <div class="panel">
+        <h3>Atraso Mensal (%)</h3>
+        <canvas id="lineChart" height="180"></canvas>
+      </div>
+    </div>
+    <div class="panel">
+      <h3>Notas Fiscais</h3>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>NF</th><th>Bairro/RA</th><th>Motorista</th><th>Valor</th><th>Status</th><th>Mês</th><th></th></tr></thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<script type="module">
+/* ======================================================================
+   CONFIGURAÇÃO DO FIREBASE
+   1. Vá em https://console.firebase.google.com → crie um projeto grátis.
+   2. Ative "Firestore Database" (modo produção) e "Authentication" →
+      ative o provedor "Anônimo".
+   3. Em Configurações do projeto → Seus apps → Web (</>), copie o objeto
+      firebaseConfig gerado e cole aqui embaixo, no lugar do exemplo.
+   4. No Firestore, aba "Regras", cole:
+        rules_version = '2';
+        service cloud.firestore {
+          match /databases/{database}/documents {
+            match /notas/{nf} {
+              allow read: if true;
+              allow write: if request.auth != null;
+            }
+          }
+        }
+   ====================================================================== */
+const firebaseConfig = {
+  apiKey: "AIzaSyAYcAWcV_iDJNJiZpQsAbTP93WwF_JOQfE",
+  authDomain: "rastreamento-de-cargas-d20d0.firebaseapp.com",
+  projectId: "rastreamento-de-cargas-d20d0",
+  storageBucket: "rastreamento-de-cargas-d20d0.firebasestorage.app",
+  messagingSenderId: "114429895544",
+  appId: "1:114429895544:web:62609ed30c7c190dd6de8d",
+  measurementId: "G-JY8E8BJT16"
+};
+
+// PIN simples só para esconder o formulário de quem não deveria editar.
+// Troque por outro valor antes de publicar. Não é segurança forte —
+// a proteção real de escrita fica nas Regras do Firestore acima.
+const EDIT_PIN = "1507";
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
+import {
+  getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot
+} from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const notasRef = collection(db, "notas");
+
+const REGIOES = [
+  "Plano Piloto","Gama","Taguatinga","Brazlândia","Sobradinho","Planaltina (DF)","Paranoá","Núcleo Bandeirante",
+  "Ceilândia","Guará","Cruzeiro","Samambaia","Santa Maria","São Sebastião","Recanto das Emas","Lago Sul",
+  "Riacho Fundo","Lago Norte","Candangolândia","Águas Claras","Riacho Fundo II","Sudoeste/Octogonal","Varjão",
+  "Park Way","SCIA/Estrutural","Sobradinho II","Jardim Botânico","Itapoã","SIA","Vicente Pires","Fercal",
+  "Sol Nascente/Pôr do Sol","Arniqueira","Arapoanga","Água Quente",
+  "Águas Lindas de Goiás (GO)","Cidade Ocidental (GO)","Novo Gama (GO)","Valparaíso de Goiás (GO)",
+  "Luziânia (GO)","Formosa (GO)","Planaltina (GO)","Santo Antônio do Descoberto (GO)","Alexânia (GO)",
+  "Cristalina (GO)","Padre Bernardo (GO)"
+];
+const MESES = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+const STATUS_LABEL = {ok:"Entregue no prazo", late:"Entregue com atraso", transit:"Em trânsito", pending:"Pendente"};
+
+const selNf=document.getElementById('fNf'), selRegiao=document.getElementById('fRegiao'),
+      selStatus=document.getElementById('fStatus'), selMot=document.getElementById('fMot');
+REGIOES.forEach(r=>selRegiao.insertAdjacentHTML('beforeend',`<option value="${r}">${r}</option>`));
+const inRegiao=document.getElementById('in_regiao'), inMes=document.getElementById('in_mes');
+REGIOES.forEach(r=>inRegiao.insertAdjacentHTML('beforeend',`<option value="${r}">${r}</option>`));
+MESES.forEach((m,i)=>inMes.insertAdjacentHTML('beforeend',`<option value="${i}">${m}</option>`));
+
+let allRows = [];
+let canWrite = false;
+
+function fmtMoney(v){ return "R$ " + Number(v||0).toLocaleString('pt-BR'); }
+
+function populateMotFilter(rows){
+  const cur = selMot.value;
+  const names = Array.from(new Set(rows.map(r=>r.motorista).filter(Boolean))).sort();
+  selMot.innerHTML = '<option value="">Todos</option>' + names.map(n=>`<option value="${n}">${n}</option>`).join('');
+  selMot.value = cur;
+}
+
+function filtered(){
+  const nf=selNf.value.trim(), reg=selRegiao.value, st=selStatus.value, mot=selMot.value;
+  return allRows.filter(d=> (!nf||String(d.nf).includes(nf)) && (!reg||d.regiao===reg) && (!st||d.status===st) && (!mot||d.motorista===mot) );
+}
+
+function renderKpis(rows){
+  const total = rows.length;
+  const ok = rows.filter(r=>r.status==='ok').length;
+  const late = rows.filter(r=>r.status==='late').length;
+  const pending = rows.filter(r=>r.status==='pending').length;
+  const transit = rows.filter(r=>r.status==='transit').length;
+  const valor = rows.reduce((a,r)=>a+(Number(r.valor)||0),0);
+  const cards = [
+    [total,"Total de NFs"], [ok+late,"NFs Entregues"], [pending,"NFs Pendentes"],
+    [transit,"Em Trânsito"], [fmtMoney(valor),"Valor Total"],
+    [total? Math.round(ok/(ok+late||1)*100)+"%":"—","OTD do Filtro"],
+  ];
+  document.getElementById('kpis').innerHTML = cards.map(c=>`<div class="kpi"><div class="n">${c[0]}</div><div class="l">${c[1]}</div></div>`).join('');
+}
+
+function renderRegions(rows){
+  const byReg = {}; REGIOES.forEach(r=>byReg[r]={total:0,pending:0});
+  rows.forEach(r=>{ if(byReg[r.regiao]){ byReg[r.regiao].total++; if(r.status==='pending') byReg[r.regiao].pending++; } });
+  const el = document.getElementById('regions');
+  const entries = Object.entries(byReg).filter(([,v])=>v.total>0).sort((a,b)=>b[1].pending-a[1].pending).slice(0,14);
+  if(!entries.length){ el.innerHTML='<div class="empty">Nenhum dado para os filtros atuais.</div>'; return; }
+  el.innerHTML = entries.map(([reg,v])=>{
+    const pct = v.total? Math.round(v.pending/v.total*100):0;
+    return `<div class="region-row"><span class="name">${reg}</span><div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div><span class="val">${v.pending} pend. (${pct}%)</span></div>`;
+  }).join('');
+}
+
+function renderTable(rows){
+  const tbody = document.getElementById('tbody');
+  if(!rows.length){ tbody.innerHTML = '<tr><td colspan="7"><div class="empty">Nenhuma NF lançada ainda para esses filtros.</div></td></tr>'; return; }
+  tbody.innerHTML = rows.slice(0,80).map(r=>`<tr>
+    <td>${r.nf}</td><td>${r.regiao}</td><td>${r.motorista||'—'}</td><td>${fmtMoney(r.valor)}</td>
+    <td><span class="tag status ${r.status}">${STATUS_LABEL[r.status]||r.status}</span></td>
+    <td>${MESES[r.mes]||'—'}</td>
+    <td>${canWrite ? `<button class="del" data-nf="${r.nf}">Excluir</button>` : ''}</td>
+  </tr>`).join('');
+  if(canWrite){
+    tbody.querySelectorAll('.del').forEach(btn=>{
+      btn.addEventListener('click', async ()=>{
+        btn.disabled = true;
+        try{ await deleteDoc(doc(db,'notas',String(btn.dataset.nf))); }
+        catch(e){ btn.disabled=false; alert('Erro ao excluir: '+e.message); }
+      });
+    });
+  }
+}
+
+function cssVar(name){ return getComputedStyle(document.body).getPropertyValue(name); }
+
+function drawGauge(rows){
+  const c = document.getElementById('gauge'); const ctx = c.getContext('2d');
+  const w = c.parentElement.clientWidth; c.width = w; c.height=150;
+  const ok = rows.filter(r=>r.status==='ok').length, late = rows.filter(r=>r.status==='late').length;
+  const pct = (ok+late) ? ok/(ok+late) : 0;
+  const cx=w/2, cy=130, radius=Math.min(w/2-20,110);
+  ctx.clearRect(0,0,w,150);
+  ctx.lineWidth=16; ctx.lineCap='round';
+  ctx.strokeStyle = cssVar('--line');
+  ctx.beginPath(); ctx.arc(cx,cy,radius,Math.PI,0); ctx.stroke();
+  ctx.strokeStyle = cssVar('--teal');
+  ctx.beginPath(); ctx.arc(cx,cy,radius,Math.PI,Math.PI+Math.PI*pct); ctx.stroke();
+  ctx.fillStyle = cssVar('--ink');
+  ctx.font='700 30px -apple-system,sans-serif'; ctx.textAlign='center';
+  ctx.fillText((pct*100).toFixed(1)+'%', cx, cy-14);
+  ctx.font='12px -apple-system,sans-serif'; ctx.fillStyle=cssVar('--muted');
+  ctx.fillText('entregas no prazo', cx, cy+8);
+}
+
+function drawBarChart(rows){
+  const c = document.getElementById('barChart'); const ctx = c.getContext('2d');
+  const w = c.parentElement.clientWidth; c.width=w; c.height=180;
+  const byMot = {};
+  rows.forEach(r=>{ if(!byMot[r.motorista]) byMot[r.motorista]=0; if(r.status==='ok') byMot[r.motorista]++; });
+  const arr = Object.entries(byMot).sort((a,b)=>b[1]-a[1]).slice(0,6);
+  const max = Math.max(1,...arr.map(a=>a[1]));
+  ctx.clearRect(0,0,w,180);
+  if(!arr.length){ ctx.fillStyle=cssVar('--muted'); ctx.font='13px -apple-system,sans-serif'; ctx.fillText('Sem dados ainda.',0,20); return; }
+  const barH=18, gap=12, top=10;
+  ctx.font='12px -apple-system,sans-serif'; ctx.textBaseline='middle';
+  arr.forEach((a,i)=>{
+    const y = top + i*(barH+gap);
+    const bw = (w-140) * (a[1]/max);
+    ctx.fillStyle = cssVar('--muted'); ctx.textAlign='left'; ctx.fillText(a[0]||'—', 0, y+barH/2);
+    ctx.fillStyle = cssVar('--teal'); ctx.fillRect(120,y,Math.max(2,bw),barH);
+    ctx.fillStyle = cssVar('--ink'); ctx.fillText(a[1], 120+bw+8, y+barH/2);
+  });
+}
+
+function drawLineChart(rows){
+  const c = document.getElementById('lineChart'); const ctx = c.getContext('2d');
+  const w = c.parentElement.clientWidth; c.width=w; c.height=180;
+  const perMonth = MESES.slice(0,9).map((_,i)=>{
+    const m = rows.filter(r=>r.mes===i);
+    const late = m.filter(r=>r.status==='late').length;
+    return m.length ? late/m.length*100 : 0;
+  });
+  ctx.clearRect(0,0,w,180);
+  const padL=30, padB=22, padT=10, plotW=w-padL-10, plotH=180-padB-padT;
+  const max = Math.max(10,...perMonth);
+  ctx.strokeStyle = cssVar('--line');
+  ctx.beginPath(); ctx.moveTo(padL,padT); ctx.lineTo(padL,padT+plotH); ctx.lineTo(padL+plotW,padT+plotH); ctx.stroke();
+  ctx.beginPath();
+  perMonth.forEach((v,i)=>{
+    const x = padL + plotW*(i/(perMonth.length-1));
+    const y = padT + plotH - (v/max)*plotH;
+    if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+  });
+  ctx.strokeStyle = cssVar('--amber'); ctx.lineWidth=2; ctx.stroke();
+  ctx.fillStyle = cssVar('--muted'); ctx.font='10.5px -apple-system,sans-serif'; ctx.textAlign='center';
+  MESES.slice(0,9).forEach((m,i)=>{ const x = padL + plotW*(i/(perMonth.length-1)); ctx.fillText(m, x, 180-6); });
+}
+
+function renderAll(){
+  populateMotFilter(allRows);
+  const rows = filtered();
+  renderKpis(rows); renderRegions(rows); renderTable(rows);
+  drawGauge(rows); drawBarChart(rows); drawLineChart(rows);
+}
+[selNf,selRegiao,selStatus,selMot].forEach(el=>el.addEventListener('input',renderAll));
+window.addEventListener('resize', renderAll);
+
+document.getElementById('btnUnlock').addEventListener('click', async ()=>{
+  if(document.getElementById('pinInput').value !== EDIT_PIN){ alert('PIN incorreto.'); return; }
+  try{ await signInAnonymously(auth); }catch(e){ alert('Erro ao autenticar: '+e.message); return; }
+  canWrite = true;
+  document.getElementById('gateLocked').style.display = 'none';
+  document.getElementById('formPanel').style.display = 'block';
+  renderAll();
+});
+
+document.getElementById('btnSalvar').addEventListener('click', async ()=>{
+  const nf = document.getElementById('in_nf').value.trim();
+  if(!nf) return;
+  const body = {
+    regiao: inRegiao.value,
+    motorista: document.getElementById('in_motorista').value.trim(),
+    valor: Number(document.getElementById('in_valor').value)||0,
+    status: document.getElementById('in_status').value,
+    mes: Number(inMes.value),
+  };
+  const btn = document.getElementById('btnSalvar');
+  btn.disabled = true;
+  try{
+    await setDoc(doc(db,'notas',nf), body);
+    document.getElementById('in_nf').value=''; document.getElementById('in_motorista').value=''; document.getElementById('in_valor').value='';
+  }catch(e){ alert('Erro ao salvar: '+e.message); }
+  finally{ btn.disabled = false; }
+});
+
+const statusTag = document.getElementById('statusTag');
+onSnapshot(notasRef, snap=>{
+  allRows = snap.docs.map(d=>({ nf:d.id, ...d.data() }));
+  statusTag.textContent = 'ao vivo';
+  renderAll();
+}, err=>{
+  statusTag.textContent = 'erro de conexão';
+  console.error(err);
+});
+</script>
+</body>
+</html>
