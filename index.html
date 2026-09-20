@@ -19,7 +19,8 @@ header h1{font-size:18px; margin:0; font-weight:650;}
 @media (max-width:860px){.layout{grid-template-columns:1fr;}}
 .panel{background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:16px;}
 .filters label,.form label{display:block; font-size:12px; color:var(--muted); margin:10px 0 5px;}
-.filters select,.filters input,.form select,.form input{width:100%; padding:8px 9px; background:var(--surface2); border:1px solid var(--line); color:var(--ink); border-radius:7px; font-size:13.5px;}
+.filters select,.filters input,.form select,.form input,.form textarea{width:100%; padding:8px 9px; background:var(--surface2); border:1px solid var(--line); color:var(--ink); border-radius:7px; font-size:13.5px; font-family:inherit;}
+.form textarea{resize:vertical;}
 .filters h2,.form h2{font-size:13px; margin:0; color:var(--muted); font-weight:650;}
 .kpis{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px; margin-bottom:16px;}
 .kpi{background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:14px 16px;}
@@ -34,7 +35,7 @@ header h1{font-size:18px; margin:0; font-weight:650;}
 .region-row .bar-fill{height:100%; background:linear-gradient(90deg,var(--teal),var(--blue));}
 .region-row .val{width:78px; text-align:right; color:var(--muted); flex-shrink:0;}
 table{width:100%; border-collapse:collapse; font-size:13px;}
-th{text-align:left; color:var(--muted); font-weight:600; font-size:11.5px; padding:8px 10px; border-bottom:1px solid var(--line);}
+th{text-align:left; color:var(--muted); font-weight:600; font-size:11.5px; padding:8px 10px; border-bottom:1px solid var(--line); white-space:nowrap;}
 td{padding:8px 10px; border-bottom:1px solid var(--line); vertical-align:middle;}
 .tablewrap{overflow-x:auto; max-height:340px; overflow-y:auto;}
 .tag.status{padding:3px 9px; border-radius:20px; font-size:11.5px; font-weight:600; white-space:nowrap;}
@@ -49,6 +50,36 @@ button{cursor:pointer; border:none; border-radius:7px; padding:9px 12px; font-si
 .btn-ghost{background:transparent; border:1px solid var(--line); color:var(--muted); width:100%;}
 .del{background:transparent; color:var(--red); font-size:12px; padding:4px 8px; border:1px solid rgba(226,102,91,.3);}
 .readonly-note{font-size:12px; color:var(--muted); margin-top:10px; line-height:1.5;}
+
+/* Filtros retráteis */
+.filters-head{display:flex; align-items:center; justify-content:space-between; cursor:pointer; user-select:none;}
+.chev-btn{background:transparent; border:none; color:var(--muted); font-size:15px; padding:2px 4px; width:auto;}
+.chips-row{display:flex; flex-wrap:wrap; gap:6px; margin-top:12px; min-height:22px;}
+.chip{display:inline-flex; align-items:center; gap:6px; background:var(--surface2); border:1px solid var(--line); color:var(--ink); font-size:12px; padding:5px 10px; border-radius:20px;}
+.chip button{background:none; border:none; color:var(--muted); cursor:pointer; font-size:12px; line-height:1; padding:0; width:auto;}
+.chip button:hover{color:var(--red);}
+.no-filters{color:var(--muted); font-size:12px;}
+.filters-body{margin-top:2px;}
+
+/* Observações / Problemas nas entregas */
+.problem-item{border-bottom:1px solid var(--line); padding:10px 0;}
+.problem-item:last-child{border-bottom:none;}
+.problem-item .ph{display:flex; justify-content:space-between; align-items:center; font-size:12px; color:var(--muted); margin-bottom:5px; gap:8px;}
+.problem-item .pnf{color:var(--ink); font-weight:650; font-size:13px;}
+.problem-item .ptext{font-size:13px; color:#C7D5DA; line-height:1.5;}
+
+/* Histórico */
+.hist-scroll{max-height:280px; overflow-y:auto;}
+.hist-item{border-bottom:1px solid var(--line); padding:9px 0; font-size:13px;}
+.hist-item:last-child{border-bottom:none;}
+.hist-tipo{font-size:10.5px; font-weight:700; text-transform:uppercase; padding:2px 8px; border-radius:12px; background:var(--surface2); margin-right:6px; letter-spacing:.3px;}
+.hist-tipo.criado{color:var(--teal);}
+.hist-tipo.atualizado{color:var(--blue);}
+.hist-tipo.excluido{color:var(--red);}
+.hist-nf{font-weight:650;}
+.hist-data{color:var(--muted); font-size:11.5px; float:right;}
+.hist-resumo{color:#C7D5DA; margin-top:4px; font-size:12.5px;}
+.obs-cell{max-width:220px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; cursor:help;}
 </style>
 </head>
 <body>
@@ -59,26 +90,32 @@ button{cursor:pointer; border:none; border-radius:7px; padding:9px 12px; font-si
 <div class="wrap">
 <div class="layout">
   <div>
-    <div class="panel filters">
-      <h2>Filtros</h2>
-      <label>Buscar Carregamento</label>
-      <input id="fCarregamento" type="text" placeholder="Ex: 9021">
-      <label>Buscar NF</label>
-      <input id="fNf" type="text" placeholder="Ex: 48213">
-      <label>Bairro / Região Administrativa</label>
-      <select id="fRegiao"><option value="">Todas</option></select>
-      <label>Status</label>
-      <select id="fStatus">
-        <option value="">Todos</option>
-        <option value="ok">Entregue no prazo</option>
-        <option value="late">Entregue com atraso</option>
-        <option value="transit">Em trânsito</option>
-        <option value="pending">Pendente</option>
-      </select>
-      <label>Motorista</label>
-      <select id="fMot"><option value="">Todos</option></select>
-      <label>Ano</label>
-      <select id="fAno"><option value="">Todos</option></select>
+    <div class="panel filters" id="filtersPanel">
+      <div class="filters-head" id="filtersHead">
+        <h2>Filtros</h2>
+        <button type="button" class="chev-btn" id="filtersToggle">▾</button>
+      </div>
+      <div class="chips-row" id="chipsRow"></div>
+      <div class="filters-body" id="filtersBody" style="display:none;">
+        <label>Buscar Carregamento</label>
+        <input id="fCarregamento" type="text" placeholder="Ex: 9021">
+        <label>Buscar NF</label>
+        <input id="fNf" type="text" placeholder="Ex: 48213">
+        <label>Bairro / Região Administrativa</label>
+        <select id="fRegiao"><option value="">Todas</option></select>
+        <label>Status</label>
+        <select id="fStatus">
+          <option value="">Todos</option>
+          <option value="ok">Entregue no prazo</option>
+          <option value="late">Entregue com atraso</option>
+          <option value="transit">Em trânsito</option>
+          <option value="pending">Pendente</option>
+        </select>
+        <label>Motorista</label>
+        <select id="fMot"><option value="">Todos</option></select>
+        <label>Ano</label>
+        <select id="fAno"><option value="">Todos</option></select>
+      </div>
     </div>
 
     <div class="panel" id="editGate" style="margin-top:16px;">
@@ -110,6 +147,8 @@ button{cursor:pointer; border:none; border-radius:7px; padding:9px 12px; font-si
         <select id="in_mes"></select>
         <label>Ano</label>
         <input id="in_ano" type="number" placeholder="Ex: 2026" min="2000" max="2100">
+        <label>Observações</label>
+        <textarea id="in_observacoes" rows="3" placeholder="Ex: cliente ausente, endereço incorreto, avaria na carga..."></textarea>
         <button class="btn-primary" id="btnSalvar">Salvar NF</button>
       </div>
       <div class="readonly-note">Link público: qualquer pessoa vê o painel ao vivo. Só quem tiver o PIN consegue lançar/editar NFs.</div>
@@ -130,19 +169,23 @@ button{cursor:pointer; border:none; border-radius:7px; padding:9px 12px; font-si
     </div>
     <div class="grid2">
       <div class="panel">
-        <h3>Ranking de Motoristas — Entregas no Prazo</h3>
-        <canvas id="barChart" height="180"></canvas>
+        <h3>Observações — Problemas nas Entregas</h3>
+        <div id="problemsList"></div>
       </div>
       <div class="panel">
         <h3>Atraso Mensal (%)</h3>
         <canvas id="lineChart" height="180"></canvas>
       </div>
     </div>
+    <div class="panel" style="margin-bottom:16px;">
+      <h3>Histórico de Alterações</h3>
+      <div class="hist-scroll" id="historicoList"></div>
+    </div>
     <div class="panel">
       <h3>Notas Fiscais</h3>
       <div class="tablewrap">
         <table>
-          <thead><tr><th>Carreg.</th><th>NF</th><th>Bairro/RA</th><th>Motorista</th><th>Valor</th><th>Status</th><th>Mês</th><th>Ano</th><th></th></tr></thead>
+          <thead><tr><th>Carreg.</th><th>NF</th><th>Bairro/RA</th><th>Motorista</th><th>Valor</th><th>Status</th><th>Mês</th><th>Ano</th><th>Observações</th><th></th></tr></thead>
           <tbody id="tbody"></tbody>
         </table>
       </div>
@@ -154,6 +197,23 @@ button{cursor:pointer; border:none; border-radius:7px; padding:9px 12px; font-si
 <script type="module">
 /* ======================================================================
    CONFIGURAÇÃO DO FIREBASE
+
+   Regras do Firestore em uso (Console → Firestore Database → Regras):
+     rules_version = '2';
+     service cloud.firestore {
+       match /databases/{database}/documents {
+         match /notas/{nf} {
+           allow read: if true;
+           allow write: if request.auth != null;
+         }
+         match /historico/{doc} {
+           allow read: if true;
+           allow write: if request.auth != null;
+         }
+       }
+     }
+   (Adicione o bloco "match /historico/{doc}" se ainda não estiver lá —
+   é a nova coleção usada pelo painel "Histórico de Alterações".)
    ====================================================================== */
 const firebaseConfig = {
   apiKey: "AIzaSyAYcAWcV_iDJNJiZpQsAbTP93WwF_JOQfE",
@@ -172,13 +232,15 @@ const EDIT_PIN = "1507";
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
 import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
 import {
-  getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot
+  getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot,
+  addDoc, serverTimestamp, query, orderBy, limit
 } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const notasRef = collection(db, "notas");
+const historicoRef = collection(db, "historico");
 
 const REGIOES = [
   "Plano Piloto","Gama","Taguatinga","Brazlândia","Sobradinho","Planaltina (DF)","Paranoá","Núcleo Bandeirante",
@@ -192,6 +254,7 @@ const REGIOES = [
 ];
 const MESES = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
 const STATUS_LABEL = {ok:"Entregue no prazo", late:"Entregue com atraso", transit:"Em trânsito", pending:"Pendente"};
+const HIST_LABEL = {criado:"Criado", atualizado:"Atualizado", excluido:"Excluído"};
 
 const selNf=document.getElementById('fNf'), selRegiao=document.getElementById('fRegiao'),
       selStatus=document.getElementById('fStatus'), selMot=document.getElementById('fMot'), selAno=document.getElementById('fAno'),
@@ -206,11 +269,46 @@ let allRows = [];
 let canWrite = false;
 
 function fmtMoney(v){ return "R$ " + Number(v||0).toLocaleString('pt-BR'); }
+function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+/* ---------- Filtros retráteis + chips ---------- */
+const filtersHead = document.getElementById('filtersHead');
+const filtersBody = document.getElementById('filtersBody');
+const filtersToggle = document.getElementById('filtersToggle');
+filtersHead.addEventListener('click', ()=>{
+  const open = filtersBody.style.display !== 'none';
+  filtersBody.style.display = open ? 'none' : 'block';
+  filtersToggle.textContent = open ? '▾' : '▴';
+});
+
+const chipDefs = [
+  {sel: selCarregamento, label:'Carregamento'},
+  {sel: selNf, label:'NF'},
+  {sel: selRegiao, label:'Bairro/RA'},
+  {sel: selStatus, label:'Status', display:v=>STATUS_LABEL[v]||v},
+  {sel: selMot, label:'Motorista'},
+  {sel: selAno, label:'Ano'},
+];
+function renderChips(){
+  const row = document.getElementById('chipsRow');
+  const active = chipDefs.filter(c=>c.sel.value);
+  if(!active.length){ row.innerHTML = '<span class="no-filters">Nenhum filtro ativo — toque em "Filtros" para ajustar.</span>'; return; }
+  row.innerHTML = active.map(c=>{
+    const val = c.display ? c.display(c.sel.value) : c.sel.value;
+    return `<span class="chip">${esc(c.label)}: ${esc(val)}<button type="button" data-clear="${esc(c.label)}">✕</button></span>`;
+  }).join('');
+  row.querySelectorAll('button[data-clear]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const def = chipDefs.find(c=>c.label===btn.dataset.clear);
+      if(def){ def.sel.value=''; renderAll(); }
+    });
+  });
+}
 
 function populateMotFilter(rows){
   const cur = selMot.value;
   const names = Array.from(new Set(rows.map(r=>r.motorista).filter(Boolean))).sort();
-  selMot.innerHTML = '<option value="">Todos</option>' + names.map(n=>`<option value="${n}">${n}</option>`).join('');
+  selMot.innerHTML = '<option value="">Todos</option>' + names.map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join('');
   selMot.value = cur;
   const curAno = selAno.value;
   const anos = Array.from(new Set(rows.map(r=>r.ano).filter(Boolean))).sort();
@@ -246,25 +344,61 @@ function renderRegions(rows){
   if(!entries.length){ el.innerHTML='<div class="empty">Nenhum dado para os filtros atuais.</div>'; return; }
   el.innerHTML = entries.map(([reg,v])=>{
     const pct = v.total? Math.round(v.pending/v.total*100):0;
-    return `<div class="region-row"><span class="name">${reg}</span><div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div><span class="val">${v.pending} pend. (${pct}%)</span></div>`;
+    return `<div class="region-row"><span class="name">${esc(reg)}</span><div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div><span class="val">${v.pending} pend. (${pct}%)</span></div>`;
+  }).join('');
+}
+
+function renderProblems(rows){
+  const el = document.getElementById('problemsList');
+  const problems = rows.filter(r=>(r.status==='late'||r.status==='pending') && r.observacoes && r.observacoes.trim());
+  if(!problems.length){ el.innerHTML = '<div class="empty">Nenhuma observação de problema registrada para esses filtros.</div>'; return; }
+  el.innerHTML = problems.slice(0,30).map(r=>`
+    <div class="problem-item">
+      <div class="ph"><span class="pnf">NF ${esc(r.nf)}</span><span><span class="tag status ${r.status}">${STATUS_LABEL[r.status]||r.status}</span> · ${esc(r.regiao||'—')}</span></div>
+      <div class="ptext">${esc(r.observacoes)}</div>
+    </div>
+  `).join('');
+}
+
+function renderHistorico(items){
+  const el = document.getElementById('historicoList');
+  if(!items.length){ el.innerHTML = '<div class="empty">Nenhuma alteração registrada ainda.</div>'; return; }
+  el.innerHTML = items.map(it=>{
+    const d = it.ts && typeof it.ts.toDate === 'function' ? it.ts.toDate() : null;
+    const dataStr = d ? d.toLocaleString('pt-BR') : 'agora mesmo';
+    const tipo = it.tipo || 'atualizado';
+    return `<div class="hist-item">
+      <span class="hist-data">${dataStr}</span>
+      <span class="hist-tipo ${tipo}">${HIST_LABEL[tipo]||tipo}</span><span class="hist-nf">NF ${esc(it.nf)}</span>
+      <div class="hist-resumo">${esc(it.resumo||'')}</div>
+    </div>`;
   }).join('');
 }
 
 function renderTable(rows){
   const tbody = document.getElementById('tbody');
-  if(!rows.length){ tbody.innerHTML = '<tr><td colspan="9"><div class="empty">Nenhuma NF lançada ainda para esses filtros.</div></td></tr>'; return; }
-  tbody.innerHTML = rows.slice(0,80).map(r=>`<tr>
-    <td>${r.carregamento||'—'}</td><td>${r.nf}</td><td>${r.regiao}</td><td>${r.motorista||'—'}</td><td>${fmtMoney(r.valor)}</td>
+  if(!rows.length){ tbody.innerHTML = '<tr><td colspan="10"><div class="empty">Nenhuma NF lançada ainda para esses filtros.</div></td></tr>'; return; }
+  tbody.innerHTML = rows.slice(0,80).map(r=>{
+    const obsFull = r.observacoes || '';
+    const obsShort = obsFull.length>28 ? (obsFull.slice(0,28)+'…') : (obsFull || '—');
+    return `<tr>
+    <td>${esc(r.carregamento)||'—'}</td><td>${esc(r.nf)}</td><td>${esc(r.regiao)}</td><td>${esc(r.motorista)||'—'}</td><td>${fmtMoney(r.valor)}</td>
     <td><span class="tag status ${r.status}">${STATUS_LABEL[r.status]||r.status}</span></td>
     <td>${MESES[r.mes]||'—'}</td>
     <td>${r.ano||'—'}</td>
-    <td>${canWrite ? `<button class="del" data-nf="${r.nf}">Excluir</button>` : ''}</td>
-  </tr>`).join('');
+    <td class="obs-cell" title="${esc(obsFull)}">${esc(obsShort)}</td>
+    <td>${canWrite ? `<button class="del" data-nf="${esc(r.nf)}">Excluir</button>` : ''}</td>
+  </tr>`;
+  }).join('');
   if(canWrite){
     tbody.querySelectorAll('.del').forEach(btn=>{
       btn.addEventListener('click', async ()=>{
         btn.disabled = true;
-        try{ await deleteDoc(doc(db,'notas',String(btn.dataset.nf))); }
+        const nfExcluida = btn.dataset.nf;
+        try{
+          await deleteDoc(doc(db,'notas',String(nfExcluida)));
+          addDoc(historicoRef, { ts: serverTimestamp(), tipo:'excluido', nf: nfExcluida, resumo:'NF removida do painel' }).catch(e=>console.error(e));
+        }
         catch(e){ btn.disabled=false; alert('Erro ao excluir: '+e.message); }
       });
     });
@@ -290,26 +424,6 @@ function drawGauge(rows){
   ctx.fillText((pct*100).toFixed(1)+'%', cx, cy-14);
   ctx.font='12px -apple-system,sans-serif'; ctx.fillStyle=cssVar('--muted');
   ctx.fillText('entregas no prazo', cx, cy+8);
-}
-
-function drawBarChart(rows){
-  const c = document.getElementById('barChart'); const ctx = c.getContext('2d');
-  const w = c.parentElement.clientWidth; c.width=w; c.height=180;
-  const byMot = {};
-  rows.forEach(r=>{ if(!byMot[r.motorista]) byMot[r.motorista]=0; if(r.status==='ok') byMot[r.motorista]++; });
-  const arr = Object.entries(byMot).sort((a,b)=>b[1]-a[1]).slice(0,6);
-  const max = Math.max(1,...arr.map(a=>a[1]));
-  ctx.clearRect(0,0,w,180);
-  if(!arr.length){ ctx.fillStyle=cssVar('--muted'); ctx.font='13px -apple-system,sans-serif'; ctx.fillText('Sem dados ainda.',0,20); return; }
-  const barH=18, gap=12, top=10;
-  ctx.font='12px -apple-system,sans-serif'; ctx.textBaseline='middle';
-  arr.forEach((a,i)=>{
-    const y = top + i*(barH+gap);
-    const bw = (w-140) * (a[1]/max);
-    ctx.fillStyle = cssVar('--muted'); ctx.textAlign='left'; ctx.fillText(a[0]||'—', 0, y+barH/2);
-    ctx.fillStyle = cssVar('--teal'); ctx.fillRect(120,y,Math.max(2,bw),barH);
-    ctx.fillStyle = cssVar('--ink'); ctx.fillText(a[1], 120+bw+8, y+barH/2);
-  });
 }
 
 function drawLineChart(rows){
@@ -338,9 +452,10 @@ function drawLineChart(rows){
 
 function renderAll(){
   populateMotFilter(allRows);
+  renderChips();
   const rows = filtered();
-  renderKpis(rows); renderRegions(rows); renderTable(rows);
-  drawGauge(rows); drawBarChart(rows); drawLineChart(rows);
+  renderKpis(rows); renderRegions(rows); renderProblems(rows); renderTable(rows);
+  drawGauge(rows); drawLineChart(rows);
 }
 [selNf,selRegiao,selStatus,selMot,selAno,selCarregamento].forEach(el=>el.addEventListener('input',renderAll));
 window.addEventListener('resize', renderAll);
@@ -357,6 +472,7 @@ document.getElementById('btnUnlock').addEventListener('click', async ()=>{
 document.getElementById('btnSalvar').addEventListener('click', async ()=>{
   const nf = document.getElementById('in_nf').value.trim();
   if(!nf) return;
+  const existed = allRows.some(r=>String(r.nf)===String(nf));
   const body = {
     carregamento: document.getElementById('in_carregamento').value.trim(),
     regiao: inRegiao.value,
@@ -365,12 +481,21 @@ document.getElementById('btnSalvar').addEventListener('click', async ()=>{
     status: document.getElementById('in_status').value,
     mes: Number(inMes.value),
     ano: Number(document.getElementById('in_ano').value) || new Date().getFullYear(),
+    observacoes: document.getElementById('in_observacoes').value.trim(),
   };
   const btn = document.getElementById('btnSalvar');
   btn.disabled = true;
   try{
     await setDoc(doc(db,'notas',nf), body);
-    document.getElementById('in_carregamento').value=''; document.getElementById('in_nf').value=''; document.getElementById('in_motorista').value=''; document.getElementById('in_valor').value='';
+    addDoc(historicoRef, {
+      ts: serverTimestamp(),
+      tipo: existed ? 'atualizado' : 'criado',
+      nf: nf,
+      resumo: `${body.regiao || '—'} · ${STATUS_LABEL[body.status]||body.status} · ${fmtMoney(body.valor)}`
+    }).catch(e=>console.error(e));
+    document.getElementById('in_carregamento').value=''; document.getElementById('in_nf').value='';
+    document.getElementById('in_motorista').value=''; document.getElementById('in_valor').value='';
+    document.getElementById('in_observacoes').value='';
   }catch(e){ alert('Erro ao salvar: '+e.message); }
   finally{ btn.disabled = false; }
 });
@@ -384,6 +509,11 @@ onSnapshot(notasRef, snap=>{
   statusTag.textContent = 'erro de conexão';
   console.error(err);
 });
+
+const historicoQuery = query(historicoRef, orderBy('ts','desc'), limit(50));
+onSnapshot(historicoQuery, snap=>{
+  renderHistorico(snap.docs.map(d=>d.data()));
+}, err=>{ console.error(err); });
 </script>
 </body>
 </html>
