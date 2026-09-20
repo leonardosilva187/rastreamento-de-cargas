@@ -1,4 +1,4 @@
-[index.html](https://github.com/user-attachments/files/32440055/index.html)<!DOCTYPE html>
+[index.html](https://github.com/user-attachments/files/32440216/index.html)<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -61,6 +61,8 @@ button{cursor:pointer; border:none; border-radius:7px; padding:9px 12px; font-si
   <div>
     <div class="panel filters">
       <h2>Filtros</h2>
+      <label>Buscar Carregamento</label>
+      <input id="fCarregamento" type="text" placeholder="Ex: 9021">
       <label>Buscar NF</label>
       <input id="fNf" type="text" placeholder="Ex: 48213">
       <label>Bairro / Região Administrativa</label>
@@ -87,6 +89,8 @@ button{cursor:pointer; border:none; border-radius:7px; padding:9px 12px; font-si
         <button class="btn-ghost" id="btnUnlock" style="margin-top:12px;">Entrar</button>
       </div>
       <div id="formPanel" class="form" style="display:none; margin-top:8px;">
+        <label>Número do Carregamento</label>
+        <input id="in_carregamento" type="text" placeholder="Ex: 9021">
         <label>Número da NF</label>
         <input id="in_nf" type="number" placeholder="Ex: 48301">
         <label>Bairro / RA</label>
@@ -138,7 +142,7 @@ button{cursor:pointer; border:none; border-radius:7px; padding:9px 12px; font-si
       <h3>Notas Fiscais</h3>
       <div class="tablewrap">
         <table>
-          <thead><tr><th>NF</th><th>Bairro/RA</th><th>Motorista</th><th>Valor</th><th>Status</th><th>Mês</th><th>Ano</th><th></th></tr></thead>
+          <thead><tr><th>Carreg.</th><th>NF</th><th>Bairro/RA</th><th>Motorista</th><th>Valor</th><th>Status</th><th>Mês</th><th>Ano</th><th></th></tr></thead>
           <tbody id="tbody"></tbody>
         </table>
       </div>
@@ -150,21 +154,6 @@ button{cursor:pointer; border:none; border-radius:7px; padding:9px 12px; font-si
 <script type="module">
 /* ======================================================================
    CONFIGURAÇÃO DO FIREBASE
-   1. Vá em https://console.firebase.google.com → crie um projeto grátis.
-   2. Ative "Firestore Database" (modo produção) e "Authentication" →
-      ative o provedor "Anônimo".
-   3. Em Configurações do projeto → Seus apps → Web (</>), copie o objeto
-      firebaseConfig gerado e cole aqui embaixo, no lugar do exemplo.
-   4. No Firestore, aba "Regras", cole:
-        rules_version = '2';
-        service cloud.firestore {
-          match /databases/{database}/documents {
-            match /notas/{nf} {
-              allow read: if true;
-              allow write: if request.auth != null;
-            }
-          }
-        }
    ====================================================================== */
 const firebaseConfig = {
   apiKey: "AIzaSyAYcAWcV_iDJNJiZpQsAbTP93WwF_JOQfE",
@@ -177,8 +166,7 @@ const firebaseConfig = {
 };
 
 // PIN simples só para esconder o formulário de quem não deveria editar.
-// Troque por outro valor antes de publicar. Não é segurança forte —
-// a proteção real de escrita fica nas Regras do Firestore acima.
+// Não é segurança forte — a proteção real de escrita fica nas Regras do Firestore.
 const EDIT_PIN = "1507";
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
@@ -206,7 +194,8 @@ const MESES = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov"
 const STATUS_LABEL = {ok:"Entregue no prazo", late:"Entregue com atraso", transit:"Em trânsito", pending:"Pendente"};
 
 const selNf=document.getElementById('fNf'), selRegiao=document.getElementById('fRegiao'),
-      selStatus=document.getElementById('fStatus'), selMot=document.getElementById('fMot'), selAno=document.getElementById('fAno');
+      selStatus=document.getElementById('fStatus'), selMot=document.getElementById('fMot'), selAno=document.getElementById('fAno'),
+      selCarregamento=document.getElementById('fCarregamento');
 document.getElementById('in_ano').value = new Date().getFullYear();
 REGIOES.forEach(r=>selRegiao.insertAdjacentHTML('beforeend',`<option value="${r}">${r}</option>`));
 const inRegiao=document.getElementById('in_regiao'), inMes=document.getElementById('in_mes');
@@ -230,8 +219,8 @@ function populateMotFilter(rows){
 }
 
 function filtered(){
-  const nf=selNf.value.trim(), reg=selRegiao.value, st=selStatus.value, mot=selMot.value, ano=selAno.value;
-  return allRows.filter(d=> (!nf||String(d.nf).includes(nf)) && (!reg||d.regiao===reg) && (!st||d.status===st) && (!mot||d.motorista===mot) && (!ano||String(d.ano)===ano) );
+  const nf=selNf.value.trim(), reg=selRegiao.value, st=selStatus.value, mot=selMot.value, ano=selAno.value, carr=selCarregamento.value.trim();
+  return allRows.filter(d=> (!nf||String(d.nf).includes(nf)) && (!reg||d.regiao===reg) && (!st||d.status===st) && (!mot||d.motorista===mot) && (!ano||String(d.ano)===ano) && (!carr||String(d.carregamento||'').includes(carr)) );
 }
 
 function renderKpis(rows){
@@ -263,9 +252,9 @@ function renderRegions(rows){
 
 function renderTable(rows){
   const tbody = document.getElementById('tbody');
-  if(!rows.length){ tbody.innerHTML = '<tr><td colspan="8"><div class="empty">Nenhuma NF lançada ainda para esses filtros.</div></td></tr>'; return; }
+  if(!rows.length){ tbody.innerHTML = '<tr><td colspan="9"><div class="empty">Nenhuma NF lançada ainda para esses filtros.</div></td></tr>'; return; }
   tbody.innerHTML = rows.slice(0,80).map(r=>`<tr>
-    <td>${r.nf}</td><td>${r.regiao}</td><td>${r.motorista||'—'}</td><td>${fmtMoney(r.valor)}</td>
+    <td>${r.carregamento||'—'}</td><td>${r.nf}</td><td>${r.regiao}</td><td>${r.motorista||'—'}</td><td>${fmtMoney(r.valor)}</td>
     <td><span class="tag status ${r.status}">${STATUS_LABEL[r.status]||r.status}</span></td>
     <td>${MESES[r.mes]||'—'}</td>
     <td>${r.ano||'—'}</td>
@@ -353,7 +342,7 @@ function renderAll(){
   renderKpis(rows); renderRegions(rows); renderTable(rows);
   drawGauge(rows); drawBarChart(rows); drawLineChart(rows);
 }
-[selNf,selRegiao,selStatus,selMot,selAno].forEach(el=>el.addEventListener('input',renderAll));
+[selNf,selRegiao,selStatus,selMot,selAno,selCarregamento].forEach(el=>el.addEventListener('input',renderAll));
 window.addEventListener('resize', renderAll);
 
 document.getElementById('btnUnlock').addEventListener('click', async ()=>{
@@ -369,6 +358,7 @@ document.getElementById('btnSalvar').addEventListener('click', async ()=>{
   const nf = document.getElementById('in_nf').value.trim();
   if(!nf) return;
   const body = {
+    carregamento: document.getElementById('in_carregamento').value.trim(),
     regiao: inRegiao.value,
     motorista: document.getElementById('in_motorista').value.trim(),
     valor: Number(document.getElementById('in_valor').value)||0,
@@ -380,7 +370,7 @@ document.getElementById('btnSalvar').addEventListener('click', async ()=>{
   btn.disabled = true;
   try{
     await setDoc(doc(db,'notas',nf), body);
-    document.getElementById('in_nf').value=''; document.getElementById('in_motorista').value=''; document.getElementById('in_valor').value='';
+    document.getElementById('in_carregamento').value=''; document.getElementById('in_nf').value=''; document.getElementById('in_motorista').value=''; document.getElementById('in_valor').value='';
   }catch(e){ alert('Erro ao salvar: '+e.message); }
   finally{ btn.disabled = false; }
 });
