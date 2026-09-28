@@ -1,4 +1,4 @@
-[index.html](https://github.com/user-attachments/files/32716370/index.html)
+[index.html](https://github.com/user-attachments/files/32736844/index.html)
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -143,13 +143,38 @@ button{cursor:pointer; border:none; border-radius:4px; padding:9px 12px; font-si
 .st-edit:disabled,.obs-edit:disabled{opacity:.5; cursor:wait;}
 #toast{position:fixed; right:18px; bottom:18px; z-index:20; max-width:340px; padding:10px 14px; background:rgba(3,14,32,.96); border:1px solid var(--teal); border-radius:6px; box-shadow:0 0 18px var(--glow); font-size:13px; opacity:0; transform:translateY(8px); transition:opacity .2s, transform .2s; pointer-events:none;}
 #toast.on{opacity:1; transform:none;}
+
+.filters-head{display:flex; align-items:center; justify-content:space-between; cursor:pointer; user-select:none;}
+.filters-head h2{margin:0;}
+.chev-btn{background:transparent; border:none; color:var(--muted); font-size:15px; padding:2px 4px; width:auto;}
+.chips-row{display:flex; flex-wrap:wrap; gap:6px; margin-top:12px; min-height:22px;}
+.chip{display:inline-flex; align-items:center; gap:6px; background:var(--surface2); border:1px solid var(--line); color:var(--ink); font-size:12px; padding:5px 10px; border-radius:20px;}
+.chip button{background:none; border:none; color:var(--muted); cursor:pointer; font-size:12px; line-height:1; padding:0; width:auto;}
+.chip button:hover{color:var(--red);}
+.no-filters{color:var(--muted); font-size:12px;}
+.grid2{display:grid; grid-template-columns:1fr 1fr; gap:16px;}
+@media (max-width:900px){.grid2{grid-template-columns:1fr;}}
+.scroll{max-height:300px; overflow-y:auto;}
+.problem-item{border-bottom:1px solid rgba(70,150,255,.16); padding:10px 0;}
+.problem-item:last-child{border-bottom:none;}
+.problem-item .ph{display:flex; justify-content:space-between; align-items:center; font-size:12px; color:var(--muted); margin-bottom:5px; gap:8px; flex-wrap:wrap;}
+.problem-item .pnf{color:var(--ink); font-weight:650; font-size:13px;}
+.problem-item .ptext{font-size:13px; color:#c7d9ea; line-height:1.5; white-space:pre-wrap; word-break:break-word;}
+.hist-item{border-bottom:1px solid rgba(70,150,255,.16); padding:9px 0; font-size:13px;}
+.hist-item:last-child{border-bottom:none;}
+.hist-tipo{font-size:10.5px; font-weight:700; text-transform:uppercase; padding:2px 8px; border-radius:12px; background:var(--surface2); margin-right:6px; letter-spacing:.3px;}
+.hist-tipo.criado{color:var(--teal);} .hist-tipo.atualizado{color:var(--blue);} .hist-tipo.excluido{color:var(--red);}
+.hist-nf{font-weight:650;}
+.hist-data{color:var(--muted); font-size:11.5px; float:right;}
+.hist-resumo{color:#c7d9ea; margin-top:4px; font-size:12.5px; word-break:break-word;}
+.obs-cell{max-width:220px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; cursor:help; font-size:12.5px;}
 </style>
 </head>
 <body>
 <header>
   <h1>Rastreamento de Cargas <span class="accent">· DF e Entorno</span></h1>
   <nav>
-    <a href="#sec-mapa">Mapa</a><a href="#sec-indicadores">Indicadores</a><a href="#sec-motoristas">Motoristas</a><a href="#sec-atraso">Atraso Mensal</a><a href="#sec-notas">Notas Fiscais</a><a href="#sec-edicao">Modo edição</a>
+    <a href="#sec-mapa">Mapa</a><a href="#sec-indicadores">Indicadores</a><a href="#sec-motoristas">Motoristas</a><a href="#sec-atraso">Atraso Mensal</a><a href="#sec-problemas">Problemas</a><a href="#sec-historico">Histórico</a><a href="#sec-notas">Notas Fiscais</a><a href="#sec-edicao">Modo edição</a>
   </nav>
   <div class="hright">
     <span class="datetag" id="dateTag"></span>
@@ -165,28 +190,34 @@ button{cursor:pointer; border:none; border-radius:4px; padding:9px 12px; font-si
       <h3>Indicadores</h3>
       <div class="kpis" id="kpis"></div>
     </div>
-    <div class="panel filters">
-      <h2>Filtros</h2>
-      <label>Buscar Carregamento</label>
-      <input id="fCarregamento" type="text" placeholder="Ex: 9021">
-      <label>Buscar NF</label>
-      <input id="fNf" type="text" placeholder="Ex: 48213">
-      <label>Macrozona</label>
-      <select id="fZona"><option value="">Todas</option></select>
-      <label>Bairro / Região Administrativa</label>
-      <select id="fRegiao"><option value="">Todas</option></select>
-      <label>Status</label>
-      <select id="fStatus">
-        <option value="">Todos</option>
-        <option value="ok">Entregue no prazo</option>
-        <option value="late">Entregue com atraso</option>
-        <option value="transit">Em trânsito</option>
-        <option value="pending">Pendente</option>
-      </select>
-      <label>Motorista</label>
-      <select id="fMot"><option value="">Todos</option></select>
-      <label>Ano</label>
-      <select id="fAno"><option value="">Todos</option></select>
+    <div class="panel filters" id="filtersPanel">
+      <div class="filters-head" id="filtersHead">
+        <h2>Filtros</h2>
+        <button type="button" class="chev-btn" id="filtersToggle">▾</button>
+      </div>
+      <div class="chips-row" id="chipsRow"></div>
+      <div class="filters-body" id="filtersBody" style="display:none;">
+        <label>Buscar Carregamento</label>
+        <input id="fCarregamento" type="text" placeholder="Ex: 9021">
+        <label>Buscar NF</label>
+        <input id="fNf" type="text" placeholder="Ex: 48213">
+        <label>Macrozona</label>
+        <select id="fZona"><option value="">Todas</option></select>
+        <label>Bairro / Região Administrativa</label>
+        <select id="fRegiao"><option value="">Todas</option></select>
+        <label>Status</label>
+        <select id="fStatus">
+          <option value="">Todos</option>
+          <option value="ok">Entregue no prazo</option>
+          <option value="late">Entregue com atraso</option>
+          <option value="transit">Em trânsito</option>
+          <option value="pending">Pendente</option>
+        </select>
+        <label>Motorista</label>
+        <select id="fMot"><option value="">Todos</option></select>
+        <label>Ano</label>
+        <select id="fAno"><option value="">Todos</option></select>
+      </div>
     </div>
   </div>
 
@@ -249,8 +280,8 @@ button{cursor:pointer; border:none; border-radius:4px; padding:9px 12px; font-si
       <select id="in_mes"></select>
       <label>Ano</label>
       <input id="in_ano" type="number" placeholder="Ex: 2026" min="2000" max="2100">
-      <label>Observação</label>
-      <textarea id="in_observacao" rows="3" placeholder="Opcional — ex: cliente ausente, reentrega agendada"></textarea>
+      <label>Observações</label>
+      <textarea id="in_observacoes" rows="3" placeholder="Ex: cliente ausente, endereço incorreto, avaria na carga..."></textarea>
       <button class="btn-primary" id="btnSalvar">Salvar NF</button>
       <div id="saveMsg" class="readonly-note" style="min-height:18px;"></div>
     </div>
@@ -262,12 +293,22 @@ button{cursor:pointer; border:none; border-radius:4px; padding:9px 12px; font-si
       <h3 id="lineTitle">Atraso Mensal (%)</h3>
       <div class="cv"><canvas id="lineChart" height="200"></canvas></div>
     </div>
+    <div class="grid2">
+      <div class="panel" id="sec-problemas">
+        <h3>Observações — Problemas nas Entregas</h3>
+        <div class="scroll" id="problemsList"></div>
+      </div>
+      <div class="panel" id="sec-historico">
+        <h3>Histórico de Alterações</h3>
+        <div class="scroll" id="historicoList"></div>
+      </div>
+    </div>
     <div class="panel" id="sec-notas">
       <h3 id="tableTitle">Notas Fiscais</h3>
-      <p id="editHint" class="readonly-note" style="display:none; margin:0 0 10px;">Modo edição ativo: altere o <b>status</b> na lista suspensa e a <b>observação</b> clicando no texto — salva ao sair do campo (Esc cancela, Ctrl+Enter salva).</p>
+      <p id="editHint" class="readonly-note" style="display:none; margin:0 0 10px;">Modo edição ativo: altere o <b>status</b> na lista suspensa e a <b>observações</b> clicando no texto — salva ao sair do campo (Esc cancela, Ctrl+Enter salva).</p>
       <div class="tablewrap">
         <table>
-          <thead><tr><th>Carreg.</th><th>NF</th><th>Bairro/RA</th><th>Motorista</th><th>Valor</th><th>Status</th><th>Observação</th><th>Mês</th><th>Ano</th><th></th></tr></thead>
+          <thead><tr><th>Carreg.</th><th>NF</th><th>Bairro/RA</th><th>Motorista</th><th>Valor</th><th>Status</th><th>Mês</th><th>Ano</th><th>Observações</th><th></th></tr></thead>
           <tbody id="tbody"></tbody>
         </table>
       </div>
@@ -298,13 +339,15 @@ const EDIT_PIN = "1507";
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
 import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
 import {
-  getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot, serverTimestamp, updateDoc
+  getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot, serverTimestamp, updateDoc,
+  addDoc, query, orderBy, limit
 } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const notasRef = collection(db, "notas");
+const historicoRef = collection(db, "historico");
 
 const REGIOES = [
   "Plano Piloto","Gama","Taguatinga","Brazlândia","Sobradinho","Planaltina (DF)","Paranoá","Núcleo Bandeirante",
@@ -328,6 +371,7 @@ const ZONAS = [
 const ZONA_DE = {}; ZONAS.forEach(z=>z.regioes.forEach(r=>{ ZONA_DE[r]=z.id; }));
 function zonaDe(reg){ return ZONA_DE[reg]||''; }
 const STATUS_LABEL = {ok:"Entregue no prazo", late:"Entregue com atraso", transit:"Em trânsito", pending:"Pendente"};
+const HIST_LABEL = {criado:"Criado", atualizado:"Atualizado", excluido:"Excluído"};
 
 const selNf=document.getElementById('fNf'), selRegiao=document.getElementById('fRegiao'),
       selStatus=document.getElementById('fStatus'), selMot=document.getElementById('fMot'), selAno=document.getElementById('fAno'),
@@ -368,7 +412,7 @@ let shown = PAGE;
 function populateMotFilter(rows){
   const cur = selMot.value;
   const names = Array.from(new Set(rows.map(r=>r.motorista).filter(Boolean))).sort();
-  selMot.innerHTML = '<option value="">Todos</option>' + names.map(n=>`<option value="${n}">${n}</option>`).join('');
+  selMot.innerHTML = '<option value="">Todos</option>' + names.map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join('');
   selMot.value = cur;
   const curAno = selAno.value;
   const anos = Array.from(new Set(rows.map(r=>r.ano).filter(Boolean))).sort();
@@ -414,8 +458,9 @@ function statusCell(r){
     + STATUS_OPTS.map(s=>`<option value="${s}" ${r.status===s?'selected':''}>${STATUS_LABEL[s]}</option>`).join('') + `</select>`;
 }
 function obsCell(r){
-  if(!canWrite) return r.observacao ? `<span class="obs-txt">${esc(r.observacao)}</span>` : '—';
-  return `<textarea class="obs-edit" rows="2" data-nf="${esc(r.nf)}" data-orig="${esc(r.observacao||'')}" placeholder="Adicionar observação…">${esc(r.observacao||'')}</textarea>`;
+  const txt = r.observacoes || '';
+  if(!canWrite) return `<div class="obs-cell" title="${esc(txt)}">${esc(txt)||'—'}</div>`;
+  return `<textarea class="obs-edit" rows="2" data-nf="${esc(r.nf)}" data-orig="${esc(txt)}" placeholder="Adicionar observações…">${esc(txt)}</textarea>`;
 }
 // true enquanto alguém está digitando uma observação ainda não salva (evita apagar o texto num re-render)
 function isEditingObs(){
@@ -423,6 +468,11 @@ function isEditingObs(){
   return !!(ae && ae.classList && ae.classList.contains('obs-edit') && ae.value!==ae.dataset.orig);
 }
 function permMsg(e){ return e.code==='permission-denied' ? 'sem permissão — confira as Regras do Firestore e o login Anônimo.' : e.message; }
+
+// Registra no painel "Histórico de Alterações" (coleção "historico")
+function logHist(tipo,nf,resumo){
+  addDoc(historicoRef, { ts: serverTimestamp(), tipo, nf: String(nf), resumo }).catch(e=>console.error(e));
+}
 
 async function salvarCampo(nf,dados,el){
   el.disabled = true;
@@ -436,6 +486,70 @@ async function salvarCampo(nf,dados,el){
   }finally{ clearTimeout(timer); el.disabled=false; }
 }
 
+/* ---------- Filtros retráteis + chips ---------- */
+const filtersHead = document.getElementById('filtersHead');
+const filtersBody = document.getElementById('filtersBody');
+const filtersToggle = document.getElementById('filtersToggle');
+filtersHead.addEventListener('click', ()=>{
+  const open = filtersBody.style.display !== 'none';
+  filtersBody.style.display = open ? 'none' : 'block';
+  filtersToggle.textContent = open ? '▾' : '▴';
+});
+const chipDefs = [
+  {sel: selCarregamento, label:'Carregamento'},
+  {sel: selNf, label:'NF'},
+  {sel: selZona, label:'Macrozona', display:v=>{ const z=ZONAS.find(o=>o.id===v); return z?z.nome:v; }},
+  {sel: selRegiao, label:'Bairro/RA'},
+  {sel: selStatus, label:'Status', display:v=>STATUS_LABEL[v]||v},
+  {sel: selMot, label:'Motorista'},
+  {sel: selAno, label:'Ano'},
+];
+function renderChips(){
+  const row = document.getElementById('chipsRow');
+  const active = chipDefs.filter(c=>c.sel.value);
+  if(!active.length){ row.innerHTML = '<span class="no-filters">Nenhum filtro ativo — toque em "Filtros" para ajustar.</span>'; return; }
+  row.innerHTML = active.map(c=>{
+    const val = c.display ? c.display(c.sel.value) : c.sel.value;
+    return `<span class="chip">${esc(c.label)}: ${esc(val)}<button type="button" data-clear="${esc(c.label)}">✕</button></span>`;
+  }).join('');
+  row.querySelectorAll('button[data-clear]').forEach(btn=>{
+    btn.addEventListener('click', e=>{
+      e.stopPropagation();
+      const def = chipDefs.find(c=>c.label===btn.dataset.clear);
+      if(def){ def.sel.value=''; shown=PAGE; renderAll(); }
+    });
+  });
+}
+
+/* ---------- Observações — Problemas nas Entregas ---------- */
+function renderProblems(rows){
+  const el = document.getElementById('problemsList');
+  const problems = rows.filter(r=>(r.status==='late'||r.status==='pending') && r.observacoes && r.observacoes.trim());
+  if(!problems.length){ el.innerHTML = '<div class="empty">Nenhuma observação de problema registrada para esses filtros.</div>'; return; }
+  el.innerHTML = problems.slice(0,30).map(r=>`
+    <div class="problem-item">
+      <div class="ph"><span class="pnf">NF ${esc(r.nf)}</span><span><span class="tag status ${esc(r.status)}">${esc(STATUS_LABEL[r.status]||r.status)}</span> · ${esc(r.regiao||'—')}</span></div>
+      <div class="ptext">${esc(r.observacoes)}</div>
+    </div>
+  `).join('');
+}
+
+/* ---------- Histórico de Alterações ---------- */
+function renderHistorico(items){
+  const el = document.getElementById('historicoList');
+  if(!items.length){ el.innerHTML = '<div class="empty">Nenhuma alteração registrada ainda.</div>'; return; }
+  el.innerHTML = items.map(it=>{
+    const d = it.ts && typeof it.ts.toDate === 'function' ? it.ts.toDate() : null;
+    const dataStr = d ? d.toLocaleString('pt-BR') : 'agora mesmo';
+    const tipo = it.tipo || 'atualizado';
+    return `<div class="hist-item">
+      <span class="hist-data">${esc(dataStr)}</span>
+      <span class="hist-tipo ${esc(tipo)}">${esc(HIST_LABEL[tipo]||tipo)}</span><span class="hist-nf">NF ${esc(it.nf)}</span>
+      <div class="hist-resumo">${esc(it.resumo||'')}</div>
+    </div>`;
+  }).join('');
+}
+
 function renderTable(rows){
   const tbody = document.getElementById('tbody');
   document.getElementById('tableTitle').textContent = 'Notas Fiscais (' + rows.length + ')';
@@ -443,9 +557,9 @@ function renderTable(rows){
   let html = rows.slice(0,shown).map(r=>`<tr>
     <td>${esc(r.carregamento)||'—'}</td><td>${esc(r.nf)}</td><td>${esc(r.regiao)}</td><td>${esc(r.motorista)||'—'}</td><td>${fmtMoney(r.valor)}</td>
     <td>${statusCell(r)}</td>
-    <td class="obs-col">${obsCell(r)}</td>
     <td>${MESES[r.mes]||'—'}</td>
     <td>${r.ano||'—'}</td>
+    <td class="obs-col">${obsCell(r)}</td>
     <td>${canWrite ? `<button class="del" data-nf="${esc(r.nf)}">Excluir</button>` : ''}</td>
   </tr>`).join('');
   if(rows.length > shown){
@@ -458,26 +572,34 @@ function renderTable(rows){
 
   tbody.querySelectorAll('.del').forEach(btn=>{
     btn.addEventListener('click', async ()=>{
-      if(!confirm('Excluir a NF '+btn.dataset.nf+'?')) return;
+      const nfExcluida = btn.dataset.nf;
+      if(!confirm('Excluir a NF '+nfExcluida+'?')) return;
       btn.disabled = true;
-      try{ await deleteDoc(doc(db,'notas',String(btn.dataset.nf))); }
-      catch(e){ btn.disabled=false; alert('Erro ao excluir: '+e.message); }
+      try{
+        await deleteDoc(doc(db,'notas',String(nfExcluida)));
+        logHist('excluido', nfExcluida, 'NF removida do painel');
+      }catch(e){ btn.disabled=false; alert('Erro ao excluir: '+e.message); }
     });
   });
   tbody.querySelectorAll('.st-edit').forEach(sel=>{
     sel.addEventListener('change', async ()=>{
       const nf = sel.dataset.nf, novo = sel.value;
+      const antigo = (allRows.find(r=>String(r.nf)===String(nf))||{}).status;
       const ok = await salvarCampo(nf,{status:novo},sel);
-      if(ok) toast('✔ Status da NF '+nf+' alterado para "'+STATUS_LABEL[novo]+'".');
-      else renderAll();
+      if(ok){
+        toast('✔ Status da NF '+nf+' alterado para "'+STATUS_LABEL[novo]+'".');
+        logHist('atualizado', nf, 'Status: '+(STATUS_LABEL[antigo]||antigo||'—')+' → '+STATUS_LABEL[novo]);
+      } else renderAll();
     });
   });
   tbody.querySelectorAll('.obs-edit').forEach(t=>{
     t.addEventListener('change', async ()=>{
       const nf = t.dataset.nf, v = t.value.trim();
-      const ok = await salvarCampo(nf,{observacao:v},t);
-      if(ok){ t.dataset.orig = v; toast('✔ Observação da NF '+nf+' salva.'); }
-      else { t.value = t.dataset.orig; }
+      const ok = await salvarCampo(nf,{observacoes:v},t);
+      if(ok){
+        t.dataset.orig = v; toast('✔ Observações da NF '+nf+' salvas.');
+        logHist('atualizado', nf, v ? 'Observações editadas' : 'Observações removidas');
+      } else { t.value = t.dataset.orig; }
     });
     t.addEventListener('keydown', e=>{
       if(e.key==='Escape'){ t.value = t.dataset.orig; t.blur(); }
@@ -639,7 +761,7 @@ mapbox.addEventListener('focusout',hideTip);
 function renderAll(){
   populateMotFilter(allRows);
   const rows = filtered();
-  renderKpis(rows); renderRegions(rows); if(!isEditingObs()) renderTable(rows); renderMap(filtered(true));
+  renderChips(); renderKpis(rows); renderRegions(rows); renderProblems(rows); if(!isEditingObs()) renderTable(rows); renderMap(filtered(true));
   drawGauge(rows); drawBarChart(rows); drawLineChart(rows);
 }
 [selNf,selRegiao,selStatus,selMot,selAno,selCarregamento,selZona].forEach(el=>el.addEventListener('input',()=>{ shown=PAGE; renderAll(); }));
@@ -670,14 +792,14 @@ document.getElementById('btnSalvar').addEventListener('click', async ()=>{
     setMsg('Salvamento cancelado: a NF '+nf+' já existia.','var(--amber)'); return;
   }
 
-  const obsForm = document.getElementById('in_observacao').value.trim();
+  const obsForm = document.getElementById('in_observacoes').value.trim();
   const body = {
     carregamento: document.getElementById('in_carregamento').value.trim(),
     regiao: inRegiao.value,
     motorista: document.getElementById('in_motorista').value.trim(),
     valor: valor,
     status: document.getElementById('in_status').value,
-    observacao: obsForm || (existente && existente.observacao) || '',
+    observacoes: obsForm || (existente && existente.observacoes) || '',
     mes: Number(inMes.value),
     ano: Number(document.getElementById('in_ano').value) || new Date().getFullYear(),
     criadoEm: (existente && existente.criadoEm) ? existente.criadoEm : serverTimestamp(),
@@ -688,7 +810,8 @@ document.getElementById('btnSalvar').addEventListener('click', async ()=>{
   const timer = setTimeout(()=>setMsg('Sem resposta do servidor ainda — verifique a internet. Ao reconectar, a NF será gravada.','var(--amber)'), 8000);
   try{
     await setDoc(doc(db,'notas',nf), body);
-    document.getElementById('in_carregamento').value=''; document.getElementById('in_nf').value=''; document.getElementById('in_motorista').value=''; document.getElementById('in_valor').value=''; document.getElementById('in_observacao').value='';
+    logHist(existente ? 'atualizado' : 'criado', nf, (body.regiao||'—')+' · '+(STATUS_LABEL[body.status]||body.status)+' · '+fmtMoney(body.valor));
+    document.getElementById('in_carregamento').value=''; document.getElementById('in_nf').value=''; document.getElementById('in_motorista').value=''; document.getElementById('in_valor').value=''; document.getElementById('in_observacoes').value='';
     setMsg('✔ NF '+nf+' salva com sucesso.','var(--teal)');
   }catch(e){
     const msg = e.code==='permission-denied' ? 'sem permissão — confira as Regras do Firestore e o login Anônimo no Firebase.' : e.message;
@@ -715,6 +838,10 @@ onSnapshot(notasRef, snap=>{
   statusTag.textContent = 'erro de conexão'; statusTag.classList.remove('live'); statusTag.classList.add('bad');
   console.error(err);
 });
+const historicoQuery = query(historicoRef, orderBy('ts','desc'), limit(50));
+onSnapshot(historicoQuery, snap=>{
+  renderHistorico(snap.docs.map(d=>d.data({serverTimestamps:'estimate'})));
+}, err=>{ console.error(err); });
 </script>
 </body>
 </html>
