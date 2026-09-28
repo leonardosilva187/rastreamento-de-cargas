@@ -1,4 +1,4 @@
-[index.html](https://github.com/user-attachments/files/32440360/index.html)
+[index.html](https://github.com/user-attachments/files/32714587/index.html)
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -93,13 +93,13 @@ button{cursor:pointer; border:none; border-radius:7px; padding:9px 12px; font-si
         <label>Número do Carregamento</label>
         <input id="in_carregamento" type="text" placeholder="Ex: 9021">
         <label>Número da NF</label>
-        <input id="in_nf" type="number" placeholder="Ex: 48301">
+        <input id="in_nf" type="text" inputmode="numeric" placeholder="Ex: 48301">
         <label>Bairro / RA</label>
         <select id="in_regiao"></select>
         <label>Motorista</label>
         <input id="in_motorista" type="text" placeholder="Nome do motorista">
         <label>Valor (R$)</label>
-        <input id="in_valor" type="number" placeholder="Ex: 3200">
+        <input id="in_valor" type="text" inputmode="decimal" placeholder="Ex: 3200 ou 3.200,50">
         <label>Status</label>
         <select id="in_status">
           <option value="ok">Entregue no prazo</option>
@@ -112,6 +112,7 @@ button{cursor:pointer; border:none; border-radius:7px; padding:9px 12px; font-si
         <label>Ano</label>
         <input id="in_ano" type="number" placeholder="Ex: 2026" min="2000" max="2100">
         <button class="btn-primary" id="btnSalvar">Salvar NF</button>
+        <div id="saveMsg" class="readonly-note" style="min-height:18px;"></div>
       </div>
       <div class="readonly-note">Link público: qualquer pessoa vê o painel ao vivo. Só quem tiver o PIN consegue lançar/editar NFs.</div>
     </div>
@@ -135,12 +136,12 @@ button{cursor:pointer; border:none; border-radius:7px; padding:9px 12px; font-si
         <canvas id="barChart" height="180"></canvas>
       </div>
       <div class="panel">
-        <h3>Atraso Mensal (%)</h3>
+        <h3 id="lineTitle">Atraso Mensal (%)</h3>
         <canvas id="lineChart" height="180"></canvas>
       </div>
     </div>
     <div class="panel">
-      <h3>Notas Fiscais</h3>
+      <h3 id="tableTitle">Notas Fiscais</h3>
       <div class="tablewrap">
         <table>
           <thead><tr><th>Carreg.</th><th>NF</th><th>Bairro/RA</th><th>Motorista</th><th>Valor</th><th>Status</th><th>Mês</th><th>Ano</th><th></th></tr></thead>
@@ -173,7 +174,7 @@ const EDIT_PIN = "1507";
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
 import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
 import {
-  getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot
+  getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
 const app = initializeApp(firebaseConfig);
@@ -206,7 +207,20 @@ MESES.forEach((m,i)=>inMes.insertAdjacentHTML('beforeend',`<option value="${i}">
 let allRows = [];
 let canWrite = false;
 
-function fmtMoney(v){ return "R$ " + Number(v||0).toLocaleString('pt-BR'); }
+function fmtMoney(v){ return "R$ " + Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+
+// Aceita "3200", "3200,50", "3.200,50", "R$ 3.200" etc. Retorna NaN se for inválido.
+function parseValor(txt){
+  let s = String(txt||'').trim().replace(/[R$\s]/g,'');
+  if(!s) return 0;
+  if(s.includes(',')) s = s.replace(/\./g,'').replace(',','.');
+  else if(/^\d{1,3}(\.\d{3})+$/.test(s)) s = s.replace(/\./g,'');
+  const n = Number(s);
+  return isFinite(n) ? n : NaN;
+}
+
+const PAGE = 100;
+let shown = PAGE;
 
 function populateMotFilter(rows){
   const cur = selMot.value;
@@ -253,17 +267,25 @@ function renderRegions(rows){
 
 function renderTable(rows){
   const tbody = document.getElementById('tbody');
+  document.getElementById('tableTitle').textContent = 'Notas Fiscais (' + rows.length + ')';
   if(!rows.length){ tbody.innerHTML = '<tr><td colspan="9"><div class="empty">Nenhuma NF lançada ainda para esses filtros.</div></td></tr>'; return; }
-  tbody.innerHTML = rows.slice(0,80).map(r=>`<tr>
+  let html = rows.slice(0,shown).map(r=>`<tr>
     <td>${r.carregamento||'—'}</td><td>${r.nf}</td><td>${r.regiao}</td><td>${r.motorista||'—'}</td><td>${fmtMoney(r.valor)}</td>
     <td><span class="tag status ${r.status}">${STATUS_LABEL[r.status]||r.status}</span></td>
     <td>${MESES[r.mes]||'—'}</td>
     <td>${r.ano||'—'}</td>
     <td>${canWrite ? `<button class="del" data-nf="${r.nf}">Excluir</button>` : ''}</td>
   </tr>`).join('');
+  if(rows.length > shown){
+    html += `<tr><td colspan="9" style="text-align:center;"><button class="btn-ghost" id="btnMais" style="width:auto;">Mostrar mais (${shown} de ${rows.length})</button></td></tr>`;
+  }
+  tbody.innerHTML = html;
+  const mais = document.getElementById('btnMais');
+  if(mais) mais.addEventListener('click', ()=>{ shown += PAGE; renderAll(); });
   if(canWrite){
     tbody.querySelectorAll('.del').forEach(btn=>{
       btn.addEventListener('click', async ()=>{
+        if(!confirm('Excluir a NF '+btn.dataset.nf+'?')) return;
         btn.disabled = true;
         try{ await deleteDoc(doc(db,'notas',String(btn.dataset.nf))); }
         catch(e){ btn.disabled=false; alert('Erro ao excluir: '+e.message); }
@@ -316,25 +338,33 @@ function drawBarChart(rows){
 function drawLineChart(rows){
   const c = document.getElementById('lineChart'); const ctx = c.getContext('2d');
   const w = c.parentElement.clientWidth; c.width=w; c.height=180;
-  const perMonth = MESES.slice(0,9).map((_,i)=>{
-    const m = rows.filter(r=>r.mes===i);
+  // Usa o ano do filtro; sem filtro, usa o ano mais recente com lançamentos
+  const anos = rows.map(r=>Number(r.ano)).filter(Boolean);
+  const ano = selAno.value ? Number(selAno.value) : (anos.length ? Math.max(...anos) : new Date().getFullYear());
+  document.getElementById('lineTitle').textContent = 'Atraso Mensal (%) — ' + ano;
+  const perMonth = MESES.map((_,i)=>{
+    const m = rows.filter(r=>r.mes===i && Number(r.ano)===ano);
     const late = m.filter(r=>r.status==='late').length;
-    return m.length ? late/m.length*100 : 0;
+    return m.length ? late/m.length*100 : null;
   });
   ctx.clearRect(0,0,w,180);
   const padL=30, padB=22, padT=10, plotW=w-padL-10, plotH=180-padB-padT;
-  const max = Math.max(10,...perMonth);
-  ctx.strokeStyle = cssVar('--line');
+  const max = Math.max(10,...perMonth.map(v=>v||0));
+  const xy = i=>[ padL + plotW*(i/(perMonth.length-1)), padT + plotH - ((perMonth[i]||0)/max)*plotH ];
+  ctx.strokeStyle = cssVar('--line'); ctx.lineWidth=1;
   ctx.beginPath(); ctx.moveTo(padL,padT); ctx.lineTo(padL,padT+plotH); ctx.lineTo(padL+plotW,padT+plotH); ctx.stroke();
-  ctx.beginPath();
+  ctx.strokeStyle = cssVar('--amber'); ctx.lineWidth=2;
+  ctx.beginPath(); let pen=false;
   perMonth.forEach((v,i)=>{
-    const x = padL + plotW*(i/(perMonth.length-1));
-    const y = padT + plotH - (v/max)*plotH;
-    if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    if(v===null){ pen=false; return; }
+    const [x,y]=xy(i);
+    if(!pen){ ctx.moveTo(x,y); pen=true; } else ctx.lineTo(x,y);
   });
-  ctx.strokeStyle = cssVar('--amber'); ctx.lineWidth=2; ctx.stroke();
+  ctx.stroke();
+  ctx.fillStyle = cssVar('--amber');
+  perMonth.forEach((v,i)=>{ if(v===null) return; const [x,y]=xy(i); ctx.beginPath(); ctx.arc(x,y,3,0,Math.PI*2); ctx.fill(); });
   ctx.fillStyle = cssVar('--muted'); ctx.font='10.5px -apple-system,sans-serif'; ctx.textAlign='center';
-  MESES.slice(0,9).forEach((m,i)=>{ const x = padL + plotW*(i/(perMonth.length-1)); ctx.fillText(m, x, 180-6); });
+  MESES.forEach((m,i)=>{ const [x]=xy(i); ctx.fillText(m, x, 180-6); });
 }
 
 function renderAll(){
@@ -343,7 +373,7 @@ function renderAll(){
   renderKpis(rows); renderRegions(rows); renderTable(rows);
   drawGauge(rows); drawBarChart(rows); drawLineChart(rows);
 }
-[selNf,selRegiao,selStatus,selMot,selAno,selCarregamento].forEach(el=>el.addEventListener('input',renderAll));
+[selNf,selRegiao,selStatus,selMot,selAno,selCarregamento].forEach(el=>el.addEventListener('input',()=>{ shown=PAGE; renderAll(); }));
 window.addEventListener('resize', renderAll);
 
 document.getElementById('btnUnlock').addEventListener('click', async ()=>{
@@ -355,30 +385,51 @@ document.getElementById('btnUnlock').addEventListener('click', async ()=>{
   renderAll();
 });
 
+const saveMsg = document.getElementById('saveMsg');
+function setMsg(t,color){ saveMsg.textContent=t; saveMsg.style.color=color||''; }
+
 document.getElementById('btnSalvar').addEventListener('click', async ()=>{
   const nf = document.getElementById('in_nf').value.trim();
-  if(!nf) return;
+  if(!nf){ setMsg('Preencha o número da NF antes de salvar.','var(--red)'); document.getElementById('in_nf').focus(); return; }
+  if(nf.includes('/')){ setMsg('O número da NF não pode conter "/".','var(--red)'); return; }
+  const valor = parseValor(document.getElementById('in_valor').value);
+  if(Number.isNaN(valor)){ setMsg('Valor inválido. Use, por exemplo, 3200 ou 3.200,50.','var(--red)'); document.getElementById('in_valor').focus(); return; }
+
+  const existente = allRows.find(r=>String(r.nf)===nf);
+  if(existente && !confirm('A NF '+nf+' já existe (Carreg. '+(existente.carregamento||'—')+', '+(existente.motorista||'sem motorista')+').\nDeseja SUBSTITUIR os dados dela?')){
+    setMsg('Salvamento cancelado: a NF '+nf+' já existia.','var(--amber)'); return;
+  }
+
   const body = {
     carregamento: document.getElementById('in_carregamento').value.trim(),
     regiao: inRegiao.value,
     motorista: document.getElementById('in_motorista').value.trim(),
-    valor: Number(document.getElementById('in_valor').value)||0,
+    valor: valor,
     status: document.getElementById('in_status').value,
     mes: Number(inMes.value),
     ano: Number(document.getElementById('in_ano').value) || new Date().getFullYear(),
+    criadoEm: (existente && existente.criadoEm) ? existente.criadoEm : serverTimestamp(),
+    atualizadoEm: serverTimestamp(),
   };
   const btn = document.getElementById('btnSalvar');
-  btn.disabled = true;
+  btn.disabled = true; setMsg('Salvando…');
+  const timer = setTimeout(()=>setMsg('Sem resposta do servidor ainda — verifique a internet. Ao reconectar, a NF será gravada.','var(--amber)'), 8000);
   try{
     await setDoc(doc(db,'notas',nf), body);
     document.getElementById('in_carregamento').value=''; document.getElementById('in_nf').value=''; document.getElementById('in_motorista').value=''; document.getElementById('in_valor').value='';
-  }catch(e){ alert('Erro ao salvar: '+e.message); }
-  finally{ btn.disabled = false; }
+    setMsg('✔ NF '+nf+' salva com sucesso.','var(--teal)');
+  }catch(e){
+    const msg = e.code==='permission-denied' ? 'sem permissão — confira as Regras do Firestore e o login Anônimo no Firebase.' : e.message;
+    setMsg('Erro ao salvar: '+msg,'var(--red)');
+    alert('Erro ao salvar: '+msg);
+  }finally{ clearTimeout(timer); btn.disabled = false; }
 });
 
 const statusTag = document.getElementById('statusTag');
 onSnapshot(notasRef, snap=>{
-  allRows = snap.docs.map(d=>({ nf:d.id, ...d.data() }));
+  allRows = snap.docs.map(d=>({ nf:d.id, ...d.data({serverTimestamps:'estimate'}) }));
+  const t = r => (r.criadoEm && r.criadoEm.toMillis) ? r.criadoEm.toMillis() : 0;
+  allRows.sort((a,b)=> t(b)-t(a) || String(a.nf).localeCompare(String(b.nf),'pt-BR',{numeric:true}));
   statusTag.textContent = 'ao vivo';
   renderAll();
 }, err=>{
