@@ -1,0 +1,36 @@
+// ============================================================
+// REGRAS DO FIRESTORE — Rastreamento de Cargas
+// Console Firebase > Firestore Database > Regras > colar > Publicar
+// ============================================================
+
+// ---------- PASSO 1 (agora): usar ESTAS regras ----------
+// Mantém o funcionamento atual (PIN + login anônimo) e libera a nova
+// coleção "resumo_diario" (série histórica do passivo).
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /notas/{id}          { allow read: if true; allow write: if request.auth != null; }
+    match /historico/{id}      { allow read: if true; allow write: if request.auth != null; }
+    match /resumo_diario/{id}  { allow read: if true; allow write: if request.auth != null; }
+  }
+}
+
+// ---------- PASSO 2 (recomendado): trocar por ESTAS regras ----------
+// Antes: Firebase > Authentication > Sign-in method > ativar "E-mail/senha"
+//        e criar o(s) usuário(s) editor(es) (Authentication > Users > Add user).
+// Depois: no index.html trocar  const USE_EMAIL_LOGIN = false;  por  true
+//        e publicar o index.html. Só então publicar as regras abaixo.
+// (troque o e-mail pelo(s) do(s) editor(es))
+//
+// rules_version = '2';
+// service cloud.firestore {
+//   match /databases/{database}/documents {
+//     function editor() {
+//       return request.auth != null
+//         && request.auth.token.email in ['EDITOR@EXEMPLO.COM'];
+//     }
+//     match /notas/{id}          { allow read: if true; allow write: if editor(); }
+//     match /historico/{id}      { allow read: if true; allow write: if editor(); }
+//     match /resumo_diario/{id}  { allow read: if true; allow write: if editor(); }
+//   }
+// }
