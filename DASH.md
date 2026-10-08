@@ -1,5 +1,4 @@
-[index.html](https://github.com/user-attachments/files/33225238/index.html)
-
+[index.html](https://github.com/user-attachments/files/33225466/index.html)
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -191,6 +190,9 @@ details.manual{margin-top:6px;} details.manual summary{cursor:pointer; color:var
 .bulk-row.warn td{background:rgba(255,181,71,.07);} .bulk-row.dup td{opacity:.45;}
 .bulk-flag{font-size:11px; padding:1px 7px; border-radius:10px; white-space:nowrap; display:inline-block; margin:1px 2px 1px 0;}
 .bulk-flag.w{background:rgba(255,181,71,.18); color:var(--amber);} .bulk-flag.u{background:rgba(61,139,255,.18); color:var(--blue);} .bulk-flag.n{background:rgba(39,230,255,.14); color:var(--teal);} .bulk-flag.d{background:rgba(255,90,106,.16); color:var(--red);}
+.bulk-groups{border:1px solid rgba(255,181,71,.45); background:rgba(255,181,71,.07); border-radius:4px; padding:9px 11px; margin-bottom:10px; font-size:12.5px;}
+.bulk-group{display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-top:7px;}
+.bulk-group select{max-width:220px; padding:4px 6px; background:var(--surface2); color:var(--ink); border:1px solid var(--line); border-radius:4px; font-size:12px;}
 .bulk-actions{display:flex; gap:10px; margin-top:12px; justify-content:flex-end;}
 .bulk-actions button{width:auto; margin:0; min-width:150px;}
 </style>
@@ -973,10 +975,16 @@ function renderBulkPreview(){
   const novas = act.filter(r=>!allRows.some(x=>String(x.nf)===r.nf)).length;
   const semReg = act.filter(r=>!r.regiao).length;
   const total = act.reduce((a,r)=>a+r.valor,0);
+  const gmap = {};
+  act.filter(r=>!r.regiao).forEach(r=>{ const g = gmap[r.numcar] || (gmap[r.numcar]={numcar:r.numcar,n:0,destinos:[]}); g.n++; if(r.destino && !g.destinos.includes(r.destino) && g.destinos.length<3) g.destinos.push(r.destino); });
+  const grupos = Object.values(gmap).filter(g=>g.n>=2);
   const wrap = document.getElementById('bulkPreviewWrap');
   wrap.innerHTML = `
     <div class="bulk-summary"><b>${act.length}</b> NF(s) para importar — <b>${novas}</b> nova(s), <b>${act.length-novas}</b> já existente(s) (serão atualizadas) · ${fmtMoney(total)}
       ${semReg?`<br><span style="color:var(--amber)">⚠ ${semReg} NF(s) sem Bairro/RA — escolha na coluna "Bairro/RA" para liberar a importação.</span>`:''}</div>
+    ${grupos.length?`<div class="bulk-groups"><b>Preencher por carregamento</b> — escolha o Bairro/RA uma vez e ele vale para todas as NFs sem bairro daquele carregamento:
+      ${grupos.map(g=>`<div class="bulk-group"><span>Carreg. <b>${esc(g.numcar)||'(sem nº)'}</b> · ${g.n} NF(s) sem Bairro/RA · ${esc(g.destinos.join(', '))}</span>
+        <select data-g="${esc(g.numcar)}"><option value="">— escolher —</option>${REGIOES.map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join('')}</select></div>`).join('')}</div>`:''}
     ${errors.length?`<div class="bulk-errors"><b>${errors.length} linha(s) ignorada(s):</b><br>${errors.slice(0,20).map(esc).join('<br>')}${errors.length>20?'<br>…':''}</div>`:''}
     <div class="bulk-preview"><table><thead><tr><th>Carreg.</th><th>NF</th><th>Mês/Ano</th><th>Motorista</th><th>Destino (planilha)</th><th>Bairro/RA</th><th>Valor</th><th>Status</th><th>Observações</th><th></th></tr></thead><tbody>
     ${rows.map((r,i)=>`<tr class="bulk-row ${r.skip?'dup':''} ${!r.skip&&!r.regiao?'warn':''}">
@@ -993,6 +1001,11 @@ function renderBulkPreview(){
     <div id="bulkConfirmMsg" class="readonly-note" style="min-height:16px;"></div>`;
   wrap.querySelectorAll('select[data-i]').forEach(sel=>sel.addEventListener('change',()=>{
     bulkState.rows[Number(sel.dataset.i)][sel.dataset.f] = sel.value; renderBulkPreview();
+  }));
+  wrap.querySelectorAll('select[data-g]').forEach(sel=>sel.addEventListener('change',()=>{
+    if(!sel.value) return;
+    bulkState.rows.forEach(r=>{ if(!r.skip && !r.regiao && r.numcar===sel.dataset.g) r.regiao = sel.value; });
+    renderBulkPreview();
   }));
   document.getElementById('btnBulkCancel').addEventListener('click', closeBulk);
   document.getElementById('btnBulkConfirm').addEventListener('click', confirmBulkImport);
