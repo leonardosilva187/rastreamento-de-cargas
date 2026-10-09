@@ -309,7 +309,7 @@ header nav{display:none;}
       <div class="filters-body" id="filtersBody" style="display:none;">
         <div class="fld"><label>Buscar Carregamento</label><input id="fCarregamento" type="text" placeholder="Ex: 9021"></div>
         <div class="fld"><label>Buscar NF</label><input id="fNf" type="text" placeholder="Ex: 48213"></div>
-        <div class="fld"><label>Macrozona</label><select id="fZona"><option value="">Todas</option></select></div>
+        <div class="fld"><label>Macrozona / Município (GO)</label><select id="fZona"><option value="">Todas</option></select></div>
         <div class="fld"><label>Bairro / Região Administrativa</label><select id="fRegiao"><option value="">Todas</option></select></div>
         <div class="fld"><label>Status</label><select id="fStatus">
           <option value="">Todos</option>
@@ -542,7 +542,7 @@ const REGIOES = [
   "Águas Lindas de Goiás (GO)","Cidade Ocidental (GO)","Novo Gama (GO)","Valparaíso de Goiás (GO)",
   "Luziânia (GO)","Formosa (GO)","Planaltina (GO)","Santo Antônio do Descoberto (GO)","Alexânia (GO)",
   "Cristalina (GO)","Padre Bernardo (GO)",
-  "Cabeceiras de Goiás (GO)","Abadiânia (GO)","Silvânia (GO)","Cocalzinho de Goiás (GO)","Corumbá de Goiás (GO)","Mimoso de Goiás (GO)"
+  "Cocalzinho de Goiás (GO)"
 ];
 const MESES = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
 const ZONAS = [
@@ -550,17 +550,19 @@ const ZONAS = [
   {id:'df-oeste', nome:'DF Oeste', x:30.2, y:50.9, regioes:["Ceilândia","Taguatinga","Samambaia","Águas Claras","Vicente Pires","Sol Nascente/Pôr do Sol","Brazlândia","Arniqueira"]},
   {id:'df-sul', nome:'DF Sul', x:44.7, y:53.8, regioes:["Gama","Santa Maria","Recanto das Emas","Riacho Fundo","Riacho Fundo II","Núcleo Bandeirante","Candangolândia"]},
   {id:'df-norte-leste', nome:'DF Norte/Leste', x:69.1, y:46.7, regioes:["Sobradinho","Sobradinho II","Planaltina (DF)","Paranoá","São Sebastião","Itapoã","Fercal","Arapoanga","Água Quente","Jardim Botânico"]},
-  {id:'entorno-sul', nome:'Entorno Sul', x:65.1, y:57.5, regioes:["Valparaíso de Goiás (GO)","Novo Gama (GO)","Cidade Ocidental (GO)"]},
-  {id:'entorno-oeste-norte', nome:'Entorno Oeste/Norte', x:50.7, y:27.0, regioes:["Águas Lindas de Goiás (GO)","Padre Bernardo (GO)","Planaltina (GO)","Cocalzinho de Goiás (GO)","Corumbá de Goiás (GO)","Mimoso de Goiás (GO)"]},
-  /* Pontos do mapa em Goiás com filtro próprio */
-  {id:"go-formosa", nome:"Formosa (GO)", x:73.8, y:29.8, go:true, regioes:["Formosa (GO)"]},
-  {id:"go-cabeceiras", nome:"Cabeceiras de Goiás (GO)", rot:"Cabeceiras", x:87.6, y:47.6, go:true, regioes:["Cabeceiras de Goiás (GO)"]},
-  {id:"go-santo-antonio", nome:"Santo Antônio do Descoberto (GO)", rot:"Sto. Antônio", pos:"top", x:37.0, y:64.6, go:true, regioes:["Santo Antônio do Descoberto (GO)"]},
-  {id:"go-alexania", nome:"Alexânia (GO)", x:26.3, y:69.0, go:true, regioes:["Alexânia (GO)"]},
-  {id:"go-abadiania", nome:"Abadiânia (GO)", pos:"left", x:21.6, y:65.4, go:true, regioes:["Abadiânia (GO)"]},
-  {id:"go-luziania", nome:"Luziânia (GO)", x:42.5, y:72.4, go:true, regioes:["Luziânia (GO)"]},
-  {id:"go-silvania", nome:"Silvânia (GO)", x:44.7, y:82.5, go:true, regioes:["Silvânia (GO)"]},
-  {id:"go-cristalina", nome:"Cristalina (GO)", x:71.5, y:84.1, go:true, regioes:["Cristalina (GO)"]},
+  /* Municípios de Goiás (Entorno) conforme mapa Agência Senado, com filtro próprio */
+  {id:"go-padre-bernardo", nome:"Padre Bernardo (GO)", rot:"P. Bernardo", x:30.0, y:28.6, go:true, regioes:["Padre Bernardo (GO)"]},
+  {id:"go-planaltina", nome:"Planaltina (GO)", x:56.2, y:27.6, go:true, regioes:["Planaltina (GO)"]},
+  {id:"go-formosa", nome:"Formosa (GO)", x:81.2, y:27.6, go:true, regioes:["Formosa (GO)"]},
+  {id:"go-aguas-lindas", nome:"Águas Lindas de Goiás (GO)", rot:"Águas Lindas", pos:"left", x:29.6, y:44.4, go:true, regioes:["Águas Lindas de Goiás (GO)"]},
+  {id:"go-cocalzinho", nome:"Cocalzinho de Goiás (GO)", rot:"Cocalzinho", x:10.9, y:41.4, go:true, regioes:["Cocalzinho de Goiás (GO)"]},
+  {id:"go-alexania", nome:"Alexânia (GO)", pos:"left", x:19.3, y:57.5, go:true, regioes:["Alexânia (GO)"]},
+  {id:"go-santo-antonio", nome:"Santo Antônio do Descoberto (GO)", rot:"Sto. Antônio", x:30.6, y:58.6, go:true, regioes:["Santo Antônio do Descoberto (GO)"]},
+  {id:"go-novo-gama", nome:"Novo Gama (GO)", rot:"N. Gama", x:39.2, y:58.5, go:true, regioes:["Novo Gama (GO)"]},
+  {id:"go-valparaiso", nome:"Valparaíso de Goiás (GO)", rot:"Valparaíso", pos:"top", x:43.9, y:57.5, go:true, regioes:["Valparaíso de Goiás (GO)"]},
+  {id:"go-cidade-ocidental", nome:"Cidade Ocidental (GO)", rot:"C. Ocidental", x:51.4, y:57.9, go:true, regioes:["Cidade Ocidental (GO)"]},
+  {id:"go-luziania", nome:"Luziânia (GO)", x:43.7, y:73.7, go:true, regioes:["Luziânia (GO)"]},
+  {id:"go-cristalina", nome:"Cristalina (GO)", x:64.5, y:77.7, go:true, regioes:["Cristalina (GO)"]},
 ];
 const ZONA_DE = {}; ZONAS.forEach(z=>z.regioes.forEach(r=>{ ZONA_DE[r]=z.id; }));
 function zonaDe(reg){ return ZONA_DE[reg]||''; }
@@ -895,7 +897,7 @@ filtersHead.addEventListener('click', ()=>{
 const chipDefs = [
   {sel: selCarregamento, label:'Carregamento'},
   {sel: selNf, label:'NF'},
-  {sel: selZona, label:'Macrozona', display:v=>{ const z=ZONAS.find(o=>o.id===v); return z?z.nome:v; }},
+  {sel: selZona, label:'Macrozona / Município', display:v=>{ const z=ZONAS.find(o=>o.id===v); return z?z.nome:v; }},
   {sel: selRegiao, label:'Bairro/RA'},
   {sel: selStatus, label:'Status', display:v=>STATUS_LABEL[v]||v},
   {sel: selMot, label:'Motorista'},
@@ -1397,7 +1399,7 @@ const DESTINO_RULES = [
   ['NOVO GAMA','Novo Gama (GO)'], ['GAMA','Gama'],
   ['AGUAS LINDAS|A\\.LIND|AG LIND','Águas Lindas de Goiás (GO)'],
   ['STO ANTONIO DESC|SANTO ANTONIO','Santo Antônio do Descoberto (GO)'],
-  ['PADRE BERNARDO','Padre Bernardo (GO)'], ['FORMOSA','Formosa (GO)'], ['CABECEIRAS','Cabeceiras de Goiás (GO)'], ['ABADIANIA','Abadiânia (GO)'], ['SILVANIA','Silvânia (GO)'], ['COCALZINHO','Cocalzinho de Goiás (GO)'], ['CORUMBA','Corumbá de Goiás (GO)'], ['MIMOSO','Mimoso de Goiás (GO)'], ['CRISTALINA','Cristalina (GO)'], ['ALEXANIA','Alexânia (GO)'],
+  ['PADRE BERNARDO','Padre Bernardo (GO)'], ['FORMOSA','Formosa (GO)'], ['COCALZINHO','Cocalzinho de Goiás (GO)'], ['CRISTALINA','Cristalina (GO)'], ['ALEXANIA','Alexânia (GO)'],
   ['LUZIANIA','Luziânia (GO)'], ['OCIDENTAL','Cidade Ocidental (GO)'], ['V?VALP','Valparaíso de Goiás (GO)'],
   ['PLANALTINA GO','Planaltina (GO)'], ['PLANAL[AT]+INA( DF)?|PLANALTINA','Planaltina (DF)'],
   ['SOBRADINHO II','Sobradinho II'], ['SOBRA','Sobradinho'],
