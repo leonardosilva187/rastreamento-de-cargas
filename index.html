@@ -365,7 +365,7 @@ details.manual{margin-top:6px;} details.manual summary{cursor:pointer; color:var
       </div>
     </div>
     <div class="panel" id="sec-notas">
-      <h3 id="tableTitle">Notas Fiscais</h3>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:6px;"><h3 id="tableTitle" style="margin:0;">Notas Fiscais</h3><button class="btn-ghost" id="btnExportXlsx" style="width:auto;padding:7px 14px;" title="Baixa em Excel o que está filtrado na tela">⬇ Exportar Excel</button></div>
       <p id="editHint" class="readonly-note" style="display:none; margin:0 0 10px;">Modo edição ativo: altere o <b>status</b> na lista suspensa e as <b>observações</b> clicando no texto — salva ao sair do campo (Esc cancela, Ctrl+Enter salva).</p>
       <div class="tablewrap">
         <table>
@@ -519,6 +519,94 @@ function diasDe(r){
 }
 const FAIXAS = [{l:'0–2 dias',a:0,b:2,c:'#27e6ff'},{l:'3–5 dias',a:3,b:5,c:'#3d8bff'},{l:'6–10 dias',a:6,b:10,c:'#ffb547'},{l:'Mais de 10 dias',a:11,b:1e9,c:'#ff5a6a'},{l:'Sem informação',a:null,b:null,c:'#5d7fa3'}];
 function faixaDe(r){ const d=diasDe(r); if(d===null) return FAIXAS[4]; return FAIXAS.find(f=>f.a!==null && d>=f.a && d<=f.b)||FAIXAS[3]; }
+
+/* ---------- Exportar para Excel (.xlsx) ---------- */
+let _xlsxLib = null;
+function loadXlsx(){
+  if(window.XLSX) return Promise.resolve(window.XLSX);
+  if(_xlsxLib) return _xlsxLib;
+  _xlsxLib = new Promise((res,rej)=>{
+    const sc = document.createElement('script');
+    sc.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+    sc.onload = ()=>res(window.XLSX);
+    sc.onerror = ()=>{ _xlsxLib=null; rej(new Error('Não foi possível carregar a biblioteca do Excel. Verifique a internet e tente de novo.')); };
+    document.head.appendChild(sc);
+  });
+  return _xlsxLib;
+}
+function fmtDataBR(iso){ const m=/^(\d{4})-(\d{2})-(\d{2})/.exec(iso||''); return m ? m[3]+'/'+m[2]+'/'+m[1] : ''; }
+async function exportarExcel(){
+  const btn = document.getElementById('btnExportXlsx');
+  const rows = filtered();
+  if(!rows.length){ alert('Não há NFs para exportar com os filtros atuais.'); return; }
+  const txt = btn.textContent; btn.disabled = true; btn.textContent = 'Gerando…';
+  try{
+    const X = await loadXlsx();
+    const MONEY = '"R$" #,##0.00', PCT = '0.0%';
+    const agora = new Date();
+    const stamp = agora.toISOString().slice(0,10);
+
+    // Aba 1 — Notas
+    const head = ['Carregamento','NF','Bairro/RA','Motorista','Valor','Status','Mês','Ano','Dias de atraso','Data de saída','Observações'];
+    const body = rows.map(r=>[
+      r.carregamento||'', String(r.nf), r.regiao||'', r.motorista||'', Number(r.valor)||0,
+      STATUS_LABEL[r.status]||r.status||'', MESES[r.mes]||'', r.ano?Number(r.ano):'',
+      diasDe(r)===null?'':diasDe(r), fmtDataBR(r.dtsaida), r.observacoes||''
+    ]);
+    const wsN = X.utils.aoa_to_sheet([head,...body]);
+    body.forEach((_,i)=>{ const c=wsN['E'+(i+2)]; if(c) c.z=MONEY; });
+    wsN['!cols'] = [{wch:13},{wch:11},{wch:26},{wch:34},{wch:16},{wch:22},{wch:6},{wch:7},{wch:14},{wch:14},{wch:50}];
+    wsN['!autofilter'] = {ref:'A1:K'+(body.length+1)};
+
+    // Aba 2 — Resumo por status
+    const ordem = ['ok','late','transit','pending','devolucao'];
+    const totN = rows.length, totV = rows.reduce((a,r)=>a+(Number(r.valor)||0),0);
+    const resumo = [['Status','NFs','% das NFs','Valor','% do valor']];
+    ordem.forEach(k=>{
+      const g = rows.filter(r=>r.status===k);
+      const v = g.reduce((a,r)=>a+(Number(r.valor)||0),0);
+      resumo.push([STATUS_LABEL[k], g.length, totN?g.length/totN:0, v, totV?v/totV:0]);
+    });
+    resumo.push(['Total', totN, 1, totV, 1]);
+    const abertas = rows.filter(isOpen), vAb = abertas.reduce((a,r)=>a+(Number(r.valor)||0),0);
+    resumo.push([]);
+    resumo.push(['Em aberto (pendentes + analisando)', abertas.length, totN?abertas.length/totN:0, vAb, totV?vAb/totV:0]);
+    resumo.push([]);
+    resumo.push(['Gerado em '+agora.toLocaleString('pt-BR')+' · '+totN+' NF(s) conforme os filtros da tela']);
+    const wsR = X.utils.aoa_to_sheet(resumo);
+    for(let i=2;i<=resumo.length;i++){
+      if(wsR['C'+i] && typeof wsR['C'+i].v==='number') wsR['C'+i].z=PCT;
+      if(wsR['E'+i] && typeof wsR['E'+i].v==='number') wsR['E'+i].z=PCT;
+      if(wsR['D'+i] && typeof wsR['D'+i].v==='number') wsR['D'+i].z=MONEY;
+    }
+    wsR['!cols'] = [{wch:36},{wch:8},{wch:12},{wch:18},{wch:12}];
+
+    // Aba 3 — Motoristas em aberto
+    const porMot = {};
+    abertas.forEach(r=>{
+      const k = r.motorista||'(sem motorista)';
+      const o = porMot[k] = porMot[k] || {n:0,v:0,d:[]};
+      o.n++; o.v += Number(r.valor)||0;
+      const d = diasDe(r); if(d!==null) o.d.push(d);
+    });
+    const mots = Object.entries(porMot).sort((a,b)=>b[1].v-a[1].v);
+    const wsM = X.utils.aoa_to_sheet([['Motorista','NFs em aberto','Valor em aberto','Atraso médio (dias)'],
+      ...mots.map(([k,o])=>[k,o.n,o.v,o.d.length?Math.round(o.d.reduce((a,b)=>a+b,0)/o.d.length*10)/10:''])]);
+    mots.forEach((_,i)=>{ const c=wsM['C'+(i+2)]; if(c) c.z=MONEY; });
+    wsM['!cols'] = [{wch:36},{wch:14},{wch:18},{wch:18}];
+
+    const wb = X.utils.book_new();
+    X.utils.book_append_sheet(wb, wsN, 'Notas');
+    X.utils.book_append_sheet(wb, wsR, 'Resumo por status');
+    X.utils.book_append_sheet(wb, wsM, 'Motoristas em aberto');
+    X.writeFile(wb, 'rastreamento-notas-'+stamp+'.xlsx');
+  }catch(e){
+    alert('Erro ao exportar: '+e.message);
+  }finally{
+    btn.disabled = false; btn.textContent = txt;
+  }
+}
+document.getElementById('btnExportXlsx').addEventListener('click', exportarExcel);
 
 const PAGE = 100;
 let shown = PAGE;
