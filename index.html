@@ -512,8 +512,25 @@ function parseValor(txt){
 /* ---------- Helpers de análise ---------- */
 const isOpen = r => r.status==='pending' || r.status==='transit';
 function fmtK(v){ v=Number(v)||0; return v>=1e6 ? 'R$ '+(v/1e6).toLocaleString('pt-BR',{maximumFractionDigits:2})+' mi' : v>=1e3 ? 'R$ '+(v/1e3).toLocaleString('pt-BR',{maximumFractionDigits:1})+' mil' : fmtMoney(v); }
+// Dias corridos entre uma data de referência (AAAA-MM-DD) e hoje
+function diasDesde(iso){
+  const m=/^(\d{4})-(\d{2})-(\d{2})/.exec(iso||''); if(!m) return 0;
+  const a=new Date(+m[1],+m[2]-1,+m[3]), h=new Date(); const b=new Date(h.getFullYear(),h.getMonth(),h.getDate());
+  return Math.max(0, Math.round((b-a)/864e5));
+}
+// Data em que o atrasoDias gravado foi lido da planilha: atrasoRef (importação) ou, nas NFs antigas, a data de criação
+function refAtraso(r){
+  if(r.atrasoRef) return r.atrasoRef;
+  const ms = (r.criadoEm && r.criadoEm.toMillis) ? r.criadoEm.toMillis() : 0;
+  if(!ms) return null;
+  const d=new Date(ms); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+// Dias de atraso: nas NFs em aberto (pendente / analisando) a contagem continua subindo sozinha, 1 por dia, desde a última importação
 function diasDe(r){
-  if(Number.isFinite(Number(r.atrasoDias)) && r.atrasoDias!==null && r.atrasoDias!==undefined) return Number(r.atrasoDias);
+  if(Number.isFinite(Number(r.atrasoDias)) && r.atrasoDias!==null && r.atrasoDias!==undefined){
+    const base = Number(r.atrasoDias);
+    return isOpen(r) ? base + diasDesde(refAtraso(r)) : base;
+  }
   if(r.dtsaida){ const d=new Date(r.dtsaida+'T00:00:00'); if(!isNaN(d)) return Math.max(0,Math.floor((Date.now()-d)/864e5)); }
   return null;
 }
@@ -551,7 +568,7 @@ async function exportarExcel(){
     const body = rows.map(r=>[
       r.carregamento||'', String(r.nf), r.regiao||'', r.motorista||'', Number(r.valor)||0,
       STATUS_LABEL[r.status]||r.status||'', MESES[r.mes]||'', r.ano?Number(r.ano):'',
-      diasDe(r)===null?'':diasDe(r), fmtDataBR(r.dtsaida), r.observacoes||''
+      diasDe(r)===null?'':diasDe(r), fmtDataBR(r.dtsaida), obsLive(r)
     ]);
     const wsN = X.utils.aoa_to_sheet([head,...body]);
     body.forEach((_,i)=>{ const c=wsN['E'+(i+2)]; if(c) c.z=MONEY; });
@@ -663,8 +680,15 @@ function statusCell(r){
   return `<select class="st-edit ${esc(r.status)}" data-nf="${esc(r.nf)}" aria-label="Status da NF ${esc(r.nf)}">`
     + STATUS_OPTS.map(s=>`<option value="${s}" ${r.status===s?'selected':''}>${STATUS_LABEL[s]}</option>`).join('') + `</select>`;
 }
+// Troca o "(N dias)" gravado na observação pela contagem atual (só NFs em aberto)
+function obsLive(r){
+  const t = r.observacoes || '';
+  if(!isOpen(r) || !Number.isFinite(Number(r.atrasoDias))) return t;
+  const n = diasDe(r);
+  return t.replace(/\(\s*\d+\s*dias?\s*\)(?![\s\S]*\(\s*\d+\s*dias?\s*\))/i, '('+n+(n===1?' dia':' dias')+')');
+}
 function obsCell(r){
-  const txt = r.observacoes || '';
+  const txt = obsLive(r);
   if(!canWrite) return `<div class="obs-cell" title="${esc(txt)}">${esc(txt)||'—'}</div>`;
   return `<textarea class="obs-edit" rows="2" data-nf="${esc(r.nf)}" data-orig="${esc(txt)}" placeholder="Adicionar observações…">${esc(txt)}</textarea>`;
 }
@@ -735,7 +759,7 @@ function renderProblems(rows){
   el.innerHTML = problems.slice(0,30).map(r=>`
     <div class="problem-item">
       <div class="ph"><span class="pnf">NF ${esc(r.nf)}</span><span><span class="tag status ${esc(r.status)}">${esc(STATUS_LABEL[r.status]||r.status)}</span> · ${esc(r.regiao||'—')}</span></div>
-      <div class="ptext">${esc(r.observacoes)}</div>
+      <div class="ptext">${esc(obsLive(r))}</div>
     </div>
   `).join('');
 }
@@ -791,7 +815,10 @@ function renderTable(rows){
     sel.addEventListener('change', async ()=>{
       const nf = sel.dataset.nf, novo = sel.value;
       const antigo = (allRows.find(r=>String(r.nf)===String(nf))||{}).status;
-      const ok = await salvarCampo(nf,{status:novo},sel);
+      const linha = allRows.find(r=>String(r.nf)===String(nf));
+      const extra = {};
+      if(linha && isOpen(linha) && !isOpen({status:novo}) && Number.isFinite(Number(linha.atrasoDias))){ extra.atrasoDias = diasDe(linha); extra.atrasoRef = hojeISO(); }
+      const ok = await salvarCampo(nf,{status:novo,...extra},sel);
       if(ok){
         toast('✔ Status da NF '+nf+' alterado para "'+STATUS_LABEL[novo]+'".');
         logHist('atualizado', nf, 'Status: '+(STATUS_LABEL[antigo]||antigo||'—')+' → '+STATUS_LABEL[novo]);
@@ -1069,6 +1096,13 @@ function showView(v){
 }
 document.querySelectorAll('.tabbtn').forEach(b=>b.addEventListener('click',()=>showView(b.dataset.view)));
 
+let _diaRender = null;
+function checarVirouDia(){
+  const h = hojeISO(); if(_diaRender===null){ _diaRender=h; return; }
+  if(h!==_diaRender && !isEditingObs()){ _diaRender=h; renderAll(); }
+}
+setInterval(checarVirouDia, 5*60*1000);
+document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) checarVirouDia(); });
 function renderAll(){
   populateMotFilter(allRows);
   const rows = filtered();
@@ -1320,7 +1354,7 @@ async function confirmBulkImport(){
         const ex = existentes[r.nf];
         batch.set(doc(db,'notas',r.nf), {
           carregamento: r.numcar, regiao: r.regiao, motorista: r.motorista, valor: r.valor, status: r.status,
-          observacoes: r.observacoes, mes: r.mes, ano: r.ano, dtsaida: r.dtsaida, atrasoDias: r.atrasoDias, pj: r.pj, origem: 'lanca',
+          observacoes: r.observacoes, mes: r.mes, ano: r.ano, dtsaida: r.dtsaida, atrasoDias: r.atrasoDias, atrasoRef: hojeISO(), pj: r.pj, origem: 'lanca',
           criadoEm: (ex && ex.criadoEm) ? ex.criadoEm : serverTimestamp(), atualizadoEm: serverTimestamp(),
         });
         if(ex) atualizadas++; else novas++;
