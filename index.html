@@ -244,6 +244,9 @@ header nav{display:none;}
 .filters-slot .filters-body[style*="block"]{display:grid !important; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:10px 16px;}
 #viewNotas .tablewrap{max-height:calc(100vh - 330px); min-height:320px;}
 #viewHist .scroll{max-height:none;}
+#viewBanco .tablewrap{max-height:calc(100vh - 430px); min-height:300px;}
+#viewEdicao .panel{max-width:1000px; margin:0 auto 16px;}
+.dias-alerta{color:var(--red); font-weight:650;}
 #viewReg #regions{display:grid; grid-template-columns:repeat(auto-fit,minmax(420px,1fr)); column-gap:34px;}
 #viewReg .region-row .name{width:200px;}
 #viewReg .region-row .val{width:auto; min-width:200px;}
@@ -268,6 +271,7 @@ header nav{display:none;}
   <button type="button" class="sb-item" data-view="hist" title="Histórico de Alterações"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span class="lbl">Histórico de Alterações</span></button>
   <button type="button" class="sb-item" data-view="atraso" title="Atraso Mensal"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><span class="lbl">Atraso Mensal</span></button>
   <button type="button" class="sb-item" data-view="reg" title="Em aberto por Bairro/RA"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s7-6.2 7-11a7 7 0 0 0-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg><span class="lbl">Em aberto por Bairro/RA</span></button>
+    <button type="button" class="sb-item" data-view="banco" title="Banco de Dados"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v6c0 1.7 3.6 3 8 3s8-1.3 8-3V5M4 11v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></svg><span class="lbl">Banco de Dados</span></button>
   <div class="sb-label">ACESSO</div>
   <button type="button" class="sb-item" data-view="edicao" title="Modo edição"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg><span class="lbl">Modo edição</span></button>
 </aside>
@@ -342,7 +346,65 @@ header nav{display:none;}
   </div>
 </div>
 
-<div class="row2">
+<div class="row2" style="display:block;">
+  <div class="col">
+    <div class="panel" id="sec-problemas">
+        <h3>Observações — Problemas nas Entregas</h3>
+        <div class="scroll" id="problemsList"></div>
+      </div>
+  </div>
+</div>
+</div>
+<div id="viewNotas" class="view" style="display:none;"><div id="slot-notas"></div>
+    <div class="panel" id="sec-notas">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:6px;"><h3 id="tableTitle" style="margin:0;">Notas Fiscais</h3><button class="btn-ghost" id="btnExportXlsx" style="width:auto;padding:7px 14px;" title="Baixa em Excel o que está filtrado na tela">⬇ Exportar Excel</button></div>
+      <p id="editHint" class="readonly-note" style="display:none; margin:0 0 10px;">Modo edição ativo: altere o <b>status</b> na lista suspensa e as <b>observações</b> clicando no texto — salva ao sair do campo (Esc cancela, Ctrl+Enter salva).</p>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Carreg.</th><th>NF</th><th>Bairro/RA</th><th>Motorista</th><th>Valor</th><th>Status</th><th>Mês</th><th>Ano</th><th>Observações</th><th></th></tr></thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+    </div>
+</div>
+<div id="viewHist" class="view" style="display:none;">
+    <div class="panel" id="sec-historico">
+        <h3>Histórico de Alterações</h3>
+        <div class="scroll" id="historicoList"></div>
+      </div>
+</div>
+<div id="viewAtraso" class="view" style="display:none;"><div id="slot-atraso"></div>
+    <div class="panel" id="sec-atraso">
+      <h3 id="lineTitle">Atraso Mensal (%)</h3>
+      <div class="cv"><canvas id="lineChart" height="320"></canvas></div>
+    </div>
+    <div class="panel" id="sec-passivo">
+      <h3 id="snapTitle">Passivo em aberto (R$) — resumo diário</h3>
+      <div class="cv" id="snapWrap"><canvas id="snapChart" height="300"></canvas></div>
+      <div class="readonly-note" id="snapNote" style="display:none;"></div>
+    </div>
+</div>
+<div id="viewReg" class="view" style="display:none;"><div id="slot-reg"></div>
+    <div class="panel">
+      <h3>Em aberto por Bairro/RA <span class="hint">valor · NFs · atraso médio</span></h3>
+      <div id="regions"></div>
+    </div>
+</div>
+<div id="viewBanco" class="view" style="display:none;">
+  <div class="panel" id="sec-banco">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:6px;"><h3 style="margin:0;">Banco de Dados <span class="hint">pendências que deixaram de vir na importação</span></h3><button class="btn-ghost" id="btnExportBanco" style="width:auto;padding:7px 14px;" title="Baixa em Excel as pendências atrasadas">⬇ Exportar Excel</button></div>
+    <p class="readonly-note" style="margin:6px 0 12px;">Quando uma colagem da Lança não traz mais uma NF que estava em aberto, ela vem para cá como <b>Pendente</b>, com a data da última vez em que apareceu em Notas Fiscais. Se ela voltar numa colagem futura, é reativada sozinha.</p>
+    <div class="ind-cards" id="bancoCards"></div>
+    <div class="ind-filters"><div style="flex:1;min-width:240px;"><label for="bancoBusca">Buscar</label><input id="bancoBusca" type="text" placeholder="NF, carregamento, motorista ou bairro…" style="width:100%;padding:8px 10px;background:var(--surface2);border:1px solid var(--line);color:var(--ink);border-radius:4px;font-size:13px;"></div></div>
+    <div class="tablewrap">
+      <table class="ind-table">
+        <thead><tr><th>Carreg.</th><th>NF</th><th>Bairro/RA</th><th>Motorista</th><th>Valor</th><th>Status</th><th>Última vez em Notas Fiscais</th><th>Dias fora da lista</th><th>Dias de atraso</th><th>Observações</th><th></th></tr></thead>
+        <tbody id="bancoBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+<div id="viewEdicao" class="view" style="display:none;">
   <div class="panel" id="editGate">
     <span id="sec-edicao"></span>
     <h2>Modo edição</h2>
@@ -392,48 +454,6 @@ header nav{display:none;}
     <div class="readonly-note">Link público: qualquer pessoa vê o painel ao vivo. Só quem tiver o PIN consegue lançar/editar NFs.</div>
   </div>
 
-  <div class="col">
-    <div class="panel" id="sec-problemas">
-        <h3>Observações — Problemas nas Entregas</h3>
-        <div class="scroll" id="problemsList"></div>
-      </div>
-  </div>
-</div>
-</div>
-<div id="viewNotas" class="view" style="display:none;"><div id="slot-notas"></div>
-    <div class="panel" id="sec-notas">
-      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:6px;"><h3 id="tableTitle" style="margin:0;">Notas Fiscais</h3><button class="btn-ghost" id="btnExportXlsx" style="width:auto;padding:7px 14px;" title="Baixa em Excel o que está filtrado na tela">⬇ Exportar Excel</button></div>
-      <p id="editHint" class="readonly-note" style="display:none; margin:0 0 10px;">Modo edição ativo: altere o <b>status</b> na lista suspensa e as <b>observações</b> clicando no texto — salva ao sair do campo (Esc cancela, Ctrl+Enter salva).</p>
-      <div class="tablewrap">
-        <table>
-          <thead><tr><th>Carreg.</th><th>NF</th><th>Bairro/RA</th><th>Motorista</th><th>Valor</th><th>Status</th><th>Mês</th><th>Ano</th><th>Observações</th><th></th></tr></thead>
-          <tbody id="tbody"></tbody>
-        </table>
-      </div>
-    </div>
-</div>
-<div id="viewHist" class="view" style="display:none;">
-    <div class="panel" id="sec-historico">
-        <h3>Histórico de Alterações</h3>
-        <div class="scroll" id="historicoList"></div>
-      </div>
-</div>
-<div id="viewAtraso" class="view" style="display:none;"><div id="slot-atraso"></div>
-    <div class="panel" id="sec-atraso">
-      <h3 id="lineTitle">Atraso Mensal (%)</h3>
-      <div class="cv"><canvas id="lineChart" height="320"></canvas></div>
-    </div>
-    <div class="panel" id="sec-passivo">
-      <h3 id="snapTitle">Passivo em aberto (R$) — resumo diário</h3>
-      <div class="cv" id="snapWrap"><canvas id="snapChart" height="300"></canvas></div>
-      <div class="readonly-note" id="snapNote" style="display:none;"></div>
-    </div>
-</div>
-<div id="viewReg" class="view" style="display:none;"><div id="slot-reg"></div>
-    <div class="panel">
-      <h3>Em aberto por Bairro/RA <span class="hint">valor · NFs · atraso médio</span></h3>
-      <div id="regions"></div>
-    </div>
 </div>
 <div id="viewInd" style="display:none;">
   <div class="panel">
@@ -545,6 +565,7 @@ MESES.forEach((m,i)=>inMes.insertAdjacentHTML('beforeend',`<option value="${i}">
 
 let allRows = [];
 let currentView = 'painel';
+let bancoRows = [];
 let resumoDias = [];
 let canWrite = false;
 
@@ -683,6 +704,79 @@ async function exportarExcel(){
   }
 }
 document.getElementById('btnExportXlsx').addEventListener('click', exportarExcel);
+
+/* ---------- Banco de Dados: pendências que deixaram de vir na importação ---------- */
+function dataISOde(ts){
+  const ms = (ts && ts.toMillis) ? ts.toMillis() : 0; if(!ms) return null;
+  const d = new Date(ms); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+// Último dia em que a NF esteve na lista (aba Notas Fiscais): vistoEm (a cada importação) ou, nas NFs antigas, a melhor data disponível
+function ultimaVista(r){ return r.vistoEm || r.atrasoRef || dataISOde(r.atualizadoEm) || dataISOde(r.criadoEm) || null; }
+function bancoFiltrado(){
+  const q = (document.getElementById('bancoBusca').value||'').trim().toLowerCase();
+  const rows = bancoRows.filter(r=>!q || [r.nf,r.carregamento,r.motorista,r.regiao].some(x=>String(x||'').toLowerCase().includes(q)));
+  return rows.sort((a,b)=>(diasDe(b)??-1)-(diasDe(a)??-1) || String(a.nf).localeCompare(String(b.nf),'pt-BR',{numeric:true}));
+}
+function renderBanco(){
+  const rows = bancoFiltrado();
+  const tot = rows.reduce((a,r)=>a+(Number(r.valor)||0),0);
+  const dias = rows.map(diasDe).filter(d=>d!==null);
+  const med = dias.length ? Math.round(dias.reduce((a,b)=>a+b,0)/dias.length) : null;
+  document.getElementById('bancoCards').innerHTML =
+    `<div class="ind-card" style="--c:var(--amber)"><div class="t">NFs no Banco de Dados</div><div class="n">${rows.length}</div></div>`+
+    `<div class="ind-card" style="--c:var(--amber)"><div class="t">Valor pendente</div><div class="n" style="font-size:22px">${fmtMoney(tot)}</div></div>`+
+    `<div class="ind-card" style="--c:var(--red)"><div class="t">Atraso médio</div><div class="n">${med===null?'—':med+' d'}</div></div>`+
+    `<div class="ind-card" style="--c:var(--red)"><div class="t">Maior atraso</div><div class="n">${dias.length?Math.max(...dias)+' d':'—'}</div></div>`;
+  const body = document.getElementById('bancoBody');
+  if(!rows.length){ body.innerHTML = '<tr><td colspan="11"><div class="empty">Nenhuma NF no Banco de Dados. As NFs em aberto que não vierem na próxima importação da Lança aparecem aqui.</div></td></tr>'; return; }
+  body.innerHTML = rows.slice(0,500).map(r=>{
+    const ult = ultimaVista(r), fora = ult ? diasDesde(ult) : null, d = diasDe(r);
+    return `<tr><td>${esc(r.carregamento)||'—'}</td><td>${esc(r.nf)}</td><td>${esc(r.regiao)||'—'}</td><td>${esc(r.motorista)||'—'}</td><td>${fmtMoney(r.valor)}</td>`+
+      `<td><span class="tag status pending">${esc(STATUS_LABEL.pending)}</span></td><td>${ult?fmtDataBR(ult):'—'}</td><td>${fora===null?'—':fora}</td>`+
+      `<td class="${d!==null&&d>10?'dias-alerta':''}">${d===null?'—':d}</td><td class="obs-col"><div class="obs-cell" title="${esc(obsLive(r))}">${esc(obsLive(r))||'—'}</div></td>`+
+      `<td>${canWrite?`<button class="btn-ghost reativar" data-nf="${esc(r.nf)}" style="width:auto;padding:5px 10px;font-size:12px;" title="Devolve a NF para a aba Notas Fiscais">Reativar</button>`:''}</td></tr>`;
+  }).join('') + (rows.length>500?`<tr><td colspan="11" style="text-align:center;color:var(--muted);">Mostrando 500 de ${rows.length} — use a busca para filtrar.</td></tr>`:'');
+  body.querySelectorAll('.reativar').forEach(btn=>btn.addEventListener('click', async ()=>{
+    const nf = btn.dataset.nf;
+    if(!confirm('Devolver a NF '+nf+' para a aba Notas Fiscais?')) return;
+    btn.disabled = true;
+    try{
+      await updateDoc(doc(db,'notas',String(nf)), {arquivada:false, vistoEm:hojeISO(), atualizadoEm:serverTimestamp()});
+      logHist('atualizado', nf, 'NF reativada (saiu do Banco de Dados)');
+      toast('✔ NF '+nf+' voltou para Notas Fiscais.');
+    }catch(e){ btn.disabled=false; alert('Erro ao reativar: '+permMsg(e)); }
+  }));
+}
+document.getElementById('bancoBusca').addEventListener('input', renderBanco);
+async function exportarBanco(){
+  const btn = document.getElementById('btnExportBanco');
+  const rows = bancoFiltrado();
+  if(!rows.length){ alert('Não há NFs no Banco de Dados para exportar.'); return; }
+  const txt = btn.textContent; btn.disabled = true; btn.textContent = 'Gerando…';
+  try{
+    const X = await loadXlsx(); const MONEY = '"R$" #,##0.00';
+    const head = ['Carregamento','NF','Bairro/RA','Motorista','Valor','Status','Última vez em Notas Fiscais','Dias fora da lista','Dias de atraso','Data de saída','Observações'];
+    const body = rows.map(r=>{ const ult=ultimaVista(r); return [
+      r.carregamento||'', String(r.nf), r.regiao||'', r.motorista||'', Number(r.valor)||0, STATUS_LABEL.pending,
+      ult?fmtDataBR(ult):'', ult?diasDesde(ult):'', diasDe(r)===null?'':diasDe(r), fmtDataBR(r.dtsaida), obsLive(r) ]; });
+    const ws = X.utils.aoa_to_sheet([head,...body]);
+    body.forEach((_,i)=>{ const c=ws['E'+(i+2)]; if(c) c.z=MONEY; });
+    ws['!cols'] = [{wch:13},{wch:11},{wch:26},{wch:34},{wch:16},{wch:12},{wch:26},{wch:17},{wch:14},{wch:14},{wch:50}];
+    ws['!autofilter'] = {ref:'A1:K'+(body.length+1)};
+    const porMot = {};
+    rows.forEach(r=>{ const k=r.motorista||'(sem motorista)'; const o=porMot[k]=porMot[k]||{n:0,v:0,max:0}; o.n++; o.v+=Number(r.valor)||0; o.max=Math.max(o.max,diasDe(r)||0); });
+    const mots = Object.entries(porMot).sort((a,b)=>b[1].v-a[1].v);
+    const wsM = X.utils.aoa_to_sheet([['Motorista','NFs pendentes','Valor pendente','Maior atraso (dias)'],...mots.map(([k,o])=>[k,o.n,o.v,o.max])]);
+    mots.forEach((_,i)=>{ const c=wsM['C'+(i+2)]; if(c) c.z=MONEY; });
+    wsM['!cols'] = [{wch:36},{wch:14},{wch:18},{wch:18}];
+    const wb = X.utils.book_new();
+    X.utils.book_append_sheet(wb, ws, 'Pendências atrasadas');
+    X.utils.book_append_sheet(wb, wsM, 'Por motorista');
+    X.writeFile(wb, 'PENDENCIAS ATRASADA.xlsx');
+  }catch(e){ alert('Erro ao exportar: '+e.message); }
+  finally{ btn.disabled=false; btn.textContent=txt; }
+}
+document.getElementById('btnExportBanco').addEventListener('click', exportarBanco);
 
 const PAGE = 100;
 let shown = PAGE;
@@ -1142,11 +1236,10 @@ function renderIndicadores(){
 }
 [indAno,indMes,indMot].forEach(el=>el.addEventListener('input',renderIndicadores));
 
-const VIEWS = {painel:'viewPainel', ind:'viewInd', notas:'viewNotas', hist:'viewHist', atraso:'viewAtraso', reg:'viewReg'};
+const VIEWS = {painel:'viewPainel', ind:'viewInd', notas:'viewNotas', hist:'viewHist', atraso:'viewAtraso', reg:'viewReg', banco:'viewBanco', edicao:'viewEdicao'};
 const filtersPanelEl = document.getElementById('filtersPanel');
 const filtersHomeEl = document.getElementById('filtersHome');
 function showView(v, alvo){
-  if(v==='edicao'){ alvo='editGate'; v='painel'; }
   if(!VIEWS[v]) v='painel';
   currentView = v;
   Object.entries(VIEWS).forEach(([k,id])=>{ document.getElementById(id).style.display = k===v ? '' : 'none'; });
@@ -1183,7 +1276,7 @@ document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) checarV
 function renderAll(){
   populateMotFilter(allRows);
   const rows = filtered();
-  renderChips(); renderKpis(rows); renderRegions(rows); renderProblems(rows); if(!isEditingObs()) renderTable(rows); renderMap(filtered(true));
+  renderBanco(); renderChips(); renderKpis(rows); renderRegions(rows); renderProblems(rows); if(!isEditingObs()) renderTable(rows); renderMap(filtered(true));
   if(currentView==='ind'){ renderIndicadores(); return; }
   if(currentView==='painel'){ drawGauge(rows); drawBarChart(rows); }
   if(currentView==='atraso'){
@@ -1360,7 +1453,7 @@ function parseBulkInput(text){
   return {rows, errors};
 }
 
-let bulkState = {rows:[], errors:[], arquivar:false};
+let bulkState = {rows:[], errors:[], arquivar:true};
 const bulkModal = document.getElementById('bulkModal');
 function closeBulk(){ bulkModal.classList.remove('on'); }
 function bulkFlags(r,i){
@@ -1397,7 +1490,7 @@ function renderBulkPreview(){
     ${grupos.length?`<div class="bulk-groups"><b>Preencher por carregamento</b> — escolha o Bairro/RA uma vez e ele vale para todas as NFs sem bairro daquele carregamento:
       ${grupos.map(g=>`<div class="bulk-group"><span>Carreg. <b>${esc(g.numcar)||'(sem nº)'}</b> · ${g.n} NF(s) sem Bairro/RA · ${esc(g.destinos.join(', '))}</span>
         <select data-g="${esc(g.numcar)}"><option value="">— escolher —</option>${REGIOES.map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join('')}</select></div>`).join('')}</div>`:''}
-    ${ausentes.length?`<div class="bulk-groups"><label style="display:flex; gap:8px; align-items:flex-start; cursor:pointer; margin:0; color:var(--ink);"><input type="checkbox" id="chkArquivar" ${bulkState.arquivar?'checked':''} style="width:auto; margin-top:3px;"><span><b>${ausentes.length} NF(s) em aberto no painel (${fmtMoney(ausV)}) não vieram nesta colagem.</b> Marque para arquivá-las (saem dos indicadores; se voltarem numa colagem futura, são reativadas). Use só se esta colagem é a lista COMPLETA de pendências atuais.</span></label></div>`:''}
+    ${ausentes.length?`<div class="bulk-groups"><label style="display:flex; gap:8px; align-items:flex-start; cursor:pointer; margin:0; color:var(--ink);"><input type="checkbox" id="chkArquivar" ${bulkState.arquivar?'checked':''} style="width:auto; margin-top:3px;"><span><b>${ausentes.length} NF(s) em aberto no painel (${fmtMoney(ausV)}) não vieram nesta colagem.</b> Marcado: elas vão para a aba <b>Banco de Dados</b> como Pendente, com a data da última vez em Notas Fiscais (saem dos indicadores; se voltarem numa colagem futura, são reativadas). Desmarque se esta colagem NÃO é a lista completa de pendências.</span></label></div>`:''}
     ${errors.length?`<div class="bulk-errors"><b>${errors.length} linha(s) ignorada(s):</b><br>${errors.slice(0,20).map(esc).join('<br>')}${errors.length>20?'<br>…':''}</div>`:''}
     <div class="bulk-preview"><table><thead><tr><th>Carreg.</th><th>NF</th><th>Mês/Ano</th><th>Motorista</th><th>Destino (planilha)</th><th>Bairro/RA</th><th>Valor</th><th>Status</th><th>Observações</th><th></th></tr></thead><tbody>
     ${rows.map((r,i)=>`<tr class="bulk-row ${r.skip?'dup':''} ${!r.skip&&!r.regiao?'warn':''}">
@@ -1439,7 +1532,7 @@ async function confirmBulkImport(){
         const ex = existentes[r.nf];
         batch.set(doc(db,'notas',r.nf), {
           carregamento: r.numcar, regiao: r.regiao, motorista: r.motorista, valor: r.valor, status: r.status,
-          observacoes: r.observacoes, mes: r.mes, ano: r.ano, dtsaida: r.dtsaida, atrasoDias: r.atrasoDias, atrasoRef: hojeISO(), pj: r.pj, origem: 'lanca',
+          observacoes: r.observacoes, mes: r.mes, ano: r.ano, dtsaida: r.dtsaida, atrasoDias: r.atrasoDias, atrasoRef: hojeISO(), vistoEm: hojeISO(), pj: r.pj, origem: 'lanca',
           criadoEm: (ex && ex.criadoEm) ? ex.criadoEm : serverTimestamp(), atualizadoEm: serverTimestamp(),
         });
         if(ex) atualizadas++; else novas++;
@@ -1451,14 +1544,14 @@ async function confirmBulkImport(){
       const lista = bulkState.ausentes;
       for(let i=0;i<lista.length;i+=400){
         const b2 = writeBatch(db);
-        lista.slice(i,i+400).forEach(r=>b2.update(doc(db,'notas',String(r.nf)), {arquivada:true, atualizadoEm:serverTimestamp()}));
+        lista.slice(i,i+400).forEach(r=>b2.update(doc(db,'notas',String(r.nf)), {arquivada:true, status:'pending', ultimaNaLista: ultimaVista(r)||hojeISO(), arquivadaEm: hojeISO(), atualizadoEm:serverTimestamp()}));
         await b2.commit(); arq += Math.min(400,lista.length-i);
       }
     }
     const idsArq = new Set(arq ? bulkState.ausentes.map(r=>String(r.nf)) : []);
     const apos = allRows.filter(r=>!idsArq.has(String(r.nf)) && !(r.nf in Object.fromEntries(act.map(a=>[a.nf,1])))).concat(act.map(a=>({nf:a.nf,status:a.status,valor:a.valor})));
     await gravarResumoDiario(apos);
-    logHist('atualizado', act.length+' NFs', 'Importação em lote (aba Lança): '+novas+' nova(s), '+atualizadas+' atualizada(s)'+(arq?', '+arq+' arquivada(s) por não virem na colagem':''));
+    logHist('atualizado', act.length+' NFs', 'Importação em lote (aba Lança): '+novas+' nova(s), '+atualizadas+' atualizada(s)'+(arq?', '+arq+' movida(s) para o Banco de Dados por não virem na colagem':''));
     document.getElementById('bulkInput').value = '';
     document.getElementById('bulkMsg').textContent = '';
     closeBulk();
@@ -1473,7 +1566,7 @@ document.getElementById('btnBulkAnalyze').addEventListener('click', ()=>{
   const txt = document.getElementById('bulkInput').value;
   const bm = document.getElementById('bulkMsg');
   if(!txt.trim()){ bm.style.color='var(--red)'; bm.textContent='Cole as linhas da planilha primeiro.'; return; }
-  bulkState = Object.assign(parseBulkInput(txt),{arquivar:false});
+  bulkState = Object.assign(parseBulkInput(txt),{arquivar:true});
   if(!bulkState.rows.length){
     bm.style.color='var(--red)';
     bm.textContent = 'Nenhuma linha válida. ' + (bulkState.errors[0]||'');
@@ -1496,7 +1589,9 @@ tick(); setInterval(tick,1000);
 
 const statusTag = document.getElementById('statusTag');
 onSnapshot(notasRef, snap=>{
-  allRows = snap.docs.map(d=>({ nf:d.id, ...d.data({serverTimestamps:'estimate'}) })).filter(r=>!r.arquivada);
+  const todas = snap.docs.map(d=>({ nf:d.id, ...d.data({serverTimestamps:'estimate'}) }));
+  allRows = todas.filter(r=>!r.arquivada);
+  bancoRows = todas.filter(r=>r.arquivada);
   const t = r => (r.criadoEm && r.criadoEm.toMillis) ? r.criadoEm.toMillis() : 0;
   allRows.sort((a,b)=> t(b)-t(a) || String(a.nf).localeCompare(String(b.nf),'pt-BR',{numeric:true}));
   statusTag.textContent = 'ao vivo'; statusTag.classList.remove('bad'); statusTag.classList.add('live');
