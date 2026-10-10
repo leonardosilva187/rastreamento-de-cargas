@@ -114,6 +114,9 @@ select option{background:#061428; color:var(--ink);}
 .mk::after{display:none;}
 #heat{position:absolute; inset:0; width:100%; height:100%; pointer-events:none;}
 .zchip .dot{width:10px; height:10px; min-height:10px; align-self:center;}
+#markers .mk{background:none !important; border-color:transparent !important; box-shadow:none !important; outline:none !important;}
+#markers .mk:hover .mklab,#markers .mk:focus-visible .mklab{color:#fff; text-shadow:0 0 4px #000,0 0 10px var(--teal);}
+#markers .mk.sel .mklab{color:#fff; text-decoration:underline; text-underline-offset:3px;}
 .mk .mklab b{display:block; color:#ffe9a8; font-weight:800; font-size:10.5px; letter-spacing:.2px;}
 .mk.df .mklab b{font-size:9px;}
 .heatlegend{display:flex; align-items:center; gap:8px; justify-content:center; margin-top:8px; font-size:11px; color:var(--muted);}
@@ -1221,14 +1224,14 @@ function drawHeat(st, max, sel){
   const W=cv.width, H=cv.height; g.clearRect(0,0,W,H);
   ZONAS.forEach(z=>{
     const s=st[z.id]; if(!s||!s.total) return;
-    const t=s.total/max, r=W*(z.go ? .05+.05*Math.sqrt(t) : .028+.032*Math.sqrt(t));
-    const a=(.3+.7*t)*(sel&&sel!==z.id ? .3 : 1), x=z.x/100*W, y=z.y/100*H;
-    const gr=g.createRadialGradient(x,y,0,x,y,r); gr.addColorStop(0,`rgba(0,0,0,${a})`); gr.addColorStop(1,'rgba(0,0,0,0)');
+    const t=s.total/max, r=W*(z.go ? .06+.06*Math.sqrt(t) : .036+.04*Math.sqrt(t));
+    const a=(.45+.5*t)*(sel&&sel!==z.id ? .3 : 1), x=z.x/100*W, y=z.y/100*H;
+    const gr=g.createRadialGradient(x,y,0,x,y,r); [[0,1],[.2,.82],[.4,.52],[.6,.25],[.8,.08],[1,0]].forEach(([o,f])=>gr.addColorStop(o,`rgba(0,0,0,${(a*f).toFixed(3)})`));
     g.fillStyle=gr; g.fillRect(x-r,y-r,2*r,2*r);
   });
   const img=g.getImageData(0,0,W,H), d=img.data;
   for(let i=0;i<d.length;i+=4){ const al=d[i+3]; if(!al) continue; const k=al*4;
-    d[i]=HEAT_PAL[k]; d[i+1]=HEAT_PAL[k+1]; d[i+2]=HEAT_PAL[k+2]; d[i+3]=Math.min(205, 40+al*1.1); }
+    d[i]=HEAT_PAL[k]; d[i+1]=HEAT_PAL[k+1]; d[i+2]=HEAT_PAL[k+2]; d[i+3]=Math.round(215*Math.pow(al/255,.75)); }
   g.putImageData(img,0,0);
 }
 function renderMap(rows){
