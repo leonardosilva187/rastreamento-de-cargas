@@ -125,7 +125,7 @@ header .hright{grid-column:3; justify-self:end;}
 .mk .mklab b{display:block; color:#ffe9a8; font-weight:800; font-size:10.5px; letter-spacing:.2px;}
 .mk.df .mklab b{font-size:9px;}
 .heatlegend{display:flex; align-items:center; gap:8px; justify-content:center; margin-top:8px; font-size:11px; color:var(--muted);}
-.heatlegend i{display:block; width:140px; height:8px; border-radius:4px; background:linear-gradient(90deg,hsl(225 95% 55%),hsl(175 95% 50%),hsl(95 95% 50%),hsl(50 100% 55%),hsl(5 100% 55%));}
+.heatlegend i{display:block; width:140px; height:8px; border-radius:4px; background:linear-gradient(90deg,#0b2475,#1f55e0 30%,#8a3bd8 55%,#f0405a 78%,#e00000);}
 .mk.empty::after{display:none;}
 @keyframes pulse{0%{transform:scale(.7); opacity:.7;} 100%{transform:scale(1.55); opacity:0;}}
 .mk:hover,.mk:focus-visible{transform:translate(-50%,-50%) scale(1.12); outline:none;}
@@ -369,7 +369,6 @@ html.theme-anim, html.theme-anim *, html.theme-anim *::before{transition:backgro
 :root[data-theme="glacial"] .mk .mklab{color:#12324a; text-shadow:0 0 3px #fff,0 0 6px #fff,0 0 10px rgba(255,255,255,.9);}
 :root[data-theme="glacial"] .mk .mklab b{color:#1f6fa3;}
 :root[data-theme="glacial"] #markers .mk:hover .mklab, :root[data-theme="glacial"] #markers .mk.sel .mklab{color:#0b2a40; text-shadow:0 0 3px #fff,0 0 8px #fff;}
-:root[data-theme="glacial"] .heatlegend i{background:linear-gradient(90deg,#CAE3F0,#82BCE0,#3f8fca,#2a5fa8,#e2556b);}
 </style>
 </head>
 <body>
@@ -453,7 +452,7 @@ html.theme-anim, html.theme-anim *, html.theme-anim *::before{transition:backgro
         <div class="tip" id="mapTip"></div>
       </div></div>
       <div style="display:flex; gap:8px; margin-top:8px"><button type="button" class="btn-ghost" id="btnZoomDF">🔍 Ampliar DF</button><button type="button" class="btn-ghost" id="btnZoomGO">🔍 Ampliar Goiás</button></div>
-      <div class="heatlegend"><span>Menos NFs</span><i></i><span>Mais NFs</span></div>
+      <div class="heatlegend"><span>Menor concentração</span><i></i><span>Maior (NFs + R$)</span></div>
       <div class="zonelegend" id="zoneLegend"></div>
     </div>
   </div>
@@ -1306,23 +1305,24 @@ const mkPal = stops => { const c=document.createElement('canvas'); c.width=256; 
   const gr=g.createLinearGradient(0,0,256,0); stops.forEach(([o,cl])=>gr.addColorStop(o,cl));
   g.fillStyle=gr; g.fillRect(0,0,256,1); return g.getImageData(0,0,256,1).data; };
 const HEAT_PALS = {
-  neon: mkPal([[0,'#1f4dff'],[.25,'#00d5ff'],[.5,'#2bff5a'],[.72,'#ffe600'],[1,'#ff2a1a']]),
-  glacial: mkPal([[0,'#A7D2E8'],[.3,'#82BCE0'],[.55,'#3f8fca'],[.8,'#2a5fa8'],[1,'#e2556b']]),
+  neon: mkPal([[0,'#0b2475'],[.3,'#1f55e0'],[.55,'#8a3bd8'],[.78,'#f0405a'],[1,'#e00000']]),
+  glacial: mkPal([[0,'#0b2475'],[.3,'#1f55e0'],[.55,'#8a3bd8'],[.78,'#f0405a'],[1,'#e00000']]),
 };
 const temaAtual = () => document.documentElement.getAttribute('data-theme')==='glacial' ? 'glacial' : 'neon';
 function drawHeat(st, max, sel){
   const cv=document.getElementById('heat'), g=cv.getContext('2d'), HEAT_PAL=HEAT_PALS[temaAtual()]; if(!g||!HEAT_PAL) return;
   const W=cv.width, H=cv.height; g.clearRect(0,0,W,H);
+  const maxV=Math.max(1,...Object.values(st).map(o=>o.valor)), score=o=>(o.total/max + o.valor/maxV)/2, maxS=Math.max(.0001,...Object.values(st).map(score));
   ZONAS.forEach(z=>{
     const s=st[z.id]; if(!s||!s.total) return;
-    const t=s.total/max, r=W*(z.go ? .06+.06*Math.sqrt(t) : .036+.04*Math.sqrt(t));
-    const a=(.45+.5*t)*(sel&&sel!==z.id ? .3 : 1), x=z.x/100*W, y=z.y/100*H;
+    const t=score(s)/maxS, r=W*(z.go ? .06+.06*Math.sqrt(t) : .036+.04*Math.sqrt(t));
+    const a=(.6+.4*t)*(sel&&sel!==z.id ? .3 : 1), x=z.x/100*W, y=z.y/100*H;
     const gr=g.createRadialGradient(x,y,0,x,y,r); [[0,1],[.2,.82],[.4,.52],[.6,.25],[.8,.08],[1,0]].forEach(([o,f])=>gr.addColorStop(o,`rgba(0,0,0,${(a*f).toFixed(3)})`));
     g.fillStyle=gr; g.fillRect(x-r,y-r,2*r,2*r);
   });
   const img=g.getImageData(0,0,W,H), d=img.data;
   for(let i=0;i<d.length;i+=4){ const al=d[i+3]; if(!al) continue; const k=al*4;
-    d[i]=HEAT_PAL[k]; d[i+1]=HEAT_PAL[k+1]; d[i+2]=HEAT_PAL[k+2]; d[i+3]=Math.round(215*Math.pow(al/255,.75)); }
+    d[i]=HEAT_PAL[k]; d[i+1]=HEAT_PAL[k+1]; d[i+2]=HEAT_PAL[k+2]; d[i+3]=Math.round(240*Math.pow(al/255,.55)); }
   g.putImageData(img,0,0);
 }
 function renderMap(rows){
