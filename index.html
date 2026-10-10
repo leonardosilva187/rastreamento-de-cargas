@@ -1320,9 +1320,10 @@ function drawHeat(st, max, sel){
     const gr=g.createRadialGradient(x,y,0,x,y,r); [[0,1],[.2,.82],[.4,.52],[.6,.25],[.8,.08],[1,0]].forEach(([o,f])=>gr.addColorStop(o,`rgba(0,0,0,${(a*f).toFixed(3)})`));
     g.fillStyle=gr; g.fillRect(x-r,y-r,2*r,2*r);
   });
+  const claro = temaAtual()==='glacial', AEXP = claro ? 1.35 : .55, AMAX = claro ? 230 : 240; // tema claro: bordas somem mais suavemente
   const img=g.getImageData(0,0,W,H), d=img.data;
   for(let i=0;i<d.length;i+=4){ const al=d[i+3]; if(!al) continue; const k=al*4;
-    d[i]=HEAT_PAL[k]; d[i+1]=HEAT_PAL[k+1]; d[i+2]=HEAT_PAL[k+2]; d[i+3]=Math.round(240*Math.pow(al/255,.55)); }
+    d[i]=HEAT_PAL[k]; d[i+1]=HEAT_PAL[k+1]; d[i+2]=HEAT_PAL[k+2]; d[i+3]=Math.round(AMAX*Math.pow(al/255,AEXP)); }
   g.putImageData(img,0,0);
 }
 function renderMap(rows){
