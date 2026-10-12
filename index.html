@@ -126,7 +126,7 @@ header .hright{grid-column:3; justify-self:end;}
 .mk.df .mklab b{font-size:9px;}
 .heatlegend{display:flex; align-items:center; gap:8px; justify-content:center; margin-top:8px; font-size:11px; color:var(--muted);}
 .heatlegend .devleg{display:inline-flex; align-items:center; gap:5px; margin-left:10px; color:var(--ink);}
-.heatlegend .devleg em{display:block; width:12px; height:12px; border-radius:50%; background:radial-gradient(circle,#fff95c 0%,#ffe000 45%,rgba(255,179,0,0) 75%); box-shadow:0 0 8px #ffe000;}
+.heatlegend .devleg em{display:block; width:12px; height:12px; border-radius:50%; background:radial-gradient(circle,#fff53d 0%,#ffd400 35%,rgba(255,159,26,.6) 60%,rgba(240,96,42,0) 80%);}
 .heatlegend i{display:block; width:140px; height:8px; border-radius:4px; background:linear-gradient(90deg,#0b2475,#1f55e0 30%,#8a3bd8 55%,#f0405a 78%,#e00000);}
 .mk.empty::after{display:none;}
 @keyframes pulse{0%{transform:scale(.7); opacity:.7;} 100%{transform:scale(1.55); opacity:0;}}
@@ -1331,23 +1331,23 @@ function drawHeat(st, max, sel){
   drawHeatDevol(g, st, sel, W, H, claro);
 }
 /* Camada amarela vibrante: valor (R$) das NFs devolvidas, sobreposta ao mapa de calor */
-const DEV_PAL = mkPal([[0,'#ffb300'],[.45,'#ffd000'],[.8,'#ffee00'],[1,'#fff95c']]);
+const DEV_PAL = mkPal([[0,'#f0602a'],[.35,'#ff9f1a'],[.65,'#ffd400'],[1,'#fff53d']]);
 function drawHeatDevol(g, st, sel, W, H, claro){
   if(!DEV_PAL) return;
   const maxD = Math.max(0,...Object.values(st).map(o=>o.vdev||0)); if(!maxD) return;
   const c=document.createElement('canvas'); c.width=W; c.height=H; const h=c.getContext('2d'); if(!h) return;
   ZONAS.forEach(z=>{
     const s=st[z.id]; if(!s||!s.vdev) return;
-    const t=s.vdev/maxD, r=W*(z.go ? .045+.05*Math.sqrt(t) : .026+.032*Math.sqrt(t));
-    const a=(.7+.3*t)*(sel&&sel!==z.id ? .3 : 1), x=z.x/100*W, y=z.y/100*H;
-    const gr=h.createRadialGradient(x,y,0,x,y,r); [[0,1],[.25,.85],[.5,.5],[.75,.18],[1,0]].forEach(([o,f])=>gr.addColorStop(o,`rgba(0,0,0,${(a*f).toFixed(3)})`));
+    const t=s.vdev/maxD, r=W*(z.go ? .06+.06*Math.sqrt(t) : .036+.04*Math.sqrt(t));
+    const a=(.6+.4*t)*(sel&&sel!==z.id ? .3 : 1), x=z.x/100*W, y=z.y/100*H;
+    const gr=h.createRadialGradient(x,y,0,x,y,r); [[0,1],[.2,.82],[.4,.52],[.6,.25],[.8,.08],[1,0]].forEach(([o,f])=>gr.addColorStop(o,`rgba(0,0,0,${(a*f).toFixed(3)})`));
     h.fillStyle=gr; h.fillRect(x-r,y-r,2*r,2*r);
   });
-  const img=h.getImageData(0,0,W,H), d=img.data, EXP = claro ? 1.1 : .6;
+  const img=h.getImageData(0,0,W,H), d=img.data, EXP = claro ? 1.6 : 1.15, AMX = claro ? 230 : 245; // borda some aos poucos, mistura com o calor existente
   for(let i=0;i<d.length;i+=4){ const al=d[i+3]; if(!al) continue; const k=al*4;
-    d[i]=DEV_PAL[k]; d[i+1]=DEV_PAL[k+1]; d[i+2]=DEV_PAL[k+2]; d[i+3]=Math.round(250*Math.pow(al/255,EXP)); }
+    d[i]=DEV_PAL[k]; d[i+1]=DEV_PAL[k+1]; d[i+2]=DEV_PAL[k+2]; d[i+3]=Math.round(AMX*Math.pow(al/255,EXP)); }
   h.putImageData(img,0,0);
-  g.save(); g.globalCompositeOperation='source-over'; g.shadowColor='rgba(255,230,0,.55)'; g.shadowBlur=claro?6:14; g.drawImage(c,0,0); g.restore();
+  g.drawImage(c,0,0);
 }
 function renderMap(rows){
   const st = zoneStats(rows); lastStats = st;
