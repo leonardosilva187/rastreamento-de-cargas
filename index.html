@@ -125,6 +125,8 @@ header .hright{grid-column:3; justify-self:end;}
 .mk .mklab b{display:block; color:#ffe9a8; font-weight:800; font-size:10.5px; letter-spacing:.2px;}
 .mk.df .mklab b{font-size:9px;}
 .heatlegend{display:flex; align-items:center; gap:8px; justify-content:center; margin-top:8px; font-size:11px; color:var(--muted);}
+.heatlegend .devleg{display:inline-flex; align-items:center; gap:5px; margin-left:10px; color:var(--ink);}
+.heatlegend .devleg em{display:block; width:12px; height:12px; border-radius:50%; background:radial-gradient(circle,#fff95c 0%,#ffe000 45%,rgba(255,179,0,0) 75%); box-shadow:0 0 8px #ffe000;}
 .heatlegend i{display:block; width:140px; height:8px; border-radius:4px; background:linear-gradient(90deg,#0b2475,#1f55e0 30%,#8a3bd8 55%,#f0405a 78%,#e00000);}
 .mk.empty::after{display:none;}
 @keyframes pulse{0%{transform:scale(.7); opacity:.7;} 100%{transform:scale(1.55); opacity:0;}}
@@ -452,7 +454,7 @@ html.theme-anim, html.theme-anim *, html.theme-anim *::before{transition:backgro
         <div class="tip" id="mapTip"></div>
       </div></div>
       <div style="display:flex; gap:8px; margin-top:8px"><button type="button" class="btn-ghost" id="btnZoomDF">🔍 Ampliar DF</button><button type="button" class="btn-ghost" id="btnZoomGO">🔍 Ampliar Goiás</button></div>
-      <div class="heatlegend"><span>Menor concentração</span><i></i><span>Maior (NFs + R$)</span></div>
+      <div class="heatlegend"><span>Menor concentração</span><i></i><span>Maior (NFs + R$)</span><span class="devleg"><em></em>Devoluções (R$)</span></div>
       <div class="zonelegend" id="zoneLegend"></div>
     </div>
   </div>
@@ -1283,12 +1285,12 @@ function drawLineChart(rows){
 /* ---------- Mapa por macrozona ---------- */
 let lastStats = {}, tipZone = '', tipTimer;
 function zoneStats(rows){
-  const z = {}; ZONAS.forEach(o=>{ z[o.id]={total:0,pending:0,ok:0,late:0,transit:0,devolucao:0,valor:0,vok:0,vpend:0}; });
+  const z = {}; ZONAS.forEach(o=>{ z[o.id]={total:0,pending:0,ok:0,late:0,transit:0,devolucao:0,valor:0,vok:0,vpend:0,vdev:0}; });
   rows.forEach(r=>{
     const s = z[zonaDe(r.regiao)]; if(!s) return;
     const v = Number(r.valor)||0; s.total++; s.valor += v;
     if(r.status in s) s[r.status]++;
-    if(r.status==='ok') s.vok += v; else if(r.status==='pending') s.vpend += v;
+    if(r.status==='ok') s.vok += v; else if(r.status==='pending') s.vpend += v; else if(r.status==='devolucao') s.vdev += v;
   });
   return z;
 }
@@ -1326,6 +1328,26 @@ function drawHeat(st, max, sel){
   for(let i=0;i<d.length;i+=4){ const al=d[i+3]; if(!al) continue; const k=al*4;
     d[i]=HEAT_PAL[k]; d[i+1]=HEAT_PAL[k+1]; d[i+2]=HEAT_PAL[k+2]; d[i+3]=Math.round(AMAX*Math.pow(al/255,AEXP)); }
   g.putImageData(img,0,0);
+  drawHeatDevol(g, st, sel, W, H, claro);
+}
+/* Camada amarela vibrante: valor (R$) das NFs devolvidas, sobreposta ao mapa de calor */
+const DEV_PAL = mkPal([[0,'#ffb300'],[.45,'#ffd000'],[.8,'#ffee00'],[1,'#fff95c']]);
+function drawHeatDevol(g, st, sel, W, H, claro){
+  if(!DEV_PAL) return;
+  const maxD = Math.max(0,...Object.values(st).map(o=>o.vdev||0)); if(!maxD) return;
+  const c=document.createElement('canvas'); c.width=W; c.height=H; const h=c.getContext('2d'); if(!h) return;
+  ZONAS.forEach(z=>{
+    const s=st[z.id]; if(!s||!s.vdev) return;
+    const t=s.vdev/maxD, r=W*(z.go ? .045+.05*Math.sqrt(t) : .026+.032*Math.sqrt(t));
+    const a=(.7+.3*t)*(sel&&sel!==z.id ? .3 : 1), x=z.x/100*W, y=z.y/100*H;
+    const gr=h.createRadialGradient(x,y,0,x,y,r); [[0,1],[.25,.85],[.5,.5],[.75,.18],[1,0]].forEach(([o,f])=>gr.addColorStop(o,`rgba(0,0,0,${(a*f).toFixed(3)})`));
+    h.fillStyle=gr; h.fillRect(x-r,y-r,2*r,2*r);
+  });
+  const img=h.getImageData(0,0,W,H), d=img.data, EXP = claro ? 1.1 : .6;
+  for(let i=0;i<d.length;i+=4){ const al=d[i+3]; if(!al) continue; const k=al*4;
+    d[i]=DEV_PAL[k]; d[i+1]=DEV_PAL[k+1]; d[i+2]=DEV_PAL[k+2]; d[i+3]=Math.round(250*Math.pow(al/255,EXP)); }
+  h.putImageData(img,0,0);
+  g.save(); g.globalCompositeOperation='source-over'; g.shadowColor='rgba(255,230,0,.55)'; g.shadowBlur=claro?6:14; g.drawImage(c,0,0); g.restore();
 }
 function renderMap(rows){
   const st = zoneStats(rows); lastStats = st;
@@ -1371,7 +1393,7 @@ function showTip(id,touch){
   const z = ZONAS.find(o=>o.id===id), s = lastStats[id]; if(!z||!s) return;
   tipZone = id;
   const otd = s.total ? Math.round((s.ok+s.late)/s.total*100)+'%' : '—';
-  tip.innerHTML = `<b>${z.nome}</b><br>Total: ${fmtMoney(s.valor)}<br>No prazo: ${fmtMoney(s.vok)}<br>Pendente: ${fmtMoney(s.vpend)}<br><small style="color:var(--muted)">${s.total} NFs · OK: ${otd}</small>`;
+  tip.innerHTML = `<b>${z.nome}</b><br>Total: ${fmtMoney(s.valor)}<br>No prazo: ${fmtMoney(s.vok)}<br>Pendente: ${fmtMoney(s.vpend)}${s.vdev?`<br><span style="color:#e6c200;font-weight:600">Devolvido: ${fmtMoney(s.vdev)} (${s.devolucao} NF${s.devolucao===1?'':'s'})</span>`:''}<br><small style="color:var(--muted)">${s.total} NFs · OK: ${otd}</small>`;
   tip.style.left = `clamp(90px, ${z.x}%, calc(100% - 90px))`; tip.style.top = z.y+'%';
   tip.classList.toggle('below', z.y<25 || (document.getElementById('mapwrap').classList.contains('zoomdf') && z.y<46));
   tip.classList.add('on');
