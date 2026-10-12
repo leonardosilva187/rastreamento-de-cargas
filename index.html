@@ -1330,7 +1330,10 @@ function drawHeat(st, max, sel){
   g.putImageData(img,0,0);
   drawHeatDevol(g, st, sel, W, H, claro);
 }
-/* Camada amarela vibrante: valor (R$) das NFs devolvidas, sobreposta ao mapa de calor */
+/* Camada amarela vibrante: valor (R$) das NFs devolvidas, sobreposta ao mapa de calor.
+   PADRÃO APROVADO para qualquer nova marcação de calor: mesmo raio e mesmos stops do gradiente radial
+   do drawHeat ([0,1],[.2,.82],[.4,.52],[.6,.25],[.8,.08],[1,0]), paleta própria aplicada pelo alfa,
+   alfa com expoente > 1 para esmaecer até as bordas, sem shadowBlur/contorno — mistura com o calor existente. */
 const DEV_PAL = mkPal([[0,'#f0602a'],[.35,'#ff9f1a'],[.65,'#ffd400'],[1,'#fff53d']]);
 function drawHeatDevol(g, st, sel, W, H, claro){
   if(!DEV_PAL) return;
