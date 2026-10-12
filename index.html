@@ -265,6 +265,13 @@ details.manual{margin-top:6px;} details.manual summary{cursor:pointer; color:var
 .stack-legend b{color:var(--ink);} .stack-legend em{display:inline-block; width:10px; height:10px; border-radius:2px; margin-right:5px; vertical-align:middle;}
 .ind-table td,.ind-table th{white-space:nowrap;} .ind-table td small{color:var(--muted); display:block;}
 .ind-table tfoot td{font-weight:700; border-top:1px solid var(--teal);}
+.ga-badge{display:inline-block; min-width:22px; padding:2px 7px; border-radius:10px; font-size:11px; font-weight:700; text-align:center; border:1px solid currentColor;}
+.ga-badge.a,.ga-badge.baixo{color:var(--teal); background:rgba(39,230,255,.10);}
+.ga-badge.b,.ga-badge.medio{color:var(--amber); background:rgba(255,190,70,.12);}
+.ga-badge.c,.ga-badge.alto{color:var(--red); background:rgba(255,80,100,.12);}
+.ga-bar{display:flex; align-items:center; gap:10px; min-width:230px;} .ga-bar .bar-track{flex:1; min-width:90px; height:8px; background:var(--surface2); border-radius:5px; overflow:hidden; border:1px solid var(--line);} .ga-bar .bar-fill{height:100%; background:linear-gradient(90deg,var(--blue),var(--teal)); box-shadow:0 0 8px var(--teal);} .ga-bar span{min-width:105px; text-align:right;}
+.ga-note{font-size:12px; color:var(--muted); margin:-6px 0 12px;}
+.ga-grid{display:grid; grid-template-columns:1fr 1fr; gap:18px;} @media(max-width:1100px){.ga-grid{grid-template-columns:1fr;}}
 
 /* ---------- Barra lateral ---------- */
 #sidebar{position:fixed; top:0; left:0; bottom:0; width:232px; z-index:12; display:flex; flex-direction:column; gap:4px; padding:16px 12px; overflow-y:auto; overflow-x:hidden;
@@ -388,6 +395,7 @@ html.theme-anim, html.theme-anim *, html.theme-anim *::before{transition:backgro
   <div class="sb-label">MENU PRINCIPAL</div>
   <button type="button" class="sb-item" data-view="painel" title="Painel"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg><span class="lbl">Painel</span></button>
   <button type="button" class="sb-item" data-view="ind" title="Indicadores"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 20V11M12 20V5M19 20v-7"/></svg><span class="lbl">Indicadores</span></button>
+  <button type="button" class="sb-item" data-view="ga" title="Ranking de GA"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19c.6-3 2.8-4.6 5.5-4.6s4.9 1.6 5.5 4.6"/><path d="M16 4.5l1.2 2.4 2.6.4-1.9 1.8.5 2.6-2.4-1.3"/></svg><span class="lbl">Ranking de GA</span></button>
   <button type="button" class="sb-item" data-view="notas" title="Notas Fiscais"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4M9 12h6M9 16h6"/></svg><span class="lbl">Notas Fiscais</span></button>
   <button type="button" class="sb-item" data-view="hist" title="Histórico de Alterações"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span class="lbl">Histórico de Alterações</span></button>
   <button type="button" class="sb-item" data-view="atraso" title="Atraso Mensal"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><span class="lbl">Atraso Mensal</span></button>
@@ -493,7 +501,7 @@ html.theme-anim, html.theme-anim *, html.theme-anim *::before{transition:backgro
       <p id="editHint" class="readonly-note" style="display:none; margin:0 0 10px;">Modo edição ativo: altere o <b>status</b> na lista suspensa e as <b>observações</b> clicando no texto — salva ao sair do campo (Esc cancela, Ctrl+Enter salva).</p>
       <div class="tablewrap">
         <table>
-          <thead><tr><th>Carreg.</th><th>NF</th><th>Bairro/RA</th><th>Motorista</th><th>Valor</th><th>Status</th><th>Mês</th><th>Ano</th><th>Observações</th><th></th></tr></thead>
+          <thead><tr><th>Carreg.</th><th>NF</th><th>Bairro/RA</th><th>Motorista</th><th>GA</th><th>Valor</th><th>Status</th><th>Mês</th><th>Ano</th><th>Observações</th><th></th></tr></thead>
           <tbody id="tbody"></tbody>
         </table>
       </div>
@@ -549,7 +557,7 @@ html.theme-anim, html.theme-anim *, html.theme-anim *::before{transition:backgro
     <div id="formPanel" class="form" style="display:none; margin-top:8px;">
       <div class="bulk-wrap" id="bulkWrap">
         <h4>Importar em lote (aba "Lança")</h4>
-        <p class="bulk-note">Selecione na aba "Lança" as colunas de <b>A até J</b> (a coluna H é oculta), copie e cole aqui. Ordem esperada: NUMCAR, DTSAIDA, VLTOTAL_PED, NUMNOTA, NOME, DESTINO, ATRASO, Observação, Observação da cobrança. Pode incluir a linha de cabeçalho.</p>
+        <p class="bulk-note">Selecione na aba "Lança" as colunas de <b>A até J</b> , copie e cole aqui. Ordem esperada: NUMCAR, DTSAIDA, VLTOTAL_PED, NUMNOTA, NOME, DESTINO, ATRASO, <b>GA (coluna H)</b>, Observação, Observação da cobrança. Pode incluir a linha de cabeçalho.</p>
         <textarea id="bulkInput" placeholder="Cole aqui as linhas copiadas da planilha…" spellcheck="false"></textarea>
         <button class="btn-primary" id="btnBulkAnalyze" type="button">Analisar e pré-visualizar</button>
         <div id="bulkMsg" class="readonly-note" style="min-height:16px;"></div>
@@ -615,6 +623,35 @@ html.theme-anim, html.theme-anim *, html.theme-anim *::before{transition:backgro
     <div class="tablewrap"><table class="ind-table" id="indNfTable"></table></div>
     <h3 style="margin-top:18px;">PJ x demais <span class="hint">só NFs importadas após a atualização</span></h3>
     <div class="tablewrap"><table class="ind-table" id="indPjTable"></table></div>
+  </div>
+</div>
+<div id="viewGA" style="display:none;">
+  <div class="panel">
+    <h3>Ranking de GA <span class="hint">valores das NFs · devoluções · regiões</span></h3>
+    <div class="ind-filters">
+      <div><label for="gaAno">Ano</label><select id="gaAno"><option value="">Todos</option></select></div>
+      <div><label for="gaMes">Mês</label><select id="gaMes"><option value="">Todos</option></select></div>
+      <div><label for="gaReg">Bairro/RA</label><select id="gaReg"><option value="">Todas</option></select></div>
+      <div><label for="gaZona">Macrozona / Município (GO)</label><select id="gaZona"><option value="">Todas</option></select></div>
+    </div>
+    <div class="ga-note" id="gaNote"></div>
+    <div class="ind-cards" id="gaCards"></div>
+    <h3 style="margin-top:6px;">Ranking de GA por valor das NFs <span class="hint">classificação ABC — A: até 80% do valor · B: até 95% · C: restante</span></h3>
+    <div class="tablewrap"><table class="ind-table" id="gaRankTable"></table></div>
+    <div class="ga-grid">
+      <div>
+        <h3 style="margin-top:18px;">GA com as NFs mais altas</h3>
+        <div class="tablewrap"><table class="ind-table" id="gaNfTable"></table></div>
+      </div>
+      <div>
+        <h3 style="margin-top:18px;">Índice de devolução por GA <span class="hint">% do valor devolvido · Alto ≥ 10% · Médio ≥ 5%</span></h3>
+        <div class="tablewrap"><table class="ind-table" id="gaDevTable"></table></div>
+      </div>
+    </div>
+    <h3 style="margin-top:18px;">GA com maior valor em aberto <span class="hint">mesmo critério dos motoristas · prioridade de cobrança</span></h3>
+    <div class="tablewrap"><table class="ind-table" id="gaAbertoTable"></table></div>
+    <h3 style="margin-top:18px;">GA que mais vendem por região <span class="hint">por Bairro/RA — maior valor vendido</span></h3>
+    <div class="tablewrap"><table class="ind-table" id="gaRegTable"></table></div>
   </div>
 </div>
 </div>
@@ -821,16 +858,16 @@ async function exportarExcel(){
     const stamp = agora.toISOString().slice(0,10);
 
     // Aba 1 — Notas
-    const head = ['Carregamento','NF','Bairro/RA','Motorista','Valor','Status','Mês','Ano','Dias de atraso','Data de saída','Observações'];
+    const head = ['Carregamento','NF','Bairro/RA','Motorista','GA','Valor','Status','Mês','Ano','Dias de atraso','Data de saída','Observações'];
     const body = rows.map(r=>[
-      r.carregamento||'', String(r.nf), r.regiao||'', r.motorista||'', Number(r.valor)||0,
+      r.carregamento||'', String(r.nf), r.regiao||'', r.motorista||'', r.ga||'', Number(r.valor)||0,
       STATUS_LABEL[r.status]||r.status||'', MESES[r.mes]||'', r.ano?Number(r.ano):'',
       diasDe(r)===null?'':diasDe(r), fmtDataBR(r.dtsaida), obsLive(r)
     ]);
     const wsN = X.utils.aoa_to_sheet([head,...body]);
-    body.forEach((_,i)=>{ const c=wsN['E'+(i+2)]; if(c) c.z=MONEY; });
-    wsN['!cols'] = [{wch:13},{wch:11},{wch:26},{wch:34},{wch:16},{wch:22},{wch:6},{wch:7},{wch:14},{wch:14},{wch:50}];
-    wsN['!autofilter'] = {ref:'A1:K'+(body.length+1)};
+    body.forEach((_,i)=>{ const c=wsN['F'+(i+2)]; if(c) c.z=MONEY; });
+    wsN['!cols'] = [{wch:13},{wch:11},{wch:26},{wch:34},{wch:18},{wch:16},{wch:22},{wch:6},{wch:7},{wch:14},{wch:14},{wch:50}];
+    wsN['!autofilter'] = {ref:'A1:L'+(body.length+1)};
 
     // Aba 2 — Resumo por status
     const ordem = ['ok','late','transit','pending','devolucao'];
@@ -1114,9 +1151,9 @@ function renderHistorico(items){
 function renderTable(rows){
   const tbody = document.getElementById('tbody');
   document.getElementById('tableTitle').textContent = 'Notas Fiscais (' + rows.length + ')';
-  if(!rows.length){ tbody.innerHTML = '<tr><td colspan="10"><div class="empty">Nenhuma NF lançada ainda para esses filtros.</div></td></tr>'; return; }
+  if(!rows.length){ tbody.innerHTML = '<tr><td colspan="11"><div class="empty">Nenhuma NF lançada ainda para esses filtros.</div></td></tr>'; return; }
   let html = rows.slice(0,shown).map(r=>`<tr>
-    <td>${esc(r.carregamento)||'—'}</td><td>${esc(r.nf)}</td><td>${esc(r.regiao)}</td><td>${esc(r.motorista)||'—'}</td><td>${fmtMoney(r.valor)}</td>
+    <td>${esc(r.carregamento)||'—'}</td><td>${esc(r.nf)}</td><td>${esc(r.regiao)}</td><td>${esc(r.motorista)||'—'}</td><td>${esc(r.ga)||'—'}</td><td>${fmtMoney(r.valor)}</td>
     <td>${statusCell(r)}</td>
     <td>${MESES[r.mes]||'—'}</td>
     <td>${r.ano||'—'}</td>
@@ -1124,7 +1161,7 @@ function renderTable(rows){
     <td>${canWrite ? `<button class="del" data-nf="${esc(r.nf)}">Excluir</button>` : ''}</td>
   </tr>`).join('');
   if(rows.length > shown){
-    html += `<tr><td colspan="10" style="text-align:center;"><button class="btn-ghost" id="btnMais" style="width:auto;">Mostrar mais (${shown} de ${rows.length})</button></td></tr>`;
+    html += `<tr><td colspan="11" style="text-align:center;"><button class="btn-ghost" id="btnMais" style="width:auto;">Mostrar mais (${shown} de ${rows.length})</button></td></tr>`;
   }
   tbody.innerHTML = html;
   const mais = document.getElementById('btnMais');
@@ -1444,6 +1481,66 @@ mapbox.addEventListener('pointerout',e=>{ if(e.target.closest('.mk')) hideTip();
 mapbox.addEventListener('focusin',e=>{ const b=e.target.closest('.mk'); if(b) showTip(b.dataset.z,false); });
 mapbox.addEventListener('focusout',hideTip);
 
+/* ---------- Aba Ranking de GA ---------- */
+const gaAno=document.getElementById('gaAno'), gaMes=document.getElementById('gaMes'), gaReg=document.getElementById('gaReg'), gaZona=document.getElementById('gaZona');
+MESES.forEach((m,i)=>gaMes.insertAdjacentHTML('beforeend',`<option value="${i}">${m}</option>`));
+ZONAS.forEach(z=>gaZona.insertAdjacentHTML('beforeend',`<option value="${z.id}">${esc(z.nome)}</option>`));
+[gaAno,gaMes,gaReg,gaZona].forEach(el=>el.addEventListener('change',renderGA));
+const gaBar = (x,max,txt)=>`<div class="ga-bar"><div class="bar-track"><div class="bar-fill" style="width:${max?x/max*100:0}%"></div></div><span>${txt}</span></div>`;
+function gaClasseDev(p){ return p>=.10 ? ['alto','Alto'] : p>=.05 ? ['medio','Médio'] : ['baixo','Baixo']; }
+function renderGA(){
+  const a=gaAno.value, rg=gaReg.value;
+  gaAno.innerHTML='<option value="">Todos</option>'+Array.from(new Set(allRows.map(r=>r.ano).filter(Boolean))).sort().map(x=>`<option value="${x}">${x}</option>`).join(''); gaAno.value=a;
+  gaReg.innerHTML='<option value="">Todas</option>'+Array.from(new Set(allRows.map(r=>r.regiao).filter(Boolean))).sort((x,y)=>x.localeCompare(y,'pt-BR')).map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join(''); gaReg.value=rg;
+  const base = allRows.filter(r=>(!gaAno.value||String(r.ano)===gaAno.value) && (gaMes.value===''||String(r.mes)===gaMes.value) && (!gaReg.value||r.regiao===gaReg.value) && (!gaZona.value||zonaDe(r.regiao)===gaZona.value));
+  const v = r=>Number(r.valor)||0;
+  const rows = base.filter(r=>r.ga), semGA = base.length-rows.length;
+  document.getElementById('gaNote').innerHTML = semGA ? `${semGA} NF(s) sem GA ficam fora do ranking (NFs importadas antes da coluna H ter o GA).` : '';
+  // agregação por GA
+  const m = {};
+  rows.forEach(r=>{ const o=m[r.ga]||(m[r.ga]={k:r.ga,n:0,v:0,max:0,maxNf:'',dn:0,dv:0,an:0,av:0,amax:null,asoma:0,acnt:0,reg:{}});
+    const val=v(r); o.n++; o.v+=val; if(val>o.max){ o.max=val; o.maxNf=r.nf; }
+    if(r.status==='devolucao'){ o.dn++; o.dv+=val; }
+    if(isOpen(r)){ o.an++; o.av+=val; const d=diasDe(r); if(d!==null){ o.amax=o.amax===null?d:Math.max(o.amax,d); o.asoma+=d; o.acnt++; } }
+    o.reg[r.regiao]=(o.reg[r.regiao]||0)+val; });
+  const gas = Object.values(m).sort((x,y)=>y.v-x.v);
+  const totV = gas.reduce((s,o)=>s+o.v,0), totN = rows.length, totDV = gas.reduce((s,o)=>s+o.dv,0), totAV = gas.reduce((s,o)=>s+o.av,0);
+  let acc=0; gas.forEach(o=>{ acc+=o.v; const f=totV?acc/totV:0; o.abc = (f-o.v/(totV||1))<.80 ? 'A' : (f-o.v/(totV||1))<.95 ? 'B' : 'C'; });
+  const vazio = (c,t)=>`<tr><td colspan="${c}" class="empty">${t}</td></tr>`;
+  // cards
+  const topNf = rows.slice().sort((x,y)=>v(y)-v(x))[0];
+  const piorDev = gas.filter(o=>o.dv>0).sort((x,y)=>(y.dv/y.v)-(x.dv/x.v))[0];
+  document.getElementById('gaCards').innerHTML = [
+    ['var(--teal)','GA com vendas', gas.length, `${totN} NFs`, fmtMoney(totV), 'valor total'],
+    ['var(--blue)','Líder em valor', gas[0]?esc(gas[0].k):'—', gas[0]?pct(gas[0].v,totV)+' do valor':'', gas[0]?fmtMoney(gas[0].v):'', gas[0]?gas[0].n+' NFs':''],
+    ['var(--amber)','NF mais alta', topNf?fmtMoney(v(topNf)):'—', topNf?'NF '+esc(topNf.nf):'', topNf?esc(topNf.ga):'', topNf?esc(topNf.regiao||''):''],
+    ['var(--violet)','Maior índice de devolução', piorDev?esc(piorDev.k):'—', piorDev?pct(piorDev.dv,piorDev.v)+' do valor':'sem devoluções', piorDev?fmtMoney(piorDev.dv)+' devolvido':'', 'geral: '+pct(totDV,totV)],
+  ].map(c=>`<div class="ind-card" style="--c:${c[0]}"><div class="t">${c[1]}</div><div class="n" style="font-size:22px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${c[2]}</div><div class="p">${c[3]}</div><div class="v">${c[4]}</div><div class="vp">${c[5]}</div></div>`).join('');
+  // ranking por valor
+  const maxV = gas[0]?gas[0].v:0;
+  document.getElementById('gaRankTable').innerHTML = `<thead><tr><th>#</th><th>GA</th><th>Classe</th><th>Valor das NFs</th><th>% do total</th><th>NFs</th><th>Ticket médio</th><th>Maior NF</th><th>Devolvido</th><th>Em aberto</th></tr></thead><tbody>`
+    + (gas.map((o,i)=>`<tr><td>${i+1}</td><td>${esc(o.k)}</td><td><span class="ga-badge ${o.abc.toLowerCase()}">${o.abc}</span></td><td>${gaBar(o.v,maxV,fmtMoney(o.v))}</td><td>${pct(o.v,totV)}</td><td>${o.n}</td><td>${fmtMoney(o.v/o.n)}</td><td>${fmtMoney(o.max)}<small>NF ${esc(o.maxNf)}</small></td><td>${o.dv?fmtMoney(o.dv):'—'}</td><td>${o.av?fmtMoney(o.av):'—'}</td></tr>`).join('') || vazio(10,'Nenhuma NF com GA para os filtros atuais.'))
+    + `</tbody>${gas.length?`<tfoot><tr><td></td><td>Total</td><td></td><td>${fmtMoney(totV)}</td><td>100,0%</td><td>${totN}</td><td>${totN?fmtMoney(totV/totN):'—'}</td><td></td><td>${fmtMoney(totDV)}</td><td>${fmtMoney(totAV)}</td></tr></tfoot>`:''}`;
+  // NFs mais altas
+  document.getElementById('gaNfTable').innerHTML = `<thead><tr><th>#</th><th>NF</th><th>GA</th><th>Bairro/RA</th><th>Valor</th><th>Status</th></tr></thead><tbody>`
+    + (rows.slice().sort((x,y)=>v(y)-v(x)).slice(0,10).map((r,i)=>`<tr><td>${i+1}</td><td>${esc(r.nf)}</td><td>${esc(r.ga)}</td><td>${esc(r.regiao)||'—'}</td><td>${fmtMoney(v(r))}</td><td>${esc(STATUS_LABEL[r.status]||r.status||'')}</td></tr>`).join('') || vazio(6,'Sem NFs.')) + '</tbody>';
+  // devolução
+  const dev = gas.filter(o=>o.dn>0).sort((x,y)=>(y.dv/y.v)-(x.dv/x.v) || y.dv-x.dv);
+  document.getElementById('gaDevTable').innerHTML = `<thead><tr><th>#</th><th>GA</th><th>Índice</th><th>% do valor</th><th>Valor devolvido</th><th>NFs devolvidas</th></tr></thead><tbody>`
+    + (dev.map((o,i)=>{ const p=o.dv/o.v, [c,l]=gaClasseDev(p); return `<tr><td>${i+1}</td><td>${esc(o.k)}</td><td><span class="ga-badge ${c}">${l}</span></td><td>${pct(o.dv,o.v)}</td><td>${fmtMoney(o.dv)}<small>de ${fmtMoney(o.v)}</small></td><td>${o.dn} de ${o.n} <small>${pct(o.dn,o.n)}</small></td></tr>`; }).join('') || vazio(6,'Nenhuma devolução para os filtros atuais.')) + '</tbody>';
+  // em aberto (critério dos motoristas)
+  const ab = gas.filter(o=>o.an>0).sort((x,y)=>y.av-x.av);
+  document.getElementById('gaAbertoTable').innerHTML = `<thead><tr><th>#</th><th>GA</th><th>NFs em aberto</th><th>Valor em aberto</th><th>% do total</th><th>Maior atraso</th><th>Atraso médio</th></tr></thead><tbody>`
+    + (ab.map((o,i)=>`<tr><td>${i+1}</td><td>${esc(o.k)}</td><td>${o.an}</td><td>${fmtMoney(o.av)}</td><td>${pct(o.av,totAV)}</td><td>${o.amax===null?'—':o.amax+' d'}</td><td>${o.acnt?Math.round(o.asoma/o.acnt)+' d':'—'}</td></tr>`).join('') || vazio(7,'Sem pendências.')) + '</tbody>';
+  // por região
+  const pr = {};
+  rows.forEach(r=>{ const k=r.regiao||'(sem Bairro/RA)'; const o=pr[k]||(pr[k]={k,v:0,n:0,g:{}}); o.v+=v(r); o.n++; o.g[r.ga]=(o.g[r.ga]||0)+v(r); });
+  const regs = Object.values(pr).sort((x,y)=>y.v-x.v);
+  document.getElementById('gaRegTable').innerHTML = `<thead><tr><th>Bairro/RA</th><th>Valor vendido</th><th>NFs</th><th>1º GA</th><th>Participação</th><th>2º GA</th><th>3º GA</th></tr></thead><tbody>`
+    + (regs.map(o=>{ const t=Object.entries(o.g).sort((x,y)=>y[1]-x[1]); const cel=e=>e?`${esc(e[0])}<small>${fmtMoney(e[1])} · ${pct(e[1],o.v)}</small>`:'—';
+      return `<tr><td>${esc(o.k)}</td><td>${fmtMoney(o.v)}</td><td>${o.n}</td><td><b>${esc(t[0][0])}</b><small>${fmtMoney(t[0][1])}</small></td><td>${pct(t[0][1],o.v)}</td><td>${cel(t[1])}</td><td>${cel(t[2])}</td></tr>`; }).join('') || vazio(7,'Sem NFs.')) + '</tbody>';
+}
+
 /* ---------- Aba Indicadores ---------- */
 const IND_STATUS = [
   {k:'ok', c:'var(--teal)'}, {k:'late', c:'var(--red)'}, {k:'transit', c:'var(--blue)'}, {k:'pending', c:'var(--amber)'}, {k:'devolucao', c:'var(--violet)'},
@@ -1519,7 +1616,7 @@ function renderIndicadores(){
 }
 [indAno,indMes,indMot].forEach(el=>el.addEventListener('input',renderIndicadores));
 
-const VIEWS = {painel:'viewPainel', ind:'viewInd', notas:'viewNotas', hist:'viewHist', atraso:'viewAtraso', reg:'viewReg', banco:'viewBanco', edicao:'viewEdicao'};
+const VIEWS = {painel:'viewPainel', ind:'viewInd', ga:'viewGA', notas:'viewNotas', hist:'viewHist', atraso:'viewAtraso', reg:'viewReg', banco:'viewBanco', edicao:'viewEdicao'};
 const filtersPanelEl = document.getElementById('filtersPanel');
 const filtersHomeEl = document.getElementById('filtersHome');
 function showView(v, alvo){
@@ -1534,7 +1631,7 @@ function showView(v, alvo){
   const slot = document.getElementById('slot-'+v);
   if(slot){ slot.classList.add('filters-slot'); slot.appendChild(filtersPanelEl); }
   else if(filtersPanelEl.parentElement!==filtersHomeEl) filtersHomeEl.appendChild(filtersPanelEl);
-  if(v==='ind') renderIndicadores(); else renderAll();
+  if(v==='ind') renderIndicadores(); else if(v==='ga') renderGA(); else renderAll();
   if(alvo){ setTimeout(()=>{ const el=document.getElementById(alvo); if(el) el.scrollIntoView({behavior:'smooth',block:'start'}); },60); }
   else window.scrollTo(0,0);
 }
@@ -1545,7 +1642,7 @@ document.querySelectorAll('.sb-item').forEach(b=>b.addEventListener('click',()=>
   document.getElementById('sbMin').addEventListener('click',()=>{
     const min = document.body.classList.toggle('sb-min');
     try{ localStorage.setItem('sbMin', min?'1':'0'); }catch(e){}
-    setTimeout(()=>{ if(currentView!=='ind') renderAll(); },220);
+    setTimeout(()=>{ if(currentView!=='ind' && currentView!=='ga') renderAll(); },220);
   });
 })();
 
@@ -1561,6 +1658,7 @@ function renderAll(){
   const rows = filtered();
   renderBanco(); renderChips(); renderKpis(rows); renderRegions(rows); renderProblems(rows); if(!isEditingObs()) renderTable(rows); renderMap(filtered(true));
   if(currentView==='ind'){ renderIndicadores(); return; }
+  if(currentView==='ga'){ renderGA(); return; }
   if(currentView==='painel'){ drawGauge(rows); drawBarChart(rows); }
   if(currentView==='atraso'){
     drawLineChart(rows);
@@ -1705,7 +1803,11 @@ function parseBulkInput(text){
   const all = lines.map(l=>l.replace(/[\r\n\u200b]+/g,'').split('\t').map(c=>c.replace(/\u200b/g,'')));
   // Localiza a coluna "Observação" pelo conteúdo (OK, ANALISANDO, PENDENTE...), não pela posição:
   // assim funciona com a coluna H oculta, vazia ou ausente na cópia.
+  const head = all.find(c=>/^\s*NUMCAR\s*$/i.test(c[0]));
   const body = all.filter(c=>!/^\s*NUMCAR\s*$/i.test(c[0]));
+  // GA: coluna H da aba Lança (índice 7); se a linha de cabeçalho vier junto, vale a coluna chamada "GA"
+  let gaIdx = 7;
+  if(head){ const k = head.findIndex(c=>/^\s*GA\s*$/i.test(c)); if(k>=0) gaIdx = k; }
   let obsIdx = 7, best = -1;
   [7,8,9].forEach(k=>{
     const hits = body.filter(c=>stripAccents(String(c[k]||'').trim()).toUpperCase() in OBS_STATUS_MAP).length;
@@ -1717,6 +1819,7 @@ function parseBulkInput(text){
     if(cols.length < 8){ errors.push('Linha '+n+': só '+cols.length+' coluna(s) — cole as colunas A até J da aba Lança.'); return; }
     const [numcar, dtsaida, vltotal, numnota, nome, destino, atraso] = cols.slice(0,7).map(c=>String(c||'').trim());
     const obs = String(cols[obsIdx]||'').trim(), obscob = String(cols[obsIdx+1]||'').trim();
+    const ga = (gaIdx!==obsIdx && gaIdx!==obsIdx+1) ? String(cols[gaIdx]||'').trim().replace(/\s+/g,' ').toUpperCase() : '';
     if(!numnota){ errors.push('Linha '+n+': NUMNOTA vazio.'); return; }
     if(numnota.includes('/')){ errors.push('Linha '+n+': NF "'+numnota+'" contém "/".'); return; }
     const dt = parseDataBR(dtsaida);
@@ -1728,7 +1831,7 @@ function parseBulkInput(text){
     if(obscob) partes.push(obscob);
     if(dias>0) partes.push('('+dias+(dias===1?' dia)':' dias)'));
     rows.push({
-      numcar, nf:numnota, motorista:stripPJ(nome), valor, mes:dt.mes, ano:dt.ano, destino,
+      numcar, nf:numnota, motorista:stripPJ(nome), ga, valor, mes:dt.mes, ano:dt.ano, destino,
       dtsaida: dt.ano+'-'+String(dt.mes+1).padStart(2,'0')+'-'+dtsaida.trim().slice(0,2).padStart(2,'0'), atrasoDias: Number.isFinite(dias)?dias:0, pj: /[-–]\s*PJ\b/i.test(nome),
       regiao: matchRegiaoFromDestino(destino), status: statusFromObservacao(obs), observacoes: partes.join(' '),
     });
@@ -1775,9 +1878,9 @@ function renderBulkPreview(){
         <select data-g="${esc(g.numcar)}"><option value="">— escolher —</option>${REGIOES.map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join('')}</select></div>`).join('')}</div>`:''}
     ${ausentes.length?`<div class="bulk-groups"><label style="display:flex; gap:8px; align-items:flex-start; cursor:pointer; margin:0; color:var(--ink);"><input type="checkbox" id="chkArquivar" ${bulkState.arquivar?'checked':''} style="width:auto; margin-top:3px;"><span><b>${ausentes.length} NF(s) em aberto no painel (${fmtMoney(ausV)}) não vieram nesta colagem.</b> Marcado: elas vão para a aba <b>Banco de Dados</b> como Pendente, com a data da última vez em Notas Fiscais (saem dos indicadores; se voltarem numa colagem futura, são reativadas). Desmarque se esta colagem NÃO é a lista completa de pendências.</span></label></div>`:''}
     ${errors.length?`<div class="bulk-errors"><b>${errors.length} linha(s) ignorada(s):</b><br>${errors.slice(0,20).map(esc).join('<br>')}${errors.length>20?'<br>…':''}</div>`:''}
-    <div class="bulk-preview"><table><thead><tr><th>Carreg.</th><th>NF</th><th>Mês/Ano</th><th>Motorista</th><th>Destino (planilha)</th><th>Bairro/RA</th><th>Valor</th><th>Status</th><th>Observações</th><th></th></tr></thead><tbody>
+    <div class="bulk-preview"><table><thead><tr><th>Carreg.</th><th>NF</th><th>Mês/Ano</th><th>Motorista</th><th>GA</th><th>Destino (planilha)</th><th>Bairro/RA</th><th>Valor</th><th>Status</th><th>Observações</th><th></th></tr></thead><tbody>
     ${rows.map((r,i)=>`<tr class="bulk-row ${r.skip?'dup':''} ${!r.skip&&!r.regiao?'warn':''}">
-      <td>${esc(r.numcar)||'—'}</td><td>${esc(r.nf)}</td><td>${MESES[r.mes]}/${r.ano}</td><td>${esc(r.motorista)||'—'}</td><td>${esc(r.destino)}</td>
+      <td>${esc(r.numcar)||'—'}</td><td>${esc(r.nf)}</td><td>${MESES[r.mes]}/${r.ano}</td><td>${esc(r.motorista)||'—'}</td><td>${esc(r.ga)||'<span style="color:var(--amber)">—</span>'}</td><td>${esc(r.destino)}</td>
       <td><select data-i="${i}" data-f="regiao" ${r.skip?'disabled':''}><option value="">— escolher —</option>${REGIOES.map(g=>`<option value="${esc(g)}" ${r.regiao===g?'selected':''}>${esc(g)}</option>`).join('')}</select></td>
       <td>${fmtMoney(r.valor)}</td>
       <td><select data-i="${i}" data-f="status" ${r.skip?'disabled':''}>${STATUS_OPTS.map(s=>`<option value="${s}" ${r.status===s?'selected':''}>${STATUS_LABEL[s]}</option>`).join('')}</select></td>
@@ -1814,7 +1917,7 @@ async function confirmBulkImport(){
       act.slice(i,i+400).forEach(r=>{
         const ex = existentes[r.nf];
         batch.set(doc(db,'notas',r.nf), {
-          carregamento: r.numcar, regiao: r.regiao, motorista: r.motorista, valor: r.valor, status: r.status,
+          carregamento: r.numcar, regiao: r.regiao, motorista: r.motorista, ga: r.ga||'', valor: r.valor, status: r.status,
           observacoes: r.observacoes, mes: r.mes, ano: r.ano, dtsaida: r.dtsaida, atrasoDias: r.atrasoDias, atrasoRef: hojeISO(), vistoEm: hojeISO(), pj: r.pj, origem: 'lanca',
           criadoEm: (ex && ex.criadoEm) ? ex.criadoEm : serverTimestamp(), atualizadoEm: serverTimestamp(),
         });
