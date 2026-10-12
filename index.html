@@ -108,6 +108,7 @@ select option{background:#061428; color:var(--ink);}
 .mk span{color:#fff; text-shadow:0 0 6px #000;}
 .mk .mklab{position:absolute; top:100%; left:50%; transform:translateX(-50%); margin-top:4px; font-style:normal; font-weight:600; font-size:10px; line-height:1.15; color:#d8f3ff; text-shadow:0 0 4px #000,0 0 8px #000; white-space:nowrap; pointer-events:none;}
 .mk .mklab.top{top:auto; bottom:100%; margin:0 0 4px;}
+.mk .mklab.bl{top:100%; left:auto; right:30%; transform:none; margin-top:3px; text-align:right;}
 .mk .mklab.left{top:50%; left:auto; right:100%; transform:translateY(-50%); margin:0 5px 0 0;}
 .mk.dim .mklab{opacity:.5;}
 .mk.amber{color:var(--amber);} .mk.red{color:var(--red);}
@@ -710,7 +711,7 @@ const ZONAS = [
   {id:"go-aguas-lindas", nome:"Águas Lindas de Goiás (GO)", rot:"Águas Lindas", pos:"left", x:29.6, y:44.4, go:true, regioes:["Águas Lindas de Goiás (GO)"]},
   {id:"go-cocalzinho", nome:"Cocalzinho de Goiás (GO)", rot:"Cocalzinho", x:10.9, y:41.4, go:true, regioes:["Cocalzinho de Goiás (GO)"]},
   {id:"go-alexania", nome:"Alexânia (GO)", pos:"left", x:19.3, y:57.5, go:true, regioes:["Alexânia (GO)"]},
-  {id:"go-santo-antonio", nome:"Santo Antônio do Descoberto (GO)", rot:"Sto. Antônio", x:30.6, y:58.6, go:true, regioes:["Santo Antônio do Descoberto (GO)"]},
+  {id:"go-santo-antonio", nome:"Santo Antônio do Descoberto (GO)", rot:"Sto. Antônio", pos:"bl", x:29.9, y:59.0, go:true, regioes:["Santo Antônio do Descoberto (GO)"]},
   {id:"go-novo-gama", nome:"Novo Gama (GO)", rot:"N. Gama", pos:"left", x:39.2, y:58.5, go:true, regioes:["Novo Gama (GO)"]},
   {id:"go-valparaiso", nome:"Valparaíso de Goiás (GO)", rot:"Valparaíso", x:43.4, y:58.2, go:true, regioes:["Valparaíso de Goiás (GO)"]},
   {id:"go-cidade-ocidental", nome:"Cidade Ocidental (GO)", rot:"C. Ocidental", pos:"right", x:51.4, y:57.9, go:true, regioes:["Cidade Ocidental (GO)"]},
