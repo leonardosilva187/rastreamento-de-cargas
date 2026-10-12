@@ -971,12 +971,13 @@ function renderKpis(rows){
   const late = rows.filter(r=>r.status==='late').length;
   const pending = rows.filter(r=>r.status==='pending').length;
   const transit = rows.filter(r=>r.status==='transit').length;
-  const devol = rows.filter(r=>r.status==='devolucao').length;
+  const devolRows = rows.filter(r=>r.status==='devolucao');
+  const devolValor = devolRows.reduce((a,r)=>a+(Number(r.valor)||0),0);
   const valor = rows.reduce((a,r)=>a+(Number(r.valor)||0),0);
   const valorAberto = rows.filter(isOpen).reduce((a,r)=>a+(Number(r.valor)||0),0);
   const cards = [
     [total,"Total de NFs",""], [ok+late,"NFs OK","ok"], [pending,"NFs Pendentes","amber"],
-    [transit,"Analisando / agendado","blue"], [devol,"Devolvidas","devolucao wide"],
+    [transit,"Analisando / agendado","blue"], [fmtMoney(devolValor),"Valor devolvido ("+devolRows.length+" NF"+(devolRows.length===1?"":"s")+")","devolucao wide"],
     [fmtMoney(valorAberto),"Valor em aberto (pend. + analisando)","wide amber"], [fmtMoney(valor),"Valor Total","wide"],
   ];
   document.getElementById('kpis').innerHTML = cards.map(c=>`<div class="kpi ${c[2]}"><div class="n">${c[0]}</div><div class="l">${c[1]}</div></div>`).join('');
@@ -1464,7 +1465,9 @@ function renderIndicadores(){
   const rows = allRows.filter(r=>(!indAno.value||String(r.ano)===indAno.value) && (indMes.value===''||String(r.mes)===indMes.value) && (!indMot.value||r.motorista===indMot.value));
   const A = agg(rows);
   document.getElementById('indCards').innerHTML =
-    IND_STATUS.map(s=>{ const x=A.o[s.k]; return `<div class="ind-card" style="--c:${s.c}"><div class="t">${STATUS_LABEL[s.k]}</div><div class="n">${x.n}</div><div class="p">${pct(x.n,A.n)} das NFs</div><div class="v">${fmtMoney(x.v)}</div><div class="vp">${pct(x.v,A.v)} do valor</div></div>`; }).join('')
+    IND_STATUS.map(s=>{ const x=A.o[s.k];
+      if(s.k==='devolucao') return `<div class="ind-card" style="--c:${s.c}"><div class="t">${STATUS_LABEL[s.k]} (valor)</div><div class="n" style="font-size:24px;white-space:nowrap">${fmtMoney(x.v)}</div><div class="p">${pct(x.v,A.v)} do valor</div><div class="v">${x.n} NF${x.n===1?'':'s'} devolvida${x.n===1?'':'s'}</div><div class="vp">${pct(x.n,A.n)} das NFs</div></div>`;
+      return `<div class="ind-card" style="--c:${s.c}"><div class="t">${STATUS_LABEL[s.k]}</div><div class="n">${x.n}</div><div class="p">${pct(x.n,A.n)} das NFs</div><div class="v">${fmtMoney(x.v)}</div><div class="vp">${pct(x.v,A.v)} do valor</div></div>`; }).join('')
     + `<div class="ind-card" style="--c:var(--ink)"><div class="t">Total</div><div class="n">${A.n}</div><div class="p">100,0% das NFs</div><div class="v">${fmtMoney(A.v)}</div><div class="vp">100,0% do valor</div></div>`;
   const qtd = IND_STATUS.map(s=>({k:s.k,c:s.c,x:A.o[s.k].n})), val = IND_STATUS.map(s=>({k:s.k,c:s.c,x:A.o[s.k].v}));
   document.getElementById('stackQtd').innerHTML = stackHtml(qtd,A.n,x=>x+' NFs');
