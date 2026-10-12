@@ -1904,8 +1904,29 @@ function renderBulkPreview(){
   document.getElementById('btnBulkConfirm').addEventListener('click', confirmBulkImport);
 }
 
+/* ---------- Detecção de versão nova do painel ----------
+   Uma aba aberta antes de uma atualização continua rodando o código antigo (ex.: importação sem o GA).
+   O painel compara a assinatura do index.html carregado com a publicada e avisa / bloqueia a importação. */
+let _verSig = null;
+const sigOf = t=>{ let h=0; for(let i=0;i<t.length;i+=3) h=(h*31+t.charCodeAt(i))|0; return h+':'+t.length; };
+async function fetchSig(){ try{ const r=await fetch(location.pathname+'?v='+Date.now(),{cache:'no-store'}); if(!r.ok) return null; return sigOf(await r.text()); }catch(e){ return null; } }
+fetchSig().then(x=>{ _verSig=x; });
+async function versaoDesatualizada(){ if(!_verSig) return false; const x=await fetchSig(); return !!(x && x!==_verSig); }
+function recarregarPainel(){ try{ const t=document.getElementById('bulkInput').value; if(t.trim()) sessionStorage.setItem('bulkPendente',t); }catch(e){} location.reload(); }
+function avisoNovaVersao(){
+  if(document.getElementById('novaVersao')) return;
+  const d=document.createElement('div'); d.id='novaVersao'; d.setAttribute('role','alert');
+  d.style.cssText='position:fixed;top:12px;left:50%;transform:translateX(-50%);z-index:60;display:flex;gap:12px;align-items:center;padding:10px 14px;background:var(--surface);border:1px solid var(--amber);border-radius:6px;box-shadow:0 0 18px rgba(255,190,70,.35);color:var(--ink);font-size:13px;max-width:92vw;';
+  d.innerHTML='<span>⚠ O painel foi atualizado. Recarregue para usar a versão nova (o texto colado na importação é mantido).</span><button type="button" class="btn-primary" style="width:auto;padding:6px 12px;">Recarregar</button>';
+  d.querySelector('button').addEventListener('click',recarregarPainel); document.body.appendChild(d);
+}
+setInterval(async()=>{ if(await versaoDesatualizada()) avisoNovaVersao(); }, 3*60*1000);
+document.addEventListener('visibilitychange', async()=>{ if(!document.hidden && await versaoDesatualizada()) avisoNovaVersao(); });
+try{ const pend=sessionStorage.getItem('bulkPendente'); if(pend){ sessionStorage.removeItem('bulkPendente'); document.getElementById('bulkInput').value=pend; setTimeout(()=>toast('Texto da importação restaurado — entre no Modo edição e clique em analisar de novo.'),1500); } }catch(e){}
+
 async function confirmBulkImport(){
   const act = bulkState.rows.filter(r=>!r.skip);
+  if(await versaoDesatualizada()){ avisoNovaVersao(); const m=document.getElementById('bulkConfirmMsg'); m.style.color='var(--amber)'; m.textContent='O painel foi atualizado desde que esta página abriu. Clique em "Recarregar" no aviso e importe de novo — nada foi gravado.'; return; }
   if(!act.length || act.some(r=>!r.regiao)) return;
   const btn = document.getElementById('btnBulkConfirm'), msg = document.getElementById('bulkConfirmMsg');
   btn.disabled = true; msg.textContent = 'Importando…'; msg.style.color = '';
@@ -1948,9 +1969,10 @@ async function confirmBulkImport(){
   }
 }
 
-document.getElementById('btnBulkAnalyze').addEventListener('click', ()=>{
+document.getElementById('btnBulkAnalyze').addEventListener('click', async ()=>{
   const txt = document.getElementById('bulkInput').value;
   const bm = document.getElementById('bulkMsg');
+  if(await versaoDesatualizada()){ avisoNovaVersao(); bm.style.color='var(--amber)'; bm.textContent='O painel foi atualizado desde que esta página abriu. Clique em "Recarregar" no aviso (o texto colado é mantido).'; return; }
   if(!txt.trim()){ bm.style.color='var(--red)'; bm.textContent='Cole as linhas da planilha primeiro.'; return; }
   bulkState = Object.assign(parseBulkInput(txt),{arquivar:true});
   if(!bulkState.rows.length){
