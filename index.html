@@ -267,6 +267,7 @@ details.manual{margin-top:6px;} details.manual summary{cursor:pointer; color:var
 .ind-table tfoot td{font-weight:700; border-top:1px solid var(--teal);}
 .sem-legend{display:flex; flex-wrap:wrap; gap:6px 16px; font-size:12px; color:var(--muted); margin-top:6px;}
 .sem-legend em{display:inline-block; width:10px; height:10px; border-radius:2px; margin-right:5px; vertical-align:middle;}
+.sem-legend em.ln{width:16px; height:0; border-top:3px solid var(--amber); border-radius:2px;}
 .sem-legend em.dash{width:16px; height:0; border-top:2px dashed var(--teal); border-radius:0;}
 .sem-up{color:var(--red); font-weight:650;} .sem-down{color:var(--teal); font-weight:650;}
 .ga-badge{display:inline-block; min-width:22px; padding:2px 7px; border-radius:10px; font-size:11px; font-weight:700; text-align:center; border:1px solid currentColor;}
@@ -529,7 +530,7 @@ html.theme-anim, html.theme-anim *, html.theme-anim *::before{transition:backgro
       </div>
       <div class="ind-cards" id="semCards"></div>
       <div class="cv"><canvas id="semChart" height="300"></canvas></div>
-      <div class="sem-legend"><span><em style="background:var(--amber)"></em>% com atraso na semana</span><span><em class="dash"></em>Média do período</span><span><em style="background:var(--red)"></em>Pior semana</span></div>
+      <div class="sem-legend"><span><em class="ln"></em>% com atraso na semana</span><span><em class="dash"></em>Média do período</span><span><em style="background:var(--red)"></em>Pior semana</span></div>
       <div class="tablewrap" style="margin-top:12px;"><table class="ind-table" id="semTable"></table></div>
       <div class="readonly-note" id="semNote" style="display:none;"></div>
     </div>
@@ -1417,15 +1418,29 @@ function drawSemChart(lista, media, pior){
   const max = Math.max(20, Math.ceil(Math.max(...lista.map(o=>o.pct), media)*1.08/20)*20);
   ctx.lineWidth=1; ctx.strokeStyle='rgba(120,170,255,.16)'; ctx.fillStyle=cssVar('--muted'); ctx.textAlign='right'; ctx.textBaseline='middle';
   for(let g=0;g<=4;g++){ const y=padT+plotH*g/4; ctx.beginPath(); ctx.moveTo(padL,y); ctx.lineTo(padL+plotW,y); ctx.stroke(); ctx.fillText(Math.round(max*(1-g/4))+'%', padL-6, y); }
-  const slot = plotW/lista.length, bw = Math.max(6, Math.min(54, slot*0.6));
+  const slot = plotW/lista.length;
   const passo = Math.max(1, Math.ceil(lista.length/ Math.max(1,Math.floor(plotW/62))));
+  const P = lista.map((o,i)=>[ padL + slot*(i+0.5), padT+plotH-(o.pct/max)*plotH ]);
+  // área sob a linha
+  const ga = ctx.createLinearGradient(0,padT,0,padT+plotH);
+  ga.addColorStop(0,cssVar('--amber')+'55'); ga.addColorStop(1,cssVar('--amber')+'00');
+  ctx.beginPath(); ctx.moveTo(P[0][0],padT+plotH); P.forEach(([x,y])=>ctx.lineTo(x,y)); ctx.lineTo(P[P.length-1][0],padT+plotH); ctx.closePath();
+  ctx.fillStyle=ga; ctx.fill();
+  // linha
+  ctx.strokeStyle=cssVar('--amber'); ctx.lineWidth=2.5; ctx.lineJoin='round'; ctx.lineCap='round';
+  ctx.shadowColor=cssVar('--amber'); ctx.shadowBlur=12;
+  ctx.beginPath(); P.forEach(([x,y],i)=>{ if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y); }); ctx.stroke();
+  ctx.shadowBlur=0;
+  // pontos, valores e eixo X
   lista.forEach((o,i)=>{
-    const cx = padL + slot*(i+0.5), h = (o.pct/max)*plotH, y = padT+plotH-h;
-    const cor = o===pior && o.pct>0 ? cssVar('--red') : cssVar('--amber');
-    const g = ctx.createLinearGradient(0,y,0,padT+plotH); g.addColorStop(0,cor); g.addColorStop(1,cssVar('--blue'));
-    ctx.shadowColor=cor; ctx.shadowBlur=10; ctx.fillStyle=g; ctx.fillRect(cx-bw/2, y, bw, Math.max(h,1.5)); ctx.shadowBlur=0;
+    const [cx,y] = P[i];
+    const ePior = o===pior && o.pct>0;
+    const cor = ePior ? cssVar('--red') : cssVar('--amber');
+    ctx.shadowColor=cor; ctx.shadowBlur=ePior?14:8; ctx.fillStyle=cor;
+    ctx.beginPath(); ctx.arc(cx,y,ePior?6:4.5,0,Math.PI*2); ctx.fill(); ctx.shadowBlur=0;
+    ctx.fillStyle=cssVar('--surface'); ctx.beginPath(); ctx.arc(cx,y,ePior?2.5:1.8,0,Math.PI*2); ctx.fill();
     ctx.textAlign='center'; ctx.textBaseline='alphabetic';
-    if(slot>=30 || i%passo===0){ ctx.fillStyle=cssVar('--ink'); ctx.font='600 11px -apple-system,sans-serif'; ctx.fillText(o.pct.toLocaleString('pt-BR',{maximumFractionDigits:1})+'%', cx, y-6); }
+    if(slot>=30 || i%passo===0 || ePior){ ctx.fillStyle=ePior?cssVar('--red'):cssVar('--ink'); ctx.font='600 11px -apple-system,sans-serif'; ctx.fillText(o.pct.toLocaleString('pt-BR',{maximumFractionDigits:1})+'%', cx, y-10); }
     if(i%passo===0 || (i===lista.length-1 && i%passo>=passo/2+0.5)){
       ctx.fillStyle=cssVar('--muted'); ctx.font='10.5px -apple-system,sans-serif';
       ctx.fillText('Sem. '+o.num, cx, H-padB+15); ctx.fillText(semDM(o.ini), cx, H-padB+29);
