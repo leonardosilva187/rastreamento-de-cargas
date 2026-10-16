@@ -401,6 +401,7 @@ html.theme-anim, html.theme-anim *, html.theme-anim *::before{transition:backgro
   <button type="button" class="sb-item" data-view="painel" title="Painel"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg><span class="lbl">Painel</span></button>
   <button type="button" class="sb-item" data-view="ind" title="Indicadores"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 20V11M12 20V5M19 20v-7"/></svg><span class="lbl">Indicadores</span></button>
   <button type="button" class="sb-item" data-view="ga" title="Ranking de GA"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19c.6-3 2.8-4.6 5.5-4.6s4.9 1.6 5.5 4.6"/><path d="M16 4.5l1.2 2.4 2.6.4-1.9 1.8.5 2.6-2.4-1.3"/></svg><span class="lbl">Ranking de GA</span></button>
+  <button type="button" class="sb-item" data-view="mot" title="Ranking de Motoristas"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 7h11v9H2z"/><path d="M13 10h4l3 3v3h-7"/><circle cx="6" cy="17.5" r="1.8"/><circle cx="16.5" cy="17.5" r="1.8"/></svg><span class="lbl">Ranking de Motoristas</span></button>
   <button type="button" class="sb-item" data-view="notas" title="Notas Fiscais"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4M9 12h6M9 16h6"/></svg><span class="lbl">Notas Fiscais</span></button>
   <button type="button" class="sb-item" data-view="hist" title="Histórico de Alterações"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span class="lbl">Histórico de Alterações</span></button>
   <button type="button" class="sb-item" data-view="atraso" title="Atraso Mensal"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><span class="lbl">Atraso Mensal</span></button>
@@ -668,6 +669,38 @@ html.theme-anim, html.theme-anim *, html.theme-anim *::before{transition:backgro
     <div class="tablewrap"><table class="ind-table" id="gaAbertoTable"></table></div>
     <h3 style="margin-top:18px;">GA que mais vendem por região <span class="hint">por Bairro/RA — maior valor vendido</span></h3>
     <div class="tablewrap"><table class="ind-table" id="gaRegTable"></table></div>
+  </div>
+</div>
+<div id="viewMot" style="display:none;">
+  <div class="panel">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:6px;"><h3 style="margin:0;">Ranking de Motoristas <span class="hint">valor transportado · pendências · devoluções · regiões</span></h3><button type="button" class="btn-ghost" id="btnRelMot" style="width:auto;padding:7px 14px;" title="Relatório completo da aba, com os filtros atuais, pronto para imprimir ou salvar em PDF">📄 Exportar relatório</button></div>
+    <div class="ind-filters">
+      <div><label for="mrAno">Ano</label><select id="mrAno"><option value="">Todos</option></select></div>
+      <div><label for="mrMes">Mês</label><select id="mrMes"><option value="">Todos</option></select></div>
+      <div><label for="mrReg">Bairro/RA</label><select id="mrReg"><option value="">Todas</option></select></div>
+      <div><label for="mrZona">Macrozona / Município (GO)</label><select id="mrZona"><option value="">Todas</option></select></div>
+      <div><label for="mrTipo">Tipo</label><select id="mrTipo"><option value="">Todos</option><option value="pj">Só PJ</option><option value="npj">Sem PJ</option></select></div>
+    </div>
+    <div class="ga-note" id="mrNote"></div>
+    <div class="ind-cards" id="mrCards"></div>
+    <h3 style="margin-top:6px;">Ranking de motoristas por valor transportado <span class="hint">classificação ABC — A: até 80% do valor · B: até 95% · C: restante</span></h3>
+    <div class="tablewrap"><table class="ind-table" id="mrRankTable"></table></div>
+    <div class="ga-grid">
+      <div>
+        <h3 style="margin-top:18px;">Índice de atraso por motorista <span class="hint">% das NFs "OK com atraso" · Alto ≥ 30% · Médio ≥ 15%</span></h3>
+        <div class="tablewrap"><table class="ind-table" id="mrAtrTable"></table></div>
+      </div>
+      <div>
+        <h3 style="margin-top:18px;">Índice de devolução por motorista <span class="hint">% do valor devolvido · Alto ≥ 10% · Médio ≥ 5%</span></h3>
+        <div class="tablewrap"><table class="ind-table" id="mrDevTable"></table></div>
+      </div>
+    </div>
+    <h3 style="margin-top:18px;">Motoristas com maior valor em aberto <span class="hint">Pendente + Analisando / agendado · prioridade de cobrança</span></h3>
+    <div class="tablewrap"><table class="ind-table" id="mrAbertoTable"></table></div>
+    <h3 style="margin-top:18px;">Motoristas que mais atendem por região <span class="hint">por Bairro/RA — maior valor entregue</span></h3>
+    <div class="tablewrap"><table class="ind-table" id="mrRegTable"></table></div>
+    <h3 style="margin-top:18px;">Motoristas com as NFs mais altas</h3>
+    <div class="tablewrap"><table class="ind-table" id="mrNfTable"></table></div>
   </div>
 </div>
 </div>
@@ -1838,6 +1871,256 @@ ${Object.entries(o.reg).sort((a,b)=>b[1].v-a[1].v).map(([k,x])=>`<tr class="${x.
 }
 document.getElementById('btnRelGA').addEventListener('click', gerarRelatorioGA);
 
+/* ---------- Aba Ranking de Motoristas (mesmo princípio do Ranking de GA) ---------- */
+const mrAno=document.getElementById('mrAno'), mrMes=document.getElementById('mrMes'), mrReg=document.getElementById('mrReg'), mrZona=document.getElementById('mrZona'), mrTipo=document.getElementById('mrTipo');
+MESES.forEach((m,i)=>mrMes.insertAdjacentHTML('beforeend',`<option value="${i}">${m}</option>`));
+ZONAS.forEach(z=>mrZona.insertAdjacentHTML('beforeend',`<option value="${z.id}">${esc(z.nome)}</option>`));
+[mrAno,mrMes,mrReg,mrZona,mrTipo].forEach(el=>el.addEventListener('change',renderMot));
+function mrClasseAtr(p){ return p>=.30 ? ['alto','Alto'] : p>=.15 ? ['medio','Médio'] : ['baixo','Baixo']; }
+function mrBaseFiltrada(){
+  return allRows.filter(r=>(!mrAno.value||String(r.ano)===mrAno.value) && (mrMes.value===''||String(r.mes)===mrMes.value) && (!mrReg.value||r.regiao===mrReg.value) && (!mrZona.value||zonaDe(r.regiao)===mrZona.value)
+    && (!mrTipo.value || (mrTipo.value==='pj' ? !!r.pj : !r.pj)));
+}
+const MR_ST = ['ok','late','transit','pending','devolucao'];
+// agrega as NFs por motorista (e por região), no mesmo formato para a aba e para o relatório
+function mrAgregar(rows){
+  const v = r=>Number(r.valor)||0;
+  const novo = ()=>({n:0,v:0,st:Object.fromEntries(MR_ST.map(k=>[k,{n:0,v:0}])),an:0,av:0,amax:null,asoma:0,acnt:0,lmax:null,lsoma:0,lcnt:0,max:0,maxNf:'',car:new Set(),pj:false});
+  const soma = (o,r)=>{ const val=v(r); o.n++; o.v+=val; if(o.st[r.status]){ o.st[r.status].n++; o.st[r.status].v+=val; } if(val>o.max){ o.max=val; o.maxNf=r.nf; }
+    if(r.numcar) o.car.add(String(r.numcar)); if(r.pj) o.pj=true;
+    const d=diasDe(r);
+    if(isOpen(r)){ o.an++; o.av+=val; if(d!==null){ o.amax=o.amax===null?d:Math.max(o.amax,d); o.asoma+=d; o.acnt++; } }
+    if(r.status==='late' && d!==null){ o.lmax=o.lmax===null?d:Math.max(o.lmax,d); o.lsoma+=d; o.lcnt++; } };
+  const M={}, R={}, T=novo();
+  rows.forEach(r=>{ const k=r.motorista, rg=r.regiao||'(sem Bairro/RA)';
+    soma(T,r); soma(M[k]||(M[k]=Object.assign(novo(),{k,reg:{}})),r); soma(R[rg]||(R[rg]=Object.assign(novo(),{k:rg,mot:{}})),r);
+    M[k].reg[rg]=M[k].reg[rg]||novo(); soma(M[k].reg[rg],r); R[rg].mot[k]=(R[rg].mot[k]||0)+v(r); });
+  const mots = Object.values(M).sort((a,b)=>b.v-a.v), regs = Object.values(R).sort((a,b)=>b.v-a.v);
+  let acc=0; mots.forEach(o=>{ const antes=acc/(T.v||1); acc+=o.v; o.abc = antes<.80?'A':antes<.95?'B':'C'; });
+  return {mots, regs, T};
+}
+const mrDv = o=>o.st.devolucao.v, mrOk = o=>o.st.ok.v+o.st.late.v, mrOkN = o=>o.st.ok.n+o.st.late.n;
+const mrAtr = o=>{ const f=mrOkN(o); return f ? o.st.late.n/f : 0; };  // % das NFs finalizadas OK que vieram com atraso
+const mrMed = (s,c)=> c ? Math.round(s/c) : null;
+function renderMot(){
+  const a=mrAno.value, rg=mrReg.value;
+  mrAno.innerHTML='<option value="">Todos</option>'+Array.from(new Set(allRows.map(r=>r.ano).filter(Boolean))).sort().map(x=>`<option value="${x}">${x}</option>`).join(''); mrAno.value=a;
+  mrReg.innerHTML='<option value="">Todas</option>'+Array.from(new Set(allRows.map(r=>r.regiao).filter(Boolean))).sort((x,y)=>x.localeCompare(y,'pt-BR')).map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join(''); mrReg.value=rg;
+  const base = mrBaseFiltrada(), v = r=>Number(r.valor)||0;
+  const rows = base.filter(r=>r.motorista), semMot = base.length-rows.length;
+  document.getElementById('mrNote').innerHTML = semMot ? `${semMot} NF(s) sem motorista ficam fora do ranking.` : '';
+  const {mots, regs, T} = mrAgregar(rows);
+  const vazio = (c,t)=>`<tr><td colspan="${c}" class="empty">${t}</td></tr>`;
+  const card = c=>`<div class="ind-card" style="--c:${c[0]}"><div class="t">${c[1]}</div><div class="n" style="font-size:19px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${c[2]}">${c[2]}</div><div class="p">${c[3]}</div><div class="v">${c[4]}</div><div class="vp">${c[5]}</div></div>`;
+  // cards
+  const lider = mots[0];
+  const maiorAb = mots.filter(o=>o.av>0).sort((x,y)=>y.av-x.av)[0];
+  const piorAtr = mots.filter(o=>mrOkN(o)>=3 && o.st.late.n>0).sort((x,y)=>mrAtr(y)-mrAtr(x) || y.st.late.n-x.st.late.n)[0];
+  const piorDev = mots.filter(o=>mrDv(o)>0).sort((x,y)=>(mrDv(y)/y.v)-(mrDv(x)/x.v))[0];
+  document.getElementById('mrCards').innerHTML = [
+    ['var(--teal)','Motoristas com entregas', mots.length, `${T.n} NFs · ${T.car.size} carregamentos`, fmtMoney(T.v), 'valor transportado'],
+    ['var(--blue)','Líder em valor transportado', lider?esc(lider.k):'—', lider?pct(lider.v,T.v)+' do valor':'', lider?fmtMoney(lider.v):'', lider?lider.n+' NFs · '+lider.car.size+' carreg.':''],
+    ['var(--amber)','Maior valor em aberto', maiorAb?esc(maiorAb.k):'—', maiorAb?maiorAb.an+' NFs em aberto':'sem pendências', maiorAb?fmtMoney(maiorAb.av):'', 'total em aberto: '+fmtMoney(T.av)],
+    ['var(--red)','Maior índice de atraso', piorAtr?esc(piorAtr.k):'—', piorAtr?pct(piorAtr.st.late.n,mrOkN(piorAtr))+' das NFs OK':'sem atrasos', piorAtr?piorAtr.st.late.n+' NFs com atraso':'', 'geral: '+pct(T.st.late.n,mrOkN(T))],
+    ['var(--violet)','Maior índice de devolução', piorDev?esc(piorDev.k):'—', piorDev?pct(mrDv(piorDev),piorDev.v)+' do valor':'sem devoluções', piorDev?fmtMoney(mrDv(piorDev))+' devolvido':'', 'geral: '+pct(mrDv(T),T.v)],
+  ].map(card).join('');
+  // ranking por valor
+  const maxV = lider?lider.v:0;
+  document.getElementById('mrRankTable').innerHTML = `<thead><tr><th>#</th><th>Motorista</th><th>Classe</th><th>Valor transportado</th><th>% do total</th><th>NFs</th><th>Carreg.</th><th>Ticket médio</th><th>% OK</th><th>Em aberto</th><th>Devolvido</th></tr></thead><tbody>`
+    + (mots.map((o,i)=>`<tr><td>${i+1}</td><td>${esc(o.k)}${o.pj?' <small>PJ</small>':''}</td><td><span class="ga-badge ${o.abc.toLowerCase()}">${o.abc}</span></td><td>${gaBar(o.v,maxV,fmtMoney(o.v))}</td><td>${pct(o.v,T.v)}</td><td>${o.n}</td><td>${o.car.size||'—'}</td><td>${fmtMoney(o.v/o.n)}</td><td>${pct(mrOkN(o),o.n)}</td><td>${o.av?fmtMoney(o.av):'—'}</td><td>${mrDv(o)?fmtMoney(mrDv(o)):'—'}</td></tr>`).join('') || vazio(11,'Nenhuma NF com motorista para os filtros atuais.'))
+    + `</tbody>${mots.length?`<tfoot><tr><td></td><td>Total</td><td></td><td>${fmtMoney(T.v)}</td><td>100,0%</td><td>${T.n}</td><td>${T.car.size}</td><td>${T.n?fmtMoney(T.v/T.n):'—'}</td><td>${pct(mrOkN(T),T.n)}</td><td>${fmtMoney(T.av)}</td><td>${fmtMoney(mrDv(T))}</td></tr></tfoot>`:''}`;
+  // índice de atraso
+  const atr = mots.filter(o=>o.st.late.n>0).sort((x,y)=>mrAtr(y)-mrAtr(x) || y.st.late.n-x.st.late.n);
+  document.getElementById('mrAtrTable').innerHTML = `<thead><tr><th>#</th><th>Motorista</th><th>Índice</th><th>% c/ atraso</th><th>NFs c/ atraso</th><th>Atraso médio</th></tr></thead><tbody>`
+    + (atr.map((o,i)=>{ const [c,l]=mrClasseAtr(mrAtr(o)); const md=mrMed(o.lsoma,o.lcnt); return `<tr><td>${i+1}</td><td>${esc(o.k)}</td><td><span class="ga-badge ${c}">${l}</span></td><td>${pct(o.st.late.n,mrOkN(o))}</td><td>${o.st.late.n} de ${mrOkN(o)} <small>${fmtMoney(o.st.late.v)}</small></td><td>${md===null?'—':md+' d'}</td></tr>`; }).join('') || vazio(6,'Nenhuma NF com atraso para os filtros atuais.')) + '</tbody>';
+  // devolução
+  const dev = mots.filter(o=>o.st.devolucao.n>0).sort((x,y)=>(mrDv(y)/y.v)-(mrDv(x)/x.v) || mrDv(y)-mrDv(x));
+  document.getElementById('mrDevTable').innerHTML = `<thead><tr><th>#</th><th>Motorista</th><th>Índice</th><th>% do valor</th><th>Valor devolvido</th><th>NFs devolvidas</th></tr></thead><tbody>`
+    + (dev.map((o,i)=>{ const [c,l]=gaClasseDev(mrDv(o)/o.v); return `<tr><td>${i+1}</td><td>${esc(o.k)}</td><td><span class="ga-badge ${c}">${l}</span></td><td>${pct(mrDv(o),o.v)}</td><td>${fmtMoney(mrDv(o))}<small>de ${fmtMoney(o.v)}</small></td><td>${o.st.devolucao.n} de ${o.n} <small>${pct(o.st.devolucao.n,o.n)}</small></td></tr>`; }).join('') || vazio(6,'Nenhuma devolução para os filtros atuais.')) + '</tbody>';
+  // em aberto
+  const ab = mots.filter(o=>o.an>0).sort((x,y)=>y.av-x.av);
+  document.getElementById('mrAbertoTable').innerHTML = `<thead><tr><th>#</th><th>Motorista</th><th>NFs em aberto</th><th>Valor em aberto</th><th>% do total</th><th>Pendente</th><th>Analisando / agendado</th><th>Maior atraso</th><th>Atraso médio</th></tr></thead><tbody>`
+    + (ab.map((o,i)=>{ const md=mrMed(o.asoma,o.acnt); return `<tr><td>${i+1}</td><td>${esc(o.k)}</td><td>${o.an}</td><td>${gaBar(o.av,ab[0].av,fmtMoney(o.av))}</td><td>${pct(o.av,T.av)}</td><td>${o.st.pending.n?fmtMoney(o.st.pending.v)+'<small>'+o.st.pending.n+' NFs</small>':'—'}</td><td>${o.st.transit.n?fmtMoney(o.st.transit.v)+'<small>'+o.st.transit.n+' NFs</small>':'—'}</td><td>${o.amax===null?'—':o.amax+' d'}</td><td>${md===null?'—':md+' d'}</td></tr>`; }).join('') || vazio(9,'Sem pendências.'))
+    + `</tbody>${ab.length?`<tfoot><tr><td></td><td>Total</td><td>${T.an}</td><td>${fmtMoney(T.av)}</td><td>100,0%</td><td>${fmtMoney(T.st.pending.v)}</td><td>${fmtMoney(T.st.transit.v)}</td><td>${T.amax===null?'—':T.amax+' d'}</td><td>${mrMed(T.asoma,T.acnt)===null?'—':mrMed(T.asoma,T.acnt)+' d'}</td></tr></tfoot>`:''}`;
+  // NFs mais altas
+  document.getElementById('mrNfTable').innerHTML = `<thead><tr><th>#</th><th>NF</th><th>Motorista</th><th>Bairro/RA</th><th>Valor</th><th>Status</th></tr></thead><tbody>`
+    + (rows.slice().sort((x,y)=>v(y)-v(x)).slice(0,10).map((r,i)=>`<tr><td>${i+1}</td><td>${esc(r.nf)}</td><td>${esc(r.motorista)}</td><td>${esc(r.regiao)||'—'}</td><td>${fmtMoney(v(r))}</td><td>${esc(STATUS_LABEL[r.status]||r.status||'')}</td></tr>`).join('') || vazio(6,'Sem NFs.')) + '</tbody>';
+  // por região
+  document.getElementById('mrRegTable').innerHTML = `<thead><tr><th>Bairro/RA</th><th>Valor</th><th>NFs</th><th>1º motorista</th><th>2º</th><th>3º</th></tr></thead><tbody>`
+    + (regs.map(o=>{ const t=Object.entries(o.mot).sort((x,y)=>y[1]-x[1]); const cel=e=>e?`${esc(e[0])}<small>${fmtMoney(e[1])} · ${pct(e[1],o.v)}</small>`:'—';
+      return `<tr><td>${esc(o.k)}</td><td>${fmtMoney(o.v)}</td><td>${o.n}</td><td><b>${esc(t[0][0])}</b><small>${fmtMoney(t[0][1])} · ${pct(t[0][1],o.v)}</small></td><td>${cel(t[1])}</td><td>${cel(t[2])}</td></tr>`; }).join('') || vazio(6,'Sem NFs.')) + '</tbody>';
+}
+
+/* ---------- Relatório da aba Ranking de Motoristas (abre em nova aba; imprimir / salvar PDF) ---------- */
+function gerarRelatorioMot(){
+  const w = window.open('', '_blank');
+  if(!w){ toast('O navegador bloqueou a nova aba — permita pop-ups para este site e tente de novo.','var(--amber)'); return; }
+  const base = mrBaseFiltrada(), v = r=>Number(r.valor)||0;
+  const rows = base.filter(r=>r.motorista), semMot = base.length-rows.length;
+  const P = (a,b)=> b ? (a/b*100).toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})+'%' : '0,0%';
+  const M = fmtMoney, E = esc;
+  const {mots, regs, T} = mrAgregar(rows);
+  const dv = mrDv, okv = mrOk;
+  const idxDev = T.v? dv(T)/T.v : 0, idxAb = T.v? T.av/T.v : 0, idxAtr = mrAtr(T);
+  const medDias = o=> mrMed(o.asoma,o.acnt), medAtr = o=> mrMed(o.lsoma,o.lcnt);
+  // ---------- insights ----------
+  const ins = [];
+  if(mots.length){
+    const top1=mots[0], top3=mots.slice(0,3).reduce((s,o)=>s+o.v,0);
+    if(top1.v/T.v>=.30) ins.push(['atencao','Dependência de um motorista',`${E(top1.k)} transporta ${P(top1.v,T.v)} do valor. Uma ausência ou problema com ele afeta boa parte das entregas: vale ter reserva treinada para as rotas dele.`]);
+    else ins.push(['oportunidade','Carga bem distribuída',`O líder (${E(top1.k)}) transporta ${P(top1.v,T.v)} do valor e os 3 primeiros ${P(top3,T.v)} — boa distribuição entre os motoristas.`]);
+    const nA = mots.filter(o=>o.abc==='A').length;
+    ins.push(['info','Curva ABC',`${nA} de ${mots.length} motoristas (classe A) levam cerca de 80% do valor. Eles merecem prioridade em conferência de canhotos e em acompanhamento de desempenho.`]);
+  }
+  const abM = mots.filter(o=>o.av>0).sort((a,b)=>b.av-a.av);
+  if(abM.length) ins.push(['atencao','Prioridade de cobrança de canhotos',`${abM.slice(0,3).map(o=>E(o.k)+' ('+M(o.av)+(medDias(o)!==null?', '+medDias(o)+' d méd.':'')+')').join(', ')} têm o maior valor em aberto. Cobrar esses primeiro reduz o passivo mais rápido.`]);
+  const velhos = mots.filter(o=>o.amax!==null && o.amax>=Math.max(15,(medDias(T)||0)*1.5)).sort((a,b)=>b.amax-a.amax);
+  if(velhos.length) ins.push(['critico','Pendências antigas',`${velhos.slice(0,4).map(o=>E(o.k)+' ('+o.amax+' d)').join(', ')} têm NFs em aberto há muito tempo (média geral ${medDias(T)===null?'—':medDias(T)+' d'}). Risco de perda do canhoto: tratar caso a caso.`]);
+  const atrAlto = mots.filter(o=>mrOkN(o)>=3 && mrAtr(o)>=Math.max(.30, idxAtr*1.5)).sort((a,b)=>mrAtr(b)-mrAtr(a));
+  if(atrAlto.length) ins.push(['critico','Motoristas com atraso acima do aceitável',`${atrAlto.slice(0,5).map(o=>E(o.k)+' ('+P(o.st.late.n,mrOkN(o))+')').join(', ')} — índice geral de ${P(T.st.late.n,mrOkN(T))}. Rever roteiro, quantidade de entregas por carga e prazo de postagem dos canhotos.`]);
+  else if(T.st.late.n) ins.push(['oportunidade','Atrasos controlados',`Nenhum motorista passa de 30% das NFs OK com atraso; o índice geral é ${P(T.st.late.n,mrOkN(T))}.`]);
+  const devAlto = mots.filter(o=>dv(o)>0 && dv(o)/o.v>=Math.max(.10, idxDev*1.5)).sort((a,b)=>dv(b)/b.v-dv(a)/a.v);
+  if(devAlto.length) ins.push(['critico','Motoristas com devolução acima do aceitável',`${devAlto.slice(0,5).map(o=>E(o.k)+' ('+P(dv(o),o.v)+', '+M(dv(o))+')').join(', ')} — índice geral de ${P(dv(T),T.v)}. Verificar horário de chegada, conferência da carga e as áreas que esses motoristas atendem.`]);
+  else if(dv(T)>0) ins.push(['oportunidade','Devoluções controladas',`Nenhum motorista passa de 10% de devolução; o índice geral é ${P(dv(T),T.v)} (${M(dv(T))}).`]);
+  const bons = mots.filter(o=>o.n>=5 && o.an===0 && dv(o)===0 && mrAtr(o)<Math.max(.05,idxAtr*.5)).slice(0,5);
+  if(bons.length) ins.push(['oportunidade','Referências de desempenho',`${bons.map(o=>E(o.k)).join(', ')} não têm pendências nem devoluções e quase não atrasam. Boas referências para treinar os demais e para rotas críticas.`]);
+  const regAbastecidas = regs.slice(0,3);
+  if(regAbastecidas.length) ins.push(['info','Áreas mais abastecidas',`${regAbastecidas.map(o=>E(o.k)+' ('+P(o.v,T.v)+')').join(', ')} recebem a maior parte do valor. Garanta motoristas e janelas de entrega suficientes nessas áreas.`]);
+  const regPend = regs.filter(o=>o.v>0 && o.av/o.v>=Math.max(.3, idxAb*1.3) && o.n>=2).sort((a,b)=>b.av-a.av);
+  if(regPend.length) ins.push(['critico','Áreas com pendência elevada',`${regPend.slice(0,4).map(o=>E(o.k)+' ('+P(o.av,o.v)+' em aberto)').join(', ')} estão acima da média de ${P(T.av,T.v)}. Concentrar a cobrança nos motoristas que atendem essas áreas.`]);
+  const regDev = regs.filter(o=>dv(o)>0 && dv(o)/o.v>=Math.max(.08, idxDev*1.5)).sort((a,b)=>dv(b)-dv(a));
+  if(regDev.length) ins.push(['critico','Áreas com mais devoluções',`${regDev.slice(0,4).map(o=>E(o.k)+' ('+M(dv(o))+', '+P(dv(o),o.v)+')').join(', ')}. Verificar acesso, restrição de horário e perfil dos clientes antes de novas cargas.`]);
+  const dom = regs.filter(o=>o.n>=3).map(o=>{ const t=Object.entries(o.mot).sort((a,b)=>b[1]-a[1])[0]; return {o,m:t[0],sh:t[1]/o.v}; }).filter(x=>x.sh>=.7).slice(0,4);
+  if(dom.length) ins.push(['info','Áreas dependentes de um único motorista',`${dom.map(x=>E(x.o.k)+' — '+E(x.m)+' ('+P(x.sh,1)+')').join('; ')}. Treinar um segundo motorista na região reduz o risco de ficar sem entrega.`]);
+  const pjs = mots.filter(o=>o.pj), npj = mots.filter(o=>!o.pj);
+  if(pjs.length && npj.length){ const s=a=>a.reduce((x,o)=>({v:x.v+o.v,av:x.av+o.av,dv:x.dv+dv(o)}),{v:0,av:0,dv:0}); const A=s(pjs), B=s(npj);
+    ins.push(['info','PJ x demais',`PJ: ${P(A.v,T.v)} do valor, ${P(A.av,A.v)} em aberto e ${P(A.dv,A.v)} devolvido. Demais: ${P(B.av,B.v)} em aberto e ${P(B.dv,B.v)} devolvido.`]); }
+  if(semMot) ins.push(['info','NFs sem motorista',`${semMot} NF(s) do período não têm motorista preenchido e ficaram fora desta análise.`]);
+  // ---------- HTML ----------
+  const filtros = [mrAno.value&&('Ano '+mrAno.value), mrMes.value!==''&&('Mês '+MESES[mrMes.value]), mrReg.value&&('Bairro/RA: '+mrReg.value), mrZona.value&&('Zona: '+(ZONAS.find(z=>z.id===mrZona.value)||{}).nome), mrTipo.value&&(mrTipo.value==='pj'?'Só PJ':'Sem PJ')].filter(Boolean).join(' · ') || 'Todos os períodos e regiões';
+  const bar = (x,max,cls)=>`<div class="bar"><i class="${cls||''}" style="width:${max?Math.max(1,x/max*100):0}%"></i></div>`;
+  const cor = {critico:'Crítico',atencao:'Atenção',oportunidade:'Oportunidade',info:'Análise'};
+  const vazio = (c)=>`<tr><td colspan="${c}" class="muted">Sem dados para os filtros.</td></tr>`;
+  const maxG = mots[0]?mots[0].v:0, maxR = regs[0]?regs[0].v:0, maxAb = abM[0]?abM[0].av:0;
+  const regsPend = regs.filter(o=>o.av>0).sort((a,b)=>b.av-a.av), maxRP = regsPend[0]?regsPend[0].av:0;
+  const regsDev = regs.filter(o=>dv(o)>0).sort((a,b)=>dv(b)-dv(a)), maxRD = regsDev[0]?dv(regsDev[0]):0;
+  const atrM = mots.filter(o=>o.st.late.n>0).sort((a,b)=>mrAtr(b)-mrAtr(a) || b.st.late.n-a.st.late.n);
+  const devM = mots.filter(o=>dv(o)>0).sort((a,b)=>dv(b)/b.v-dv(a)/a.v);
+  const h = `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Relatório de Motoristas — Rastreamento de Cargas</title>
+<style>
+:root{--ink:#16233a;--muted:#5d6b80;--line:#d8e0ea;--bg:#f4f7fb;--teal:#0e8fa3;--blue:#2860c9;--amber:#c47d00;--red:#c8323f;--violet:#7a4cc4;}
+*{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--ink);font:13px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;}
+.page{max-width:1080px;margin:0 auto;padding:28px 28px 60px;background:#fff;}
+header{display:flex;justify-content:space-between;gap:16px;align-items:flex-end;border-bottom:3px solid var(--teal);padding-bottom:12px;margin-bottom:18px;}
+h1{margin:0;font-size:22px;} h1 small{display:block;font-size:12px;color:var(--muted);font-weight:500;margin-top:3px;}
+h2{font-size:15px;margin:26px 0 8px;padding-bottom:4px;border-bottom:1px solid var(--line);color:#0b3d5c;}
+h3{font-size:13px;margin:16px 0 6px;}
+.meta{text-align:right;color:var(--muted);font-size:12px;}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;} .kpi{border:1px solid var(--line);border-top:3px solid var(--c,var(--teal));border-radius:6px;padding:10px 12px;}
+.kpi b{display:block;font-size:18px;color:var(--c,var(--teal));} .kpi span{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;}
+.ins{display:grid;gap:8px;} .in{border:1px solid var(--line);border-left:4px solid var(--c);border-radius:6px;padding:9px 12px;}
+.in .tag{display:inline-block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--c);margin-right:6px;}
+.in.critico{--c:var(--red);} .in.atencao{--c:var(--amber);} .in.oportunidade{--c:var(--teal);} .in.info{--c:var(--blue);}
+table{width:100%;border-collapse:collapse;font-size:12px;margin:4px 0 6px;} th{background:#eef3f8;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:#33445c;}
+th,td{padding:6px 7px;border-bottom:1px solid var(--line);vertical-align:top;} td.n,th.n{text-align:right;white-space:nowrap;} tfoot td{font-weight:700;border-top:2px solid var(--ink);}
+td small{display:block;color:var(--muted);font-size:10.5px;} .muted{color:var(--muted);}
+.bar{height:7px;background:#e6edf4;border-radius:4px;overflow:hidden;min-width:80px;} .bar i{display:block;height:100%;background:var(--teal);} .bar i.amber{background:var(--amber);} .bar i.red{background:var(--red);}
+.badge{display:inline-block;min-width:20px;padding:1px 6px;border-radius:9px;font-size:10.5px;font-weight:700;text-align:center;border:1px solid currentColor;}
+.A,.baixo{color:var(--teal);} .B,.medio{color:var(--amber);} .C,.alto{color:var(--red);}
+.hl-r{background:#fdecee;} .hl-a{background:#fff6e3;} .hl-g{background:#e6f6f8;}
+.legend{font-size:11px;color:var(--muted);margin:2px 0 8px;}
+.ga-block{break-inside:avoid;border:1px solid var(--line);border-radius:6px;padding:8px 12px;margin:10px 0;}
+.ga-block h3{margin:2px 0 6px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;} .ga-block h3 span{font-weight:500;color:var(--muted);font-size:12px;}
+.toolbar{position:sticky;top:0;z-index:5;display:flex;gap:8px;justify-content:flex-end;padding:8px 28px;background:#0b2a44;}
+.toolbar button{border:0;border-radius:5px;padding:7px 14px;font-weight:600;cursor:pointer;background:#27e6ff;color:#04121f;} .toolbar button.sec{background:#fff;}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+@media(max-width:800px){.kpis{grid-template-columns:repeat(2,1fr);} .two{grid-template-columns:1fr;} .page{padding:16px;}}
+@media print{.toolbar{display:none;} body{background:#fff;} .page{padding:0;max-width:none;} h2{break-after:avoid;} tr{break-inside:avoid;} @page{size:A4;margin:12mm;}}
+</style></head><body>
+<div class="toolbar"><button onclick="window.print()">Imprimir / Salvar PDF</button><button class="sec" onclick="window.close()">Fechar</button></div>
+<div class="page">
+<header><div><h1>Relatório de Desempenho por Motorista<small>Rastreamento de Cargas — DF e Entorno</small></div>
+<div class="meta">Gerado em ${E(new Date().toLocaleString('pt-BR'))}<br>Filtros: ${E(filtros)}<br>${T.n} NFs com motorista${semMot?' · '+semMot+' sem motorista (fora da análise)':''}</div></header>
+
+<h2>1. Resumo executivo</h2>
+<div class="kpis">
+  <div class="kpi"><span>Valor transportado</span><b>${M(T.v)}</b>${T.n} NFs · ${T.car.size} carregamentos</div>
+  <div class="kpi" style="--c:var(--blue)"><span>Motoristas com entregas</span><b>${mots.length}</b>${regs.length} Bairros/RA atendidos</div>
+  <div class="kpi"><span>OK (aprovado + c/ atraso)</span><b>${M(okv(T))}</b>${P(mrOkN(T),T.n)} das NFs</div>
+  <div class="kpi" style="--c:var(--red)"><span>OK com atraso</span><b>${P(T.st.late.n,mrOkN(T))}</b>${T.st.late.n} NFs · média ${medAtr(T)===null?'—':medAtr(T)+' d'}</div>
+  <div class="kpi" style="--c:var(--amber)"><span>Em aberto (pend. + analisando)</span><b>${M(T.av)}</b>${P(T.av,T.v)} · ${T.an} NFs</div>
+  <div class="kpi" style="--c:var(--amber)"><span>Pendente</span><b>${M(T.st.pending.v)}</b>${T.st.pending.n} NFs</div>
+  <div class="kpi" style="--c:var(--violet)"><span>Devolvido</span><b>${M(dv(T))}</b>${P(dv(T),T.v)} · ${T.st.devolucao.n} NFs</div>
+  <div class="kpi" style="--c:var(--red)"><span>Maior atraso em aberto</span><b>${T.amax===null?'—':T.amax+' dias'}</b>média ${medDias(T)===null?'—':medDias(T)+' d'}</div>
+</div>
+
+<h2>2. Insights e recomendações</h2>
+<div class="ins">${ins.map(([t,ti,tx])=>`<div class="in ${t}"><span class="tag">${cor[t]}</span><b>${ti}</b><br>${tx}</div>`).join('') || '<div class="muted">Sem dados suficientes para gerar insights.</div>'}</div>
+
+<h2>3. Ranking de motoristas por valor transportado</h2>
+<div class="legend">Classe ABC: A = motoristas que somam até 80% do valor · B = até 95% · C = restante. Linhas destacadas: <span class="hl-r">&nbsp;devolução ≥ 10%&nbsp;</span> <span class="hl-a">&nbsp;em aberto acima de ${P(Math.max(.3,idxAb*1.3),1)}&nbsp;</span></div>
+<table><thead><tr><th>#</th><th>Motorista</th><th>Classe</th><th class="n">Valor</th><th class="n">% total</th><th class="n">NFs</th><th class="n">Carreg.</th><th class="n">OK</th><th class="n">% atraso</th><th class="n">Em aberto</th><th class="n">Devolvido</th><th class="n">% dev.</th></tr></thead><tbody>
+${mots.map((o,i)=>{ const pd=o.v?dv(o)/o.v:0, pa=o.v?o.av/o.v:0; const cl = pd>=.10?'hl-r':(pa>=Math.max(.3,idxAb*1.3)?'hl-a':'');
+ return `<tr class="${cl}"><td>${i+1}</td><td><b>${E(o.k)}</b>${o.pj?' <small>PJ</small>':''}${bar(o.v,maxG)}</td><td><span class="badge ${o.abc}">${o.abc}</span></td><td class="n">${M(o.v)}</td><td class="n">${P(o.v,T.v)}</td><td class="n">${o.n}</td><td class="n">${o.car.size}</td><td class="n">${M(okv(o))}</td><td class="n">${P(o.st.late.n,mrOkN(o))}</td><td class="n">${M(o.av)}</td><td class="n">${M(dv(o))}</td><td class="n">${P(dv(o),o.v)}</td></tr>`; }).join('') || vazio(12)}
+</tbody>${mots.length?`<tfoot><tr><td></td><td>Total</td><td></td><td class="n">${M(T.v)}</td><td class="n">100,0%</td><td class="n">${T.n}</td><td class="n">${T.car.size}</td><td class="n">${M(okv(T))}</td><td class="n">${P(T.st.late.n,mrOkN(T))}</td><td class="n">${M(T.av)}</td><td class="n">${M(dv(T))}</td><td class="n">${P(dv(T),T.v)}</td></tr></tfoot>`:''}</table>
+
+<h2>4. Motoristas com maior valor em aberto (prioridade de cobrança)</h2>
+<table><thead><tr><th>#</th><th>Motorista</th><th class="n">NFs em aberto</th><th class="n">Valor em aberto</th><th class="n">% do aberto</th><th class="n">Pendente</th><th class="n">Analisando</th><th class="n">Maior atraso</th><th class="n">Atraso médio</th></tr></thead><tbody>
+${abM.map((o,i)=>`<tr class="${o.amax!==null&&o.amax>=Math.max(15,(medDias(T)||0)*1.5)?'hl-r':''}"><td>${i+1}</td><td><b>${E(o.k)}</b>${bar(o.av,maxAb,'amber')}</td><td class="n">${o.an}</td><td class="n">${M(o.av)}</td><td class="n">${P(o.av,T.av)}</td><td class="n">${M(o.st.pending.v)}</td><td class="n">${M(o.st.transit.v)}</td><td class="n">${o.amax===null?'—':o.amax+' d'}</td><td class="n">${medDias(o)===null?'—':medDias(o)+' d'}</td></tr>`).join('') || vazio(9)}
+</tbody></table>
+
+<div class="two"><div>
+<h2>5. Índice de atraso por motorista</h2>
+<table><thead><tr><th>Motorista</th><th>Índice</th><th class="n">% c/ atraso</th><th class="n">NFs</th><th class="n">Atraso méd.</th></tr></thead><tbody>
+${atrM.map(o=>{ const p=mrAtr(o), c=mrClasseAtr(p); return `<tr class="${p>=.30?'hl-r':''}"><td><b>${E(o.k)}</b></td><td><span class="badge ${c[0]}">${c[1]}</span></td><td class="n">${P(o.st.late.n,mrOkN(o))}</td><td class="n">${o.st.late.n} de ${mrOkN(o)}</td><td class="n">${medAtr(o)===null?'—':medAtr(o)+' d'}</td></tr>`; }).join('') || vazio(5)}
+</tbody></table>
+</div><div>
+<h2>6. Índice de devolução por motorista</h2>
+<table><thead><tr><th>Motorista</th><th>Índice</th><th class="n">% do valor</th><th class="n">Devolvido</th><th class="n">NFs</th></tr></thead><tbody>
+${devM.map(o=>{ const p=dv(o)/o.v, c=p>=.10?['alto','Alto']:p>=.05?['medio','Médio']:['baixo','Baixo']; return `<tr class="${p>=.10?'hl-r':''}"><td><b>${E(o.k)}</b></td><td><span class="badge ${c[0]}">${c[1]}</span></td><td class="n">${P(dv(o),o.v)}</td><td class="n">${M(dv(o))}</td><td class="n">${o.st.devolucao.n} de ${o.n}</td></tr>`; }).join('') || vazio(5)}
+</tbody></table>
+</div></div>
+
+<h2>7. Áreas mais abastecidas (Bairro/RA por valor entregue)</h2>
+<table><thead><tr><th>#</th><th>Bairro/RA</th><th class="n">Valor</th><th class="n">% total</th><th class="n">NFs</th><th>Principal motorista</th><th class="n">% em aberto</th><th class="n">% devolvido</th></tr></thead><tbody>
+${regs.map((o,i)=>{ const t=Object.entries(o.mot).sort((a,b)=>b[1]-a[1])[0]; return `<tr class="${i<3?'hl-g':''}"><td>${i+1}</td><td><b>${E(o.k)}</b>${bar(o.v,maxR)}</td><td class="n">${M(o.v)}</td><td class="n">${P(o.v,T.v)}</td><td class="n">${o.n}</td><td>${E(t[0])}<small>${M(t[1])} · ${P(t[1],o.v)}</small></td><td class="n">${P(o.av,o.v)}</td><td class="n">${P(dv(o),o.v)}</td></tr>`; }).join('') || vazio(8)}
+</tbody></table>
+
+<div class="two"><div>
+<h2>8. Áreas com mais pendências</h2>
+<table><thead><tr><th>Bairro/RA</th><th class="n">Em aberto</th><th class="n">% da área</th><th class="n">NFs</th><th class="n">Atraso méd.</th></tr></thead><tbody>
+${regsPend.slice(0,15).map(o=>`<tr class="${o.av/o.v>=Math.max(.3,idxAb*1.3)?'hl-a':''}"><td><b>${E(o.k)}</b>${bar(o.av,maxRP,'amber')}</td><td class="n">${M(o.av)}</td><td class="n">${P(o.av,o.v)}</td><td class="n">${o.an}</td><td class="n">${medDias(o)===null?'—':medDias(o)+' d'}</td></tr>`).join('') || vazio(5)}
+</tbody></table>
+</div><div>
+<h2>9. Áreas com mais devoluções</h2>
+<table><thead><tr><th>Bairro/RA</th><th class="n">Devolvido</th><th class="n">% da área</th><th class="n">NFs dev.</th></tr></thead><tbody>
+${regsDev.slice(0,15).map(o=>`<tr class="${dv(o)/o.v>=Math.max(.08,idxDev*1.5)?'hl-r':''}"><td><b>${E(o.k)}</b>${bar(dv(o),maxRD,'red')}</td><td class="n">${M(dv(o))}</td><td class="n">${P(dv(o),o.v)}</td><td class="n">${o.st.devolucao.n}</td></tr>`).join('') || vazio(4)}
+</tbody></table>
+</div></div>
+
+<h2>10. Motoristas que mais atendem por região</h2>
+<table><thead><tr><th>Bairro/RA</th><th class="n">Valor</th><th>1º motorista</th><th>2º</th><th>3º</th></tr></thead><tbody>
+${regs.map(o=>{ const t=Object.entries(o.mot).sort((a,b)=>b[1]-a[1]); const c=e=>e?`${E(e[0])}<small>${M(e[1])} · ${P(e[1],o.v)}</small>`:'<span class="muted">—</span>'; return `<tr><td><b>${E(o.k)}</b></td><td class="n">${M(o.v)}</td><td>${c(t[0])}</td><td>${c(t[1])}</td><td>${c(t[2])}</td></tr>`; }).join('') || vazio(5)}
+</tbody></table>
+
+<h2>11. NFs de maior valor</h2>
+<table><thead><tr><th>#</th><th>NF</th><th>Motorista</th><th>Carreg.</th><th>GA</th><th>Bairro/RA</th><th class="n">Valor</th><th>Status</th></tr></thead><tbody>
+${rows.slice().sort((a,b)=>v(b)-v(a)).slice(0,20).map((r,i)=>`<tr class="${r.status==='devolucao'?'hl-r':isOpen(r)?'hl-a':''}"><td>${i+1}</td><td>${E(r.nf)}</td><td>${E(r.motorista)}</td><td>${E(r.numcar)||'—'}</td><td>${E(r.ga)||'—'}</td><td>${E(r.regiao)||'—'}</td><td class="n">${M(v(r))}</td><td>${E(STATUS_LABEL[r.status]||r.status||'')}</td></tr>`).join('') || vazio(8)}
+</tbody></table>
+
+<h2>12. Detalhamento por motorista (áreas atendidas e status)</h2>
+${mots.map(o=>`<div class="ga-block"><h3>${E(o.k)}${o.pj?' (PJ)':''} <span>Classe ${o.abc} · ${M(o.v)} · ${o.n} NFs · ${o.car.size} carreg. · atraso ${P(o.st.late.n,mrOkN(o))} · devolução ${P(dv(o),o.v)} · em aberto ${M(o.av)}</span></h3>
+<table><thead><tr><th>Bairro/RA</th><th class="n">Valor</th><th class="n">% do motorista</th><th class="n">NFs</th><th class="n">OK</th><th class="n">C/ atraso</th><th class="n">Em aberto</th><th class="n">Devolvido</th></tr></thead><tbody>
+${Object.entries(o.reg).sort((a,b)=>b[1].v-a[1].v).map(([k,x])=>`<tr class="${dv(x)/x.v>=.10?'hl-r':''}"><td>${E(k)}</td><td class="n">${M(x.v)}</td><td class="n">${P(x.v,o.v)}</td><td class="n">${x.n}</td><td class="n">${M(okv(x))}</td><td class="n">${x.st.late.n}</td><td class="n">${M(x.av)}</td><td class="n">${M(dv(x))}</td></tr>`).join('')}
+</tbody></table></div>`).join('') || '<p class="muted">Sem dados.</p>'}
+
+<p class="muted" style="margin-top:24px;font-size:11px;">Status: OK = aprovado + OK com atraso · % atraso = NFs "OK com atraso" sobre as NFs OK · Em aberto = Pendente + Analisando/agendado · Devolução avaliada pelo valor (R$) das NFs devolvidas. Insights gerados automaticamente a partir dos dados filtrados.</p>
+</div></body></html>`;
+  w.document.open(); w.document.write(h); w.document.close();
+}
+document.getElementById('btnRelMot').addEventListener('click', gerarRelatorioMot);
+
 /* ---------- Aba Indicadores ---------- */
 const IND_STATUS = [
   {k:'ok', c:'var(--teal)'}, {k:'late', c:'var(--red)'}, {k:'transit', c:'var(--blue)'}, {k:'pending', c:'var(--amber)'}, {k:'devolucao', c:'var(--violet)'},
@@ -1913,7 +2196,7 @@ function renderIndicadores(){
 }
 [indAno,indMes,indMot].forEach(el=>el.addEventListener('input',renderIndicadores));
 
-const VIEWS = {painel:'viewPainel', ind:'viewInd', ga:'viewGA', notas:'viewNotas', hist:'viewHist', atraso:'viewAtraso', reg:'viewReg', banco:'viewBanco', edicao:'viewEdicao'};
+const VIEWS = {painel:'viewPainel', ind:'viewInd', ga:'viewGA', mot:'viewMot', notas:'viewNotas', hist:'viewHist', atraso:'viewAtraso', reg:'viewReg', banco:'viewBanco', edicao:'viewEdicao'};
 const filtersPanelEl = document.getElementById('filtersPanel');
 const filtersHomeEl = document.getElementById('filtersHome');
 function showView(v, alvo){
@@ -1928,7 +2211,7 @@ function showView(v, alvo){
   const slot = document.getElementById('slot-'+v);
   if(slot){ slot.classList.add('filters-slot'); slot.appendChild(filtersPanelEl); }
   else if(filtersPanelEl.parentElement!==filtersHomeEl) filtersHomeEl.appendChild(filtersPanelEl);
-  if(v==='ind') renderIndicadores(); else if(v==='ga') renderGA(); else renderAll();
+  if(v==='ind') renderIndicadores(); else if(v==='ga') renderGA(); else if(v==='mot') renderMot(); else renderAll();
   if(alvo){ setTimeout(()=>{ const el=document.getElementById(alvo); if(el) el.scrollIntoView({behavior:'smooth',block:'start'}); },60); }
   else window.scrollTo(0,0);
 }
@@ -1939,7 +2222,7 @@ document.querySelectorAll('.sb-item').forEach(b=>b.addEventListener('click',()=>
   document.getElementById('sbMin').addEventListener('click',()=>{
     const min = document.body.classList.toggle('sb-min');
     try{ localStorage.setItem('sbMin', min?'1':'0'); }catch(e){}
-    setTimeout(()=>{ if(currentView!=='ind' && currentView!=='ga') renderAll(); },220);
+    setTimeout(()=>{ if(currentView!=='ind' && currentView!=='ga' && currentView!=='mot') renderAll(); },220);
   });
 })();
 
@@ -1956,6 +2239,7 @@ function renderAll(){
   renderBanco(); renderChips(); renderKpis(rows); renderRegions(rows); renderProblems(rows); if(!isEditingObs()) renderTable(rows); renderMap(filtered(true));
   if(currentView==='ind'){ renderIndicadores(); return; }
   if(currentView==='ga'){ renderGA(); return; }
+  if(currentView==='mot'){ renderMot(); return; }
   if(currentView==='painel'){ drawGauge(rows); drawBarChart(rows); }
   if(currentView==='atraso'){
     drawLineChart(rows);
