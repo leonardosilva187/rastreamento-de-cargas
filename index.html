@@ -391,6 +391,25 @@ html.theme-anim, html.theme-anim *, html.theme-anim *::before{transition:backgro
 :root[data-theme="glacial"] .mk .mklab{color:#12324a; text-shadow:0 0 3px #fff,0 0 6px #fff,0 0 10px rgba(255,255,255,.9);}
 :root[data-theme="glacial"] .mk .mklab b{color:#1f6fa3;}
 :root[data-theme="glacial"] #markers .mk:hover .mklab, :root[data-theme="glacial"] #markers .mk.sel .mklab{color:#0b2a40; text-shadow:0 0 3px #fff,0 0 8px #fff;}
+.dia-import{background:var(--surface2); border:1px dashed var(--line); border-radius:6px; padding:14px; margin:6px 0 14px;}
+.dia-import textarea{width:100%; min-height:130px; padding:8px 9px; background:var(--surface); border:1px solid var(--line); color:var(--ink); border-radius:4px; font:12.5px ui-monospace,Consolas,monospace; resize:vertical;}
+.dia-import-row{display:flex; gap:12px; align-items:end; flex-wrap:wrap; margin-top:10px;}
+.dia-import-row label{font-size:11.5px; color:var(--muted); display:block; margin-bottom:4px;}
+.dia-import-row input[type=date]{padding:8px 10px; background:var(--surface); border:1px solid var(--line); color:var(--ink); border-radius:4px; font-size:13px; color-scheme:dark;}
+:root[data-theme="glacial"] .dia-import-row input[type=date]{color-scheme:light;}
+.dia-prev{margin-top:12px; font-size:13px; line-height:1.6;}
+.dia-prev .err{color:var(--red); font-size:12px; max-height:110px; overflow:auto;}
+.dia-prog{display:flex; height:22px; border-radius:6px; overflow:hidden; border:1px solid var(--line); background:var(--surface2);}
+.dia-prog div{height:100%; min-width:2px; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; color:#00131f; white-space:nowrap; overflow:hidden;}
+.dia-legend{display:flex; gap:16px; flex-wrap:wrap; font-size:12px; color:var(--muted); margin-top:8px;}
+.dia-legend i{display:inline-block; width:10px; height:10px; border-radius:2px; margin-right:6px; vertical-align:-1px;}
+.dia-insights{display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:10px;}
+.dia-ins{background:var(--surface2); border:1px solid var(--line); border-left:3px solid var(--c,var(--teal)); border-radius:4px; padding:10px 12px; font-size:13px; line-height:1.5;}
+.dia-ins b.tag{font-size:10.5px; text-transform:uppercase; letter-spacing:.6px; color:var(--c,var(--teal)); display:block; margin-bottom:2px;}
+.dia-st{padding:5px 7px; background:var(--surface2); border:1px solid var(--line); color:var(--ink); border-radius:4px; font-size:12.5px;}
+.dia-pill{display:inline-block; padding:2px 8px; border-radius:10px; font-size:11.5px; font-weight:650; border:1px solid currentColor; white-space:nowrap;}
+.dia-mini{display:flex; height:8px; min-width:110px; border-radius:5px; overflow:hidden; background:var(--surface2); border:1px solid var(--line);}
+.dia-mini div{height:100%;}
 </style>
 </head>
 <body>
@@ -402,6 +421,7 @@ html.theme-anim, html.theme-anim *, html.theme-anim *::before{transition:backgro
   <button type="button" class="sb-item" data-view="ind" title="Indicadores"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 20V11M12 20V5M19 20v-7"/></svg><span class="lbl">Indicadores</span></button>
   <button type="button" class="sb-item" data-view="ga" title="Ranking de GA"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19c.6-3 2.8-4.6 5.5-4.6s4.9 1.6 5.5 4.6"/><path d="M16 4.5l1.2 2.4 2.6.4-1.9 1.8.5 2.6-2.4-1.3"/></svg><span class="lbl">Ranking de GA</span></button>
   <button type="button" class="sb-item" data-view="mot" title="Ranking de Motoristas"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 7h11v9H2z"/><path d="M13 10h4l3 3v3h-7"/><circle cx="6" cy="17.5" r="1.8"/><circle cx="16.5" cy="17.5" r="1.8"/></svg><span class="lbl">Ranking de Motoristas</span></button>
+  <button type="button" class="sb-item" data-view="dia" title="Entregas do Dia"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/><path d="M8.5 14.5l2.3 2.3 4.7-4.7"/></svg><span class="lbl">Entregas do Dia</span></button>
   <button type="button" class="sb-item" data-view="notas" title="Notas Fiscais"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4M9 12h6M9 16h6"/></svg><span class="lbl">Notas Fiscais</span></button>
   <button type="button" class="sb-item" data-view="hist" title="Histórico de Alterações"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span class="lbl">Histórico de Alterações</span></button>
   <button type="button" class="sb-item" data-view="atraso" title="Atraso Mensal"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><span class="lbl">Atraso Mensal</span></button>
@@ -703,6 +723,53 @@ html.theme-anim, html.theme-anim *, html.theme-anim *::before{transition:backgro
     <div class="tablewrap"><table class="ind-table" id="mrNfTable"></table></div>
   </div>
 </div>
+<div id="viewDia" style="display:none;">
+  <div class="panel">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:6px;"><h3 style="margin:0;">Entregas do Dia <span class="hint">cargas que saíram no dia · andamento das entregas · regiões</span></h3><button type="button" class="btn-ghost" id="btnDiaImport" style="width:auto;padding:7px 14px;display:none;" title="Colar as cargas que saem no dia">📥 Importar cargas do dia</button></div>
+    <div class="dia-import" id="diaImportBox" style="display:none;">
+      <p class="bulk-note">Copie da planilha as linhas das cargas que saem no dia e cole aqui. Aceita a mesma ordem da aba Lança — <b>NUMCAR, DTSAIDA, VLTOTAL_PED, NUMNOTA, NOME, DESTINO</b> (ATRASO e GA opcionais) — ou qualquer ordem, desde que a linha de cabeçalho venha junto (reconhece também CLIENTE, PESO, VOLUME, PLACA e OBS). Importar de novo o mesmo dia substitui as cargas e mantém os status de entrega já marcados.</p>
+      <textarea id="diaInput" placeholder="Cole aqui as linhas copiadas da planilha…" spellcheck="false"></textarea>
+      <div class="dia-import-row">
+        <div><label for="diaData">Dia das cargas</label><input type="date" id="diaData"></div>
+        <button class="btn-primary" id="btnDiaAnalisar" type="button" style="width:auto;margin:0;padding:9px 18px;">Analisar e pré-visualizar</button>
+        <button class="btn-ghost" id="btnDiaFechar" type="button" style="width:auto;padding:9px 14px;">Fechar</button>
+      </div>
+      <div id="diaPreview"></div>
+      <div id="diaImportMsg" class="readonly-note" style="min-height:16px;"></div>
+    </div>
+    <div class="ind-filters">
+      <div><label for="dSel">Dia</label><select id="dSel"></select></div>
+      <div><label for="dCarga">Carregamento</label><select id="dCarga"><option value="">Todos</option></select></div>
+      <div><label for="dMot">Motorista</label><select id="dMot"><option value="">Todos</option></select></div>
+      <div><label for="dReg">Bairro/RA</label><select id="dReg"><option value="">Todas</option></select></div>
+      <div><label for="dSt">Status da entrega</label><select id="dSt"><option value="">Todos</option></select></div>
+    </div>
+    <div class="ga-note" id="dNote"></div>
+    <div id="diaVazio" class="empty" style="display:none;"></div>
+    <div id="diaConteudo">
+      <div class="ind-cards" id="dCards"></div>
+      <h3 style="margin-top:4px;">Andamento das entregas <span class="hint">por valor (R$) das NFs</span></h3>
+      <div class="dia-prog" id="dProg"></div>
+      <div class="dia-legend" id="dLegend"></div>
+      <h3 style="margin-top:18px;">Destaques do dia <span class="hint">análise automática</span></h3>
+      <div class="dia-insights" id="dInsights"></div>
+      <h3 style="margin-top:18px;">Cargas do dia <span class="hint">por carregamento — maior valor primeiro</span></h3>
+      <div class="tablewrap"><table class="ind-table" id="dCargaTable"></table></div>
+      <div class="ga-grid">
+        <div>
+          <h3 style="margin-top:18px;">Entregas por Bairro/RA</h3>
+          <div class="tablewrap"><table class="ind-table" id="dRegTable"></table></div>
+        </div>
+        <div>
+          <h3 style="margin-top:18px;">Entregas por motorista</h3>
+          <div class="tablewrap"><table class="ind-table" id="dMotTable"></table></div>
+        </div>
+      </div>
+      <h3 style="margin-top:18px;">NFs do dia <span class="hint" id="dNfHint"></span></h3>
+      <div class="tablewrap"><table class="ind-table" id="dNfTable"></table></div>
+    </div>
+  </div>
+</div>
 </div>
 
 <div id="toast" role="status"></div>
@@ -737,7 +804,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/fireba
 import { getAuth, signInAnonymously, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
 import {
   getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot, serverTimestamp, updateDoc,
-  addDoc, query, orderBy, limit, writeBatch
+  addDoc, query, orderBy, limit, writeBatch, where
 } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
 const app = initializeApp(firebaseConfig);
@@ -2196,7 +2263,258 @@ function renderIndicadores(){
 }
 [indAno,indMes,indMot].forEach(el=>el.addEventListener('input',renderIndicadores));
 
-const VIEWS = {painel:'viewPainel', ind:'viewInd', ga:'viewGA', mot:'viewMot', notas:'viewNotas', hist:'viewHist', atraso:'viewAtraso', reg:'viewReg', banco:'viewBanco', edicao:'viewEdicao'};
+/* ======================================================================
+   ABA ENTREGAS DO DIA — importação própria das cargas que saem no dia
+   Gravado em resumo_diario/entregas_AAAA-MM-DD (campo "tipo", sem "data",
+   para não entrar na série do passivo). Status manual por NF no mapa "st".
+   ====================================================================== */
+const DIA_ST = [
+  {k:'rota',      l:'Em rota',               c:'var(--blue)'},
+  {k:'entregue',  l:'Entregue',              c:'var(--teal)'},
+  {k:'parcial',   l:'Entrega parcial',       c:'var(--amber)'},
+  {k:'reentrega', l:'Não entregue / reentrega', c:'var(--red)'},
+  {k:'devolvida', l:'Devolvida',             c:'var(--violet)'},
+];
+const DIA_ST_MAP = Object.fromEntries(DIA_ST.map(s=>[s.k,s]));
+let diasEntrega = [];          // docs de entregas do dia, mais recente primeiro
+let diaPendente = null;        // resultado da análise antes de confirmar
+const dSel=document.getElementById('dSel'), dCarga=document.getElementById('dCarga'), dMot=document.getElementById('dMot'),
+      dReg=document.getElementById('dReg'), dSt=document.getElementById('dSt');
+dSt.innerHTML = '<option value="">Todos</option>'+DIA_ST.map(s=>`<option value="${s.k}">${s.l}</option>`).join('');
+const diaFmtData = iso=>{ const m=/^(\d{4})-(\d{2})-(\d{2})/.exec(iso||''); return m ? m[3]+'/'+m[2]+'/'+m[1] : (iso||'—'); };
+const diaSemana = iso=>{ const m=/^(\d{4})-(\d{2})-(\d{2})/.exec(iso||''); if(!m) return ''; return ['dom','seg','ter','qua','qui','sex','sáb'][new Date(+m[1],+m[2]-1,+m[3]).getDay()]; };
+
+// Cabeçalhos reconhecidos (texto sem acento, maiúsculo, sem espaços/pontuação)
+const DIA_COLS = {
+  numcar:['NUMCAR','CARREGAMENTO','CARGA','NCARGA','NUMCARGA','NUMCARREG','CARREG'],
+  dtsaida:['DTSAIDA','DATASAIDA','DATA','DTSAIDACARGA','SAIDA'],
+  valor:['VLTOTALPED','VLTOTAL','VALOR','VALORTOTAL','VLPED','VALORNF','VLNOTA'],
+  nf:['NUMNOTA','NF','NOTA','NUMNF','NOTAFISCAL','NFE'],
+  motorista:['NOME','MOTORISTA','NOMEMOTORISTA','FRETEIRO'],
+  destino:['DESTINO','BAIRRO','CIDADE','ENDERECO','LOCAL','REGIAO'],
+  cliente:['CLIENTE','RAZAOSOCIAL','FANTASIA','NOMECLIENTE'],
+  ga:['GA'],
+  peso:['PESO','PESOKG','PESOBRUTO','KG'],
+  volume:['VOLUME','VOL','QTD','QTDE','CAIXAS','VOLUMES','QTDCX'],
+  placa:['PLACA','VEICULO'],
+  obs:['OBS','OBSERVACAO','OBSERVACOES'],
+};
+const diaKey = t=>stripAccents(t).toUpperCase().replace(/[^A-Z0-9]/g,'');
+function diaParseNum(t){ const s=String(t||'').trim(); if(!s) return 0; const n=parseValor(s); return Number.isNaN(n)?0:n; }
+function diaParseData(t){
+  const s=String(t||'').trim(); let m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})/);
+  if(m){ const a=m[3].length===2?'20'+m[3]:m[3]; return a+'-'+m[2].padStart(2,'0')+'-'+m[1].padStart(2,'0'); }
+  m=s.match(/^(\d{4})-(\d{2})-(\d{2})/); return m ? m[1]+'-'+m[2]+'-'+m[3] : '';
+}
+function parseDiaInput(text){
+  const lines = String(text||'').split(/\r?\n/).filter(l=>l.trim()!=='');
+  const all = lines.map(l=>l.replace(/[\r\u200b]+/g,'').split('\t').map(c=>String(c||'').trim()));
+  const errors=[], rows=[];
+  // linha de cabeçalho = a que tem NF/NUMNOTA reconhecido
+  let idx=null, headAt=-1;
+  for(let i=0;i<Math.min(all.length,5);i++){
+    const ks = all[i].map(diaKey), map={};
+    Object.entries(DIA_COLS).forEach(([f,al])=>{ const k=ks.findIndex(x=>al.includes(x)); if(k>=0) map[f]=k; });
+    if(map.nf!=null && Object.keys(map).length>=2){ idx=map; headAt=i; break; }
+  }
+  if(!idx) idx = {numcar:0, dtsaida:1, valor:2, nf:3, motorista:4, destino:5, ga:7};   // ordem da aba Lança
+  const g = (cols,f)=> idx[f]!=null ? String(cols[idx[f]]||'').trim() : '';
+  const vistos = new Set();
+  all.forEach((cols,i)=>{
+    if(i===headAt) return;
+    const n=i+1, nf=g(cols,'nf').replace(/\s+/g,'');
+    if(!nf){ errors.push('Linha '+n+': sem número de NF.'); return; }
+    if(nf.includes('/')){ errors.push('Linha '+n+': NF "'+nf+'" contém "/".'); return; }
+    const valor = parseValor(g(cols,'valor'));
+    if(Number.isNaN(valor)){ errors.push('Linha '+n+' (NF '+nf+'): valor inválido ("'+g(cols,'valor')+'").'); return; }
+    if(vistos.has(nf)){ errors.push('Linha '+n+': NF '+nf+' repetida — mantida só a primeira.'); return; }
+    vistos.add(nf);
+    const nome = g(cols,'motorista'), destino = g(cols,'destino');
+    const ga = idx.ga!=null && idx.ga<cols.length ? g(cols,'ga').replace(/\s+/g,' ').toUpperCase() : '';
+    rows.push({
+      nf, numcar:g(cols,'numcar'), dtsaida:diaParseData(g(cols,'dtsaida')), valor,
+      motorista:stripPJ(nome), pj:/[-–]\s*PJ\b/i.test(nome), destino, regiao:matchRegiaoFromDestino(destino),
+      cliente:g(cols,'cliente'), ga: /^[A-Z0-9 ._-]{1,30}$/.test(ga)?ga:'', peso:diaParseNum(g(cols,'peso')), volume:diaParseNum(g(cols,'volume')),
+      placa:g(cols,'placa').toUpperCase(), obs:g(cols,'obs'),
+    });
+  });
+  // dia mais frequente nas datas de saída
+  const cont={}; rows.forEach(r=>{ if(r.dtsaida) cont[r.dtsaida]=(cont[r.dtsaida]||0)+1; });
+  const dia = Object.entries(cont).sort((a,b)=>b[1]-a[1])[0];
+  return {rows, errors, dia: dia?dia[0]:'', comCabecalho: headAt>=0};
+}
+
+// status efetivo: manual > rastreamento (OK/atraso = entregue, devolução = devolvida) > em rota
+function diaStatus(r, st){
+  if(st && st[r.nf] && DIA_ST_MAP[st[r.nf]]) return {k:st[r.nf], auto:false};
+  const t = r._rast;
+  if(t && (t.status==='ok'||t.status==='late')) return {k:'entregue', auto:true};
+  if(t && t.status==='devolucao') return {k:'devolvida', auto:true};
+  return {k:'rota', auto:false};
+}
+function diaAgg(rows){
+  const o={n:0,v:0,car:new Set(),mot:new Set(),reg:new Set(),peso:0,vol:0,st:{}};
+  DIA_ST.forEach(s=>{ o.st[s.k]={n:0,v:0}; });
+  rows.forEach(r=>{ const v=Number(r.valor)||0; o.n++; o.v+=v; o.peso+=r.peso||0; o.vol+=r.volume||0;
+    if(r.numcar) o.car.add(r.numcar); if(r.motorista) o.mot.add(r.motorista); if(r.regiao) o.reg.add(r.regiao);
+    o.st[r._st].n++; o.st[r._st].v+=v; });
+  return o;
+}
+const diaFeito = o=> o.st.entregue.v + o.st.parcial.v;
+function diaMiniBar(o){
+  if(!o.v) return '<div class="dia-mini"></div>';
+  return '<div class="dia-mini" title="'+DIA_ST.map(s=>s.l+': '+pct(o.st[s.k].v,o.v)).join(' · ')+'">'+DIA_ST.map(s=>o.st[s.k].v?`<div style="width:${o.st[s.k].v/o.v*100}%;background:${s.c}"></div>`:'').join('')+'</div>';
+}
+function diaPill(k){ const s=DIA_ST_MAP[k]; return `<span class="dia-pill" style="color:${s.c}">${s.l}</span>`; }
+function diaAgrupar(rows, keyFn){
+  const m=new Map(); rows.forEach(r=>{ const k=keyFn(r); if(!m.has(k)) m.set(k,[]); m.get(k).push(r); });
+  return Array.from(m, ([k,rs])=>({k, rs, o:diaAgg(rs)})).sort((a,b)=>b.o.v-a.o.v);
+}
+
+function renderDia(){
+  document.getElementById('btnDiaImport').style.display = canWrite ? '' : 'none';
+  const atual = dSel.value;
+  dSel.innerHTML = diasEntrega.length ? diasEntrega.map(d=>`<option value="${d.dia}">${diaFmtData(d.dia)} (${diaSemana(d.dia)})</option>`).join('') : '<option value="">—</option>';
+  if(atual && diasEntrega.some(d=>d.dia===atual)) dSel.value = atual;
+  const docDia = diasEntrega.find(d=>d.dia===dSel.value) || diasEntrega[0];
+  const vazio = document.getElementById('diaVazio'), cont = document.getElementById('diaConteudo');
+  if(!docDia){
+    vazio.style.display=''; cont.style.display='none'; document.getElementById('dNote').textContent='';
+    vazio.innerHTML = canWrite ? 'Nenhuma carga do dia importada ainda. Clique em <b>📥 Importar cargas do dia</b> e cole as linhas da planilha.' : 'Nenhuma carga do dia importada ainda. Entre no <b>Modo edição</b> com o PIN para importar.';
+    return;
+  }
+  vazio.style.display='none'; cont.style.display='';
+  const st = docDia.st||{};
+  const rastMap = new Map(allRows.concat(bancoRows).map(r=>[String(r.nf), r]));
+  const todas = (docDia.rows||[]).map(r=>{ const x={...r, _rast:rastMap.get(String(r.nf))||null}; const s=diaStatus(x,st); x._st=s.k; x._auto=s.auto; return x; });
+  // filtros
+  const keep = (sel, vals, todos)=>{ const v=sel.value; sel.innerHTML=`<option value="">${todos}</option>`+vals.map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join(''); if(vals.includes(v)) sel.value=v; };
+  const uniq = f=>Array.from(new Set(todas.map(f).filter(Boolean))).sort((a,b)=>String(a).localeCompare(String(b),'pt-BR',{numeric:true}));
+  keep(dCarga, uniq(r=>r.numcar), 'Todos'); keep(dMot, uniq(r=>r.motorista), 'Todos'); keep(dReg, uniq(r=>r.regiao||'Não identificado'), 'Todas');
+  const rows = todas.filter(r=>(!dCarga.value||r.numcar===dCarga.value) && (!dMot.value||r.motorista===dMot.value) && (!dReg.value||(r.regiao||'Não identificado')===dReg.value) && (!dSt.value||r._st===dSt.value));
+  const T = diaAgg(rows), TT = diaAgg(todas);
+  const filtrado = rows.length!==todas.length;
+  const imp = docDia.importadoEm && docDia.importadoEm.toDate ? docDia.importadoEm.toDate().toLocaleString('pt-BR',{dateStyle:'short',timeStyle:'short'}) : '';
+  document.getElementById('dNote').innerHTML = `Cargas de <b>${diaFmtData(docDia.dia)}</b>${imp?' · importado em '+imp:''}${filtrado?` · mostrando ${rows.length} de ${todas.length} NFs (filtros ativos)`:''}`;
+  // cards
+  const card = c=>`<div class="ind-card" style="--c:${c[0]}"><div class="t">${c[1]}</div><div class="n" style="font-size:24px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${c[2]}</div><div class="p">${c[3]}</div><div class="v">${c[4]}</div><div class="vp">${c[5]}</div></div>`;
+  const pend = T.st.rota.v, reent = T.st.reentrega;
+  document.getElementById('dCards').innerHTML = [
+    ['var(--blue)','Cargas que saíram', T.car.size, `${T.mot.size} motorista(s) · ${T.reg.size} Bairro(s)/RA`, fmtMoney(T.v), T.car.size?'média '+fmtK(T.v/T.car.size)+' por carga':''],
+    ['var(--teal)','NFs do dia', T.n, T.n?'ticket médio '+fmtK(T.v/T.n):'', (T.peso?T.peso.toLocaleString('pt-BR',{maximumFractionDigits:0})+' kg':'')+(T.peso&&T.vol?' · ':'')+(T.vol?T.vol.toLocaleString('pt-BR',{maximumFractionDigits:0})+' vol.':''), T.car.size?(T.n/T.car.size).toLocaleString('pt-BR',{maximumFractionDigits:1})+' NFs por carga':''],
+    ['var(--teal)','Entregue', pct(diaFeito(T),T.v), `${T.st.entregue.n+T.st.parcial.n} NFs${T.st.parcial.n?' ('+T.st.parcial.n+' parcial)':''}`, fmtMoney(diaFeito(T)), 'do valor que saiu'],
+    ['var(--amber)','Em rota', pct(pend,T.v), `${T.st.rota.n} NFs aguardando baixa`, fmtMoney(pend), ''],
+    ['var(--red)','Não entregue / reentrega', reent.n, pct(reent.v,T.v)+' do valor', fmtMoney(reent.v), ''],
+    ['var(--violet)','Devolvido', fmtK(T.st.devolvida.v), `${T.st.devolvida.n} NF(s) · ${pct(T.st.devolvida.v,T.v)} do valor`, '', 'medido pelo valor (R$)'],
+  ].map(card).join('');
+  // barra de andamento
+  document.getElementById('dProg').innerHTML = T.v ? DIA_ST.map(s=>{ const w=T.st[s.k].v/T.v*100; return w?`<div style="width:${w}%;background:${s.c}" title="${s.l}: ${fmtMoney(T.st[s.k].v)}">${w>=8?pct(T.st[s.k].v,T.v):''}</div>`:''; }).join('') : '';
+  document.getElementById('dLegend').innerHTML = DIA_ST.map(s=>`<span><i style="background:${s.c}"></i>${s.l}: <b>${T.st[s.k].n}</b> NFs · ${fmtK(T.st[s.k].v)}</span>`).join('');
+  // agrupamentos
+  const cargas = diaAgrupar(rows, r=>r.numcar||'—');
+  const regs = diaAgrupar(rows, r=>r.regiao||'Não identificado');
+  const mots = diaAgrupar(rows, r=>r.motorista||'—');
+  const vz = (c,t)=>`<tr><td colspan="${c}" class="empty">${t}</td></tr>`;
+  document.getElementById('dCargaTable').innerHTML = '<thead><tr><th>#</th><th>Carregamento</th><th>Motorista</th><th>NFs</th><th>Valor</th><th>% do dia</th><th>Bairros/RA</th><th>Andamento</th><th>Entregue</th></tr></thead><tbody>'
+    + (cargas.length ? cargas.map((c,i)=>{ const rg=diaAgrupar(c.rs,r=>r.regiao||'Não identificado').map(x=>x.k); const ms=Array.from(c.o.mot);
+      return `<tr><td>${i+1}</td><td><b>${esc(c.k)}</b></td><td>${esc(ms.join(', ')||'—')}</td><td>${c.o.n}</td><td>${fmtMoney(c.o.v)}</td><td>${pct(c.o.v,T.v)}</td><td>${esc(rg.slice(0,3).join(', '))}${rg.length>3?' +'+(rg.length-3):''}</td><td>${diaMiniBar(c.o)}</td><td>${pct(diaFeito(c.o),c.o.v)}</td></tr>`; }).join('') : vz(9,'Nenhuma carga nos filtros atuais.'))
+    + '</tbody>';
+  document.getElementById('dRegTable').innerHTML = '<thead><tr><th>Bairro/RA</th><th>Cargas</th><th>NFs</th><th>Valor</th><th>% do dia</th><th>Andamento</th></tr></thead><tbody>'
+    + (regs.length ? regs.map(g=>`<tr><td>${esc(g.k)}</td><td>${g.o.car.size}</td><td>${g.o.n}</td><td>${fmtMoney(g.o.v)}</td><td>${pct(g.o.v,T.v)}</td><td>${diaMiniBar(g.o)}</td></tr>`).join('') : vz(6,'—')) + '</tbody>';
+  document.getElementById('dMotTable').innerHTML = '<thead><tr><th>Motorista</th><th>Cargas</th><th>NFs</th><th>Valor</th><th>Entregue</th><th>Andamento</th></tr></thead><tbody>'
+    + (mots.length ? mots.map(g=>`<tr><td>${esc(g.k)}</td><td>${g.o.car.size}</td><td>${g.o.n}</td><td>${fmtMoney(g.o.v)}</td><td>${pct(diaFeito(g.o),g.o.v)}</td><td>${diaMiniBar(g.o)}</td></tr>`).join('') : vz(6,'—')) + '</tbody>';
+  // insights
+  const ins = [];
+  const add = (c,tag,txt)=>ins.push(`<div class="dia-ins" style="--c:${c}"><b class="tag">${tag}</b>${txt}</div>`);
+  const ant = diasEntrega.filter(d=>d.dia<docDia.dia).slice(0,7);
+  if(!filtrado && ant.length){
+    const mv = ant.reduce((s,d)=>s+(d.resumo?d.resumo.v:0),0)/ant.length, mn = ant.reduce((s,d)=>s+(d.resumo?d.resumo.n:0),0)/ant.length;
+    if(mv){ const dv=(TT.v-mv)/mv*100;
+      add(dv>=0?'var(--teal)':'var(--amber)','Comparativo', `Valor que saiu: <b>${fmtMoney(TT.v)}</b>, ${Math.abs(dv).toLocaleString('pt-BR',{maximumFractionDigits:1})}% ${dv>=0?'acima':'abaixo'} da média dos ${ant.length} dia(s) anteriores importados (${fmtK(mv)}; ${Math.round(mn)} NFs em média).`); }
+  }
+  if(cargas.length){ const c=cargas[0]; add(c.o.v/T.v>=.25?'var(--amber)':'var(--blue)','Maior carga', `Carregamento <b>${esc(c.k)}</b> (${esc(Array.from(c.o.mot).join(', ')||'sem motorista')}) leva <b>${fmtMoney(c.o.v)}</b> — ${pct(c.o.v,T.v)} do valor do dia em ${c.o.n} NFs.${c.o.v/T.v>=.25?' Concentração alta: acompanhar de perto.':''}`); }
+  if(regs.length){ const top=regs.filter(g=>g.k!=='Não identificado').slice(0,3); if(top.length) add('var(--teal)','Áreas mais abastecidas', top.map((g,i)=>`${i+1}º <b>${esc(g.k)}</b> ${fmtK(g.o.v)} (${pct(g.o.v,T.v)})`).join(' · ')); }
+  const multi = regs.filter(g=>g.k!=='Não identificado' && g.o.car.size>=3 && g.o.n/g.o.car.size<=2).sort((a,b)=>b.o.car.size-a.o.car.size)[0];
+  if(multi) add('var(--blue)','Oportunidade', `<b>${esc(multi.k)}</b> recebeu ${multi.o.car.size} cargas diferentes com só ${multi.o.n} NFs — dá para avaliar consolidar a roteirização dessa área.`);
+  const reentregas = todas.filter(r=>r._rast && r._rast.dtsaida && r.dtsaida && r._rast.dtsaida<r.dtsaida);
+  if(reentregas.length) add('var(--amber)','Atenção', `${reentregas.length} NF(s) do dia já estavam no rastreamento com saída anterior — possível reentrega (${fmtK(reentregas.reduce((s,r)=>s+(Number(r.valor)||0),0))}).`);
+  const abertasRast = todas.filter(r=>r._rast && isOpen(r._rast) && !st[r.nf]);
+  if(abertasRast.length) add('var(--amber)','Rastreamento', `${abertasRast.length} NF(s) do dia constam como pendentes/analisando no rastreamento de canhotos.`);
+  if(T.st.reentrega.n) add('var(--red)','Crítico', `${T.st.reentrega.n} NF(s) não entregues (${fmtMoney(T.st.reentrega.v)}) — programar reentrega${(()=>{ const g=diaAgrupar(rows.filter(r=>r._st==='reentrega'),r=>r.motorista||'—')[0]; return g?'; mais casos com '+esc(g.k)+' ('+g.o.n+')':''; })()}.`);
+  if(T.st.devolvida.v) add('var(--violet)','Devolução', `${fmtMoney(T.st.devolvida.v)} devolvidos (${pct(T.st.devolvida.v,T.v)} do valor do dia, ${T.st.devolvida.n} NF(s)).`);
+  const semReg = rows.filter(r=>!r.regiao);
+  if(semReg.length) add('var(--muted)','Análise', `${semReg.length} NF(s) sem Bairro/RA reconhecido pelo DESTINO (${fmtK(semReg.reduce((s,r)=>s+(Number(r.valor)||0),0))}).`);
+  if(!ins.length) add('var(--teal)','Tudo certo','Sem alertas para os filtros atuais.');
+  document.getElementById('dInsights').innerHTML = ins.join('');
+  // tabela de NFs
+  const ordem = {reentrega:0, rota:1, parcial:2, devolvida:3, entregue:4};
+  const nfs = rows.slice().sort((a,b)=>(ordem[a._st]-ordem[b._st]) || (b.valor-a.valor));
+  const temCli = todas.some(r=>r.cliente), temGa = todas.some(r=>r.ga);
+  document.getElementById('dNfHint').textContent = canWrite ? 'altere o status na lista — grava na hora (status em itálico vem do rastreamento de canhotos)' : 'status em itálico vem do rastreamento de canhotos · entre no Modo edição para dar baixa';
+  const stCell = r=>{
+    if(!canWrite) return `<span style="${r._auto?'font-style:italic':''}">${diaPill(r._st)}</span>`;
+    return `<select class="dia-st" data-nf="${esc(r.nf)}" style="color:${DIA_ST_MAP[r._st].c};${r._auto?'font-style:italic':''}">${DIA_ST.map(s=>`<option value="${s.k}"${s.k===r._st?' selected':''}>${s.l}</option>`).join('')}</select>`;
+  };
+  document.getElementById('dNfTable').innerHTML = `<thead><tr><th>NF</th><th>Carreg.</th><th>Motorista</th>${temCli?'<th>Cliente</th>':''}<th>Destino</th><th>Bairro/RA</th>${temGa?'<th>GA</th>':''}<th>Valor</th><th>Status da entrega</th><th>No rastreamento</th></tr></thead><tbody>`
+    + (nfs.length ? nfs.map(r=>`<tr><td><b>${esc(r.nf)}</b></td><td>${esc(r.numcar||'—')}</td><td>${esc(r.motorista||'—')}</td>${temCli?`<td>${esc(r.cliente||'—')}</td>`:''}<td>${esc(r.destino||'—')}</td><td>${esc(r.regiao||'—')}</td>${temGa?`<td>${esc(r.ga||'—')}</td>`:''}<td>${fmtMoney(r.valor)}</td><td>${stCell(r)}</td><td style="color:var(--muted)">${r._rast?esc(STATUS_LABEL[r._rast.status]||r._rast.status||'—')+(r._rast.arquivada?' (banco)':''):'—'}</td></tr>`).join('') : vz(8+(temCli?1:0)+(temGa?1:0),'Nenhuma NF nos filtros atuais.'))
+    + '</tbody>';
+}
+[dSel,dCarga,dMot,dReg,dSt].forEach(el=>el.addEventListener('input', ()=>{ if(el===dSel){ dCarga.value=''; dMot.value=''; dReg.value=''; dSt.value=''; } renderDia(); }));
+document.getElementById('dNfTable').addEventListener('change', async e=>{
+  const sel = e.target.closest('select.dia-st'); if(!sel || !canWrite) return;
+  const docDia = diasEntrega.find(d=>d.dia===dSel.value) || diasEntrega[0]; if(!docDia) return;
+  sel.disabled = true;
+  try{
+    await updateDoc(doc(db,'resumo_diario','entregas_'+docDia.dia), {['st.'+sel.dataset.nf]: sel.value, atualizadoEm: serverTimestamp()});
+    toast('NF '+sel.dataset.nf+': '+DIA_ST_MAP[sel.value].l,'var(--teal)');
+  }catch(err){ toast('Não gravou: '+(err.code==='permission-denied'?'sem permissão no Firestore':err.message),'var(--red)'); renderDia(); }
+  finally{ sel.disabled = false; }
+});
+
+// importação
+const diaInput=document.getElementById('diaInput'), diaData=document.getElementById('diaData'), diaPrev=document.getElementById('diaPreview'), diaImportMsg=document.getElementById('diaImportMsg');
+document.getElementById('btnDiaImport').addEventListener('click', ()=>{
+  const box=document.getElementById('diaImportBox'); const abrir = box.style.display==='none';
+  box.style.display = abrir ? '' : 'none'; if(abrir){ if(!diaData.value) diaData.value=hojeISO(); diaInput.focus(); }
+});
+document.getElementById('btnDiaFechar').addEventListener('click', ()=>{ document.getElementById('diaImportBox').style.display='none'; });
+document.getElementById('btnDiaAnalisar').addEventListener('click', async ()=>{
+  diaImportMsg.textContent=''; diaPrev.innerHTML='';
+  if(await versaoDesatualizada()){ diaImportMsg.innerHTML='<span style="color:var(--amber)">Há uma versão nova do painel publicada. Recarregue a página (Ctrl+F5) antes de importar.</span>'; return; }
+  const p = parseDiaInput(diaInput.value);
+  if(!p.rows.length){ diaImportMsg.innerHTML = '<span style="color:var(--red)">Nenhuma NF válida encontrada.</span>' + (p.errors.length?'<br>'+p.errors.slice(0,5).map(esc).join('<br>'):''); return; }
+  if(p.rows.length>2500){ diaImportMsg.innerHTML='<span style="color:var(--red)">São '+p.rows.length+' NFs — importe no máximo 2.500 por dia.</span>'; return; }
+  if(p.dia) diaData.value = p.dia;
+  diaPendente = p;
+  const A = diaAgg(p.rows.map(r=>({...r,_st:'rota'})));
+  const semReg = p.rows.filter(r=>!r.regiao).length, existe = diasEntrega.some(d=>d.dia===diaData.value);
+  diaPrev.innerHTML = `<div class="dia-prev">
+    <b>${p.rows.length}</b> NFs · <b>${A.car.size}</b> carregamento(s) · <b>${A.mot.size}</b> motorista(s) · <b>${fmtMoney(A.v)}</b> · ${A.reg.size} Bairro(s)/RA
+    ${p.comCabecalho?'· colunas lidas pelo cabeçalho':'· colunas na ordem da aba Lança'}<br>
+    ${semReg?`<span style="color:var(--amber)">${semReg} NF(s) sem Bairro/RA reconhecido pelo DESTINO.</span><br>`:''}
+    ${existe?`<span style="color:var(--amber)">Já existem cargas de ${diaFmtData(diaData.value)}: serão substituídas (os status de entrega marcados ficam).</span><br>`:''}
+    ${p.errors.length?`<div class="err">${p.errors.length} linha(s) ignorada(s):<br>${p.errors.slice(0,30).map(esc).join('<br>')}</div>`:''}
+    <button class="btn-primary" id="btnDiaConfirmar" type="button" style="width:auto;padding:9px 18px;">Confirmar importação de ${diaFmtData(diaData.value)}</button></div>`;
+  document.getElementById('btnDiaConfirmar').addEventListener('click', confirmarDia);
+});
+async function confirmarDia(){
+  if(!diaPendente || !canWrite) return;
+  const dia = diaData.value; if(!/^\d{4}-\d{2}-\d{2}$/.test(dia)){ diaImportMsg.textContent='Escolha o dia das cargas.'; return; }
+  const btn=document.getElementById('btnDiaConfirmar'); btn.disabled=true; diaImportMsg.textContent='Gravando…';
+  const rows = diaPendente.rows.map(r=>{ const o={}; Object.entries(r).forEach(([k,v])=>{ if(v!=='' && v!==0 && v!==false) o[k]=v; }); o.nf=r.nf; o.valor=r.valor; return o; });
+  const A = diaAgg(rows.map(r=>({...r,_st:'rota'})));
+  try{
+    await setDoc(doc(db,'resumo_diario','entregas_'+dia), { tipo:'entregas_dia', dia, rows, resumo:{n:A.n, v:A.v, cargas:A.car.size, motoristas:A.mot.size}, importadoEm:serverTimestamp() }, {merge:true});
+    logHist('atualizado', 'Entregas do dia', diaFmtData(dia)+' · '+A.n+' NFs · '+A.car.size+' cargas · '+fmtMoney(A.v));
+    diaImportMsg.innerHTML='<span style="color:var(--teal)">✔ '+A.n+' NFs de '+diaFmtData(dia)+' importadas.</span>';
+    diaInput.value=''; diaPrev.innerHTML=''; diaPendente=null; dSel.value=dia;
+    setTimeout(()=>{ document.getElementById('diaImportBox').style.display='none'; }, 1500);
+  }catch(e){
+    diaImportMsg.innerHTML='<span style="color:var(--red)">Erro ao gravar: '+esc(e.code==='permission-denied'?'sem permissão — confira as Regras do Firestore e o login.':e.message)+'</span>'; btn.disabled=false;
+  }
+}
+
+const VIEWS = {painel:'viewPainel', ind:'viewInd', ga:'viewGA', mot:'viewMot', dia:'viewDia', notas:'viewNotas', hist:'viewHist', atraso:'viewAtraso', reg:'viewReg', banco:'viewBanco', edicao:'viewEdicao'};
 const filtersPanelEl = document.getElementById('filtersPanel');
 const filtersHomeEl = document.getElementById('filtersHome');
 function showView(v, alvo){
@@ -2211,7 +2529,7 @@ function showView(v, alvo){
   const slot = document.getElementById('slot-'+v);
   if(slot){ slot.classList.add('filters-slot'); slot.appendChild(filtersPanelEl); }
   else if(filtersPanelEl.parentElement!==filtersHomeEl) filtersHomeEl.appendChild(filtersPanelEl);
-  if(v==='ind') renderIndicadores(); else if(v==='ga') renderGA(); else if(v==='mot') renderMot(); else renderAll();
+  if(v==='ind') renderIndicadores(); else if(v==='ga') renderGA(); else if(v==='mot') renderMot(); else if(v==='dia') renderDia(); else renderAll();
   if(alvo){ setTimeout(()=>{ const el=document.getElementById(alvo); if(el) el.scrollIntoView({behavior:'smooth',block:'start'}); },60); }
   else window.scrollTo(0,0);
 }
@@ -2222,7 +2540,7 @@ document.querySelectorAll('.sb-item').forEach(b=>b.addEventListener('click',()=>
   document.getElementById('sbMin').addEventListener('click',()=>{
     const min = document.body.classList.toggle('sb-min');
     try{ localStorage.setItem('sbMin', min?'1':'0'); }catch(e){}
-    setTimeout(()=>{ if(currentView!=='ind' && currentView!=='ga' && currentView!=='mot') renderAll(); },220);
+    setTimeout(()=>{ if(currentView!=='ind' && currentView!=='ga' && currentView!=='mot' && currentView!=='dia') renderAll(); },220);
   });
 })();
 
@@ -2240,6 +2558,7 @@ function renderAll(){
   if(currentView==='ind'){ renderIndicadores(); return; }
   if(currentView==='ga'){ renderGA(); return; }
   if(currentView==='mot'){ renderMot(); return; }
+  if(currentView==='dia'){ renderDia(); return; }
   if(currentView==='painel'){ drawGauge(rows); drawBarChart(rows); }
   if(currentView==='atraso'){
     drawLineChart(rows);
@@ -2594,6 +2913,10 @@ onSnapshot(query(resumoRef, orderBy('data','asc'), limit(120)), snap=>{
   resumoDias = snap.docs.map(d=>d.data());
   renderAll();
 }, err=>{ console.warn('resumo_diario:', err.code||err.message); });
+onSnapshot(query(resumoRef, where('tipo','==','entregas_dia')), snap=>{
+  diasEntrega = snap.docs.map(d=>d.data({serverTimestamps:'estimate'})).filter(d=>d.dia).sort((a,b)=>b.dia.localeCompare(a.dia));
+  if(currentView==='dia') renderDia();
+}, err=>{ console.warn('entregas do dia:', err.code||err.message); });
 const historicoQuery = query(historicoRef, orderBy('ts','desc'), limit(50));
 onSnapshot(historicoQuery, snap=>{
   renderHistorico(snap.docs.map(d=>d.data({serverTimestamps:'estimate'})));
