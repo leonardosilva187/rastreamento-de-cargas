@@ -485,6 +485,21 @@ textarea.bulk{width:100%; min-height:110px; padding:9px 11px; background:var(--c
 .cp-btn.ok{border-color:var(--green); color:var(--green); background:var(--green-soft);}
 .cp-btn svg{flex-shrink:0;} .cp-btn.ic{padding:0 5px; height:22px;} .cp-btn.ic span{display:none;}
 .show-md{display:none;} @media (max-width:1560px){ .hide-md{display:none !important;} .show-md{display:inline;} }
+.ck-go.dark{background:var(--black); color:#fff;} .ck-go.dark:hover{background:#2a2d35;}
+.q-hero{background:var(--card); border:1px solid var(--line); border-radius:var(--r); box-shadow:var(--shadow); padding:18px 20px; margin-bottom:16px;}
+.q-hero > label{display:block; font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:.6px; color:var(--muted); margin-bottom:8px;}
+.q-search{display:flex; align-items:center; gap:10px; border:2px solid var(--black); border-radius:12px; padding:0 8px 0 14px; background:#fff;}
+.q-search svg{color:var(--muted); flex-shrink:0;}
+.q-search input{flex:1; border:0; outline:0; font-size:17px; font-weight:700; padding:13px 0; background:transparent; color:var(--ink); min-width:0;}
+.q-sugs{display:grid; gap:6px; margin-top:8px;}
+.q-sug{display:flex; align-items:center; gap:10px; text-align:left; padding:8px 10px; border:1px solid var(--line); border-radius:10px; background:#fff; cursor:pointer;}
+.q-sug:hover{border-color:var(--blue);} .q-sug .av{width:30px; height:30px; font-size:10.5px;} .q-sug b{display:block; font-size:13px;} .q-sug small{display:block; font-size:11.5px; color:var(--muted);}
+.q-sens{font-size:12px; color:var(--muted); margin-top:10px; display:flex; gap:10px; flex-wrap:wrap; align-items:center;}
+.q-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(230px,1fr)); border:1px solid var(--line2); border-radius:12px; overflow:hidden;}
+.q-f{padding:10px 14px; border-right:1px solid var(--line2); border-bottom:1px solid var(--line2); min-width:0;}
+.q-f > span{display:block; font-size:10.5px; font-weight:800; text-transform:uppercase; letter-spacing:.5px; color:#1f3864; margin-bottom:4px;}
+.q-f .q-v{display:flex; align-items:center; gap:6px; flex-wrap:wrap; min-height:26px;} .q-f .q-v b{font-size:14px; overflow-wrap:anywhere;} .q-f .q-v b small{font-weight:500; font-size:11px;}
+.q-f.wide{grid-column:span 2;} @media (max-width:760px){ .q-f.wide{grid-column:auto;} .q-search input{font-size:15px;} }
 </style>
 
 </head>
@@ -494,6 +509,7 @@ textarea.bulk{width:100%; min-height:110px; padding:9px 11px; background:var(--c
   <div class="rail-logo" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h9l4 4v14H6z"/><path d="M15 3v4h4"/><path d="M9 13h6M9 17h4"/></svg></div>
   <button type="button" class="rail-btn" data-view="painel" aria-label="Painel"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg><span class="tt">Painel</span></button>
   <button type="button" class="rail-btn" data-view="ciot" aria-label="Controle de CIOT"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h9l4 4v14H6z"/><path d="M15 3v4h4"/><path d="M9 14l2 2 4-4"/></svg><span class="tt">Controle de CIOT</span></button>
+  <button type="button" class="rail-btn" data-view="consulta" aria-label="Consulta rápida"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2"/></svg><span class="novo">NOVO</span><span class="tt">Consulta rápida (criar CIOT)</span></button>
   <button type="button" class="rail-btn" data-view="motoristas" aria-label="Motoristas"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M2 15V8h12v7"/><path d="M14 10h4l3 3v2h-7"/><circle cx="6.5" cy="16.5" r="1.8"/><circle cx="17" cy="16.5" r="1.8"/></svg><span class="tt">Motoristas (cadastro)</span></button>
   <button type="button" class="rail-btn" data-view="agenda" aria-label="Agenda"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><span class="tt">Agenda de encerramentos</span></button>
   <button type="button" class="rail-btn" data-view="alertas" aria-label="Alertas"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9.5 17h-19z"/><path d="M12 10v4M12 17.5v.5"/></svg><span class="tt">Alertas</span></button>
@@ -509,6 +525,7 @@ textarea.bulk{width:100%; min-height:110px; padding:9px 11px; background:var(--c
     <div class="tb-right">
       <span class="pill" id="statusTag"><span class="dot"></span><span id="statusTxt">conectando…</span></span>
       <span class="pill"><span id="clock">--:--</span></span>
+      <button type="button" class="ck-go dark" id="goConsultaTop" title="Consultar os dados do motorista para criar o CIOT"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2"/></svg><span>Consulta rápida</span></button>
       <button type="button" class="ck-go" id="goNovoTop" title="Registrar um CIOT novo"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg><span>Novo CIOT</span></button>
       <span class="pill" id="editPill" style="display:none;"><span class="dot" style="background:var(--blue)"></span>Modo edição</span>
     </div>
@@ -586,6 +603,25 @@ textarea.bulk{width:100%; min-height:110px; padding:9px 11px; background:var(--c
       </div>
       <div id="cFicha"></div>
     </div>
+  </section>
+
+  <!-- ===================== CONSULTA RÁPIDA ===================== -->
+  <section id="viewConsulta" class="view" style="display:none;">
+    <div class="q-hero">
+      <label for="qBusca">Digite o nome do motorista</label>
+      <div class="q-search"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2"/></svg>
+        <input id="qBusca" type="search" placeholder="Nome, placa ou nº TAC/ETC…" autocomplete="off" spellcheck="false"><button type="button" class="btn-mini" id="qLimpar">Limpar</button></div>
+      <div id="qSug" class="q-sugs"></div>
+      <div class="q-sens"><span id="qSensTxt"></span> <button type="button" class="link" id="qSensBtn">Guardar CPF/CNPJ/telefone neste computador</button> <button type="button" class="link" id="qSensApagar" style="display:none">Apagar deste computador</button></div>
+      <div class="box" id="qSensBox" style="display:none;">
+        <h4>Dados pessoais só neste computador</h4>
+        <div class="note" style="margin-top:0;">O painel é público, por isso <b>CPF, CPF do condutor, CNPJ e telefone não vão para o banco</b>. Cole aqui as linhas da planilha de <b>CADASTRO (colunas A até M)</b>: esses dados ficam guardados apenas neste navegador, para aparecerem na consulta com o botão Copiar. Outros computadores não veem.</div>
+        <textarea id="qSensInput" class="bulk" placeholder="Cole aqui as linhas copiadas da planilha de CADASTRO…" spellcheck="false" style="margin-top:10px;"></textarea>
+        <button class="btn btn-dark" id="qSensSalvar" type="button" style="margin-top:10px;">Guardar neste computador</button>
+        <div id="qSensMsg" class="note"></div>
+      </div>
+    </div>
+    <div id="qResultado"></div>
   </section>
 
   <!-- ===================== MOTORISTAS ===================== -->
@@ -785,7 +821,8 @@ const iniciais = s => { const p=String(s||'').replace(/\(.*?\)/g,'').replace(/-\
 const AV_CORES = ['#3478f6','#14161b','#f5a524','#6b5bd6','#22a861','#e5484d','#0ea5b7','#8a5a2b'];
 const avCor = s => { let h=0; for(const c of String(s||'')) h=(h*31+c.charCodeAt(0))>>>0; return AV_CORES[h%AV_CORES.length]; };
 const placaHTML = (p, sm) => p ? `<span class="placa${sm?' sm':''}" aria-label="Placa ${esc(p)}"><i>BRASIL</i><b>${esc(p)}</b></span>` : '<span class="muted">sem placa</span>';
-const copyBtn = num => `<button type="button" class="cp-btn" data-copy="${esc(String(num||'').replace(/\D/g,''))}" title="Copiar o número do CIOT" aria-label="Copiar o número do CIOT ${esc(num)}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h8"/></svg><span>Copiar</span></button>`;
+const copyVal = (v, label) => `<button type="button" class="cp-btn" data-copy="${esc(v)}" data-label="${esc(label)}" title="Copiar ${esc(label)}" aria-label="Copiar ${esc(label)}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h8"/></svg><span>Copiar</span></button>`;
+const copyBtn = num => `<button type="button" class="cp-btn" data-label="CIOT" data-copy="${esc(String(num||'').replace(/\D/g,''))}" title="Copiar o número do CIOT" aria-label="Copiar o número do CIOT ${esc(num)}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h8"/></svg><span>Copiar</span></button>`;
 const idMot = nome => 'm_' + norm(nome).replace(/[^A-Z0-9]+/g,'_').replace(/^_|_$/g,'').slice(0,120);
 function toast(t){ const el=$('toast'); el.textContent=t; el.classList.add('on'); clearTimeout(toast._t); toast._t=setTimeout(()=>el.classList.remove('on'),3400); }
 function preencherSelect(id, vals, rot){ const el=$(id), atual=el.value; el.innerHTML = `<option value="">${rot}</option>` + vals.map(v=>`<option value="${esc(v.v??v)}">${esc(v.l??v)}</option>`).join(''); if(vals.some(v=>(v.v??v)===atual)) el.value=atual; }
@@ -793,7 +830,7 @@ const MESES = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov'
 
 /* ---------------------------- estado ---------------------------- */
 let canWrite = false, carregou = false, semRegras = false;
-let motsDb = [], regsDb = [], regs = [], hist = [], cfg = {dias:10, porTipo:{}};
+let motsDb = [], regsDb = [], regs = [], hist = [], cfg = {dias:30, porTipo:{}};
 let cGrupo = 'abertos', cFiltro = '', mFiltro = '', alFiltro = '', cSel = null, mSel = null;
 let cSort = {k:'validade', dir:1}, mSort = {k:'nome', dir:1};
 let ciotEditando = null, motEditando = null;
@@ -815,14 +852,14 @@ function sitCiot(r){
   return {k:'ativo', l:`Ativo · ${d} d`, cls:'uso', d, ord:3};
 }
 const aberto = r => r.status!=='encerrado' && r.status!=='cancelado';
-const durDe = tf => Number(cfg.porTipo?.[tf]) || Number(cfg.dias) || 10;
+const durDe = tf => Number(cfg.porTipo?.[tf]) || Number(cfg.dias) || 30;
 function comValidade(r){ const auto = r.validadeAuto || !r.validade; return {...r, validadeAuto:auto, validade: auto ? addDias(r.abertura, durDe(r.tipoFrete)) : r.validade}; }
 const seedRegs = () => BASE_LANC.map(([numero,sufixo,ordem,abertura,nome,placa,registro,tipoFrete,statusPg,status]) => ({id:idCiot(numero), numero, sufixo, ordem, abertura, nome, placa, registro, tipoFrete, statusPg, status, motoristaId:idMot(nome), validadeAuto:true, _seed:true}));
 function atualizarRegs(){ regs = (regsDb.length ? regsDb : seedRegs()).filter(r=>r.numero && r.abertura).map(comValidade); }
 function ciotsDe(m){ return regs.filter(r=>r.motoristaId===m.id || (!r.motoristaId && norm(r.nome)===norm(m.nome))); }
 function ciotAberto(m){ return ciotsDe(m).filter(aberto).sort((a,b)=>String(b.abertura).localeCompare(String(a.abertura)))[0] || null; }
 function motDe(r){ return motoristas().find(m=>m.id===r.motoristaId) || motoristas().find(m=>norm(m.nome)===norm(r.nome)) || null; }
-const idadeCiot = r => difDias(hojeISO(), r.abertura);
+const idadeCiot = r => difDias(hojeISO(), r.abertura) + 1;   // conta o dia da emissão, como a planilha (Tempo em dias)
 function calcAlertas(){
   const A = [], ms = motoristas();
   regs.filter(aberto).forEach(r=>{
@@ -1306,6 +1343,7 @@ function parseCad(text){
   return {ok, err};
 }
 $('btnCadBulk').addEventListener('click', ()=>{
+  const nLoc = guardarSensDeLinhas($('cadBulk').value);
   const p = parseCad($('cadBulk').value);
   if(!p.ok.length){ $('cadBulkMsg').textContent='Nenhum motorista reconhecido. Copie da coluna A até a M da planilha de cadastro.'; return; }
   const cad = new Map(motsDb.map(m=>[m.id,m]));
@@ -1313,7 +1351,7 @@ $('btnCadBulk').addEventListener('click', ()=>{
   p.ok.forEach(x=>{ const e=cad.get(idMot(x.nome)); x._tipo = !e ? 'novo' : campos.some(k=>String(e[k]??'')!==String(x[k]??'')) ? 'atualiza' : 'igual'; });
   loteCad = p.ok.filter(x=>x._tipo!=='igual');
   const nN = p.ok.filter(x=>x._tipo==='novo').length, nA = p.ok.filter(x=>x._tipo==='atualiza').length;
-  $('cadBulkMsg').innerHTML = `${p.ok.length} motorista(s) lidos: <b>${nN}</b> novo(s), <b>${nA}</b> com alteração, ${p.ok.length-nN-nA} sem mudança.`
+  $('cadBulkMsg').innerHTML = (nLoc>0?`<span style="color:var(--green)">CPF/CNPJ/telefone de ${nLoc} motorista(s) guardados só neste computador (para a Consulta rápida).</span><br>`:'') + `${p.ok.length} motorista(s) lidos: <b>${nN}</b> novo(s), <b>${nA}</b> com alteração, ${p.ok.length-nN-nA} sem mudança.`
     + (loteCad.length?`<div class="prev-tb"><table><thead><tr><th></th><th>Motorista</th><th>Veículo</th><th>Placa</th><th>RNTRC</th><th>Status</th><th>Obs</th></tr></thead><tbody>${loteCad.map(x=>`<tr><td><span class="flag ${x._tipo==='novo'?'n':'u'}">${x._tipo==='novo'?'novo':'atualiza'}</span></td><td>${esc(titulo(x.nome))}</td><td>${esc(x.veiculo)}</td><td>${esc(x.placa)}</td><td>${esc(x.registro)} ${esc(x.tac)} (${esc(x.statusTac)})</td><td>${CAD_LABEL[x.statusGeral][0]}</td><td>${esc(x.obs)}</td></tr>`).join('')}</tbody></table></div><button class="btn btn-dark" type="button" id="btnCadBulkOk">Gravar ${loteCad.length} motorista(s)</button>`:'');
 });
 $('cadBulkMsg').addEventListener('click', async e=>{
@@ -1363,13 +1401,112 @@ function renderHist(){
 }
 
 /* ---------------------------- configuração ---------------------------- */
-function renderCfg(){ $('cfgDias').value = cfg.dias||10; $('cfgTipos').innerHTML = TIPOS_FRETE.map(t=>`<label style="display:flex;gap:8px;align-items:center;margin:6px 0"><span style="min-width:150px">${t}</span><input type="number" min="1" max="60" data-tf="${esc(t)}" value="${esc(cfg.porTipo?.[t]||'')}" placeholder="${cfg.dias||10}" style="max-width:90px"><span class="muted">dias</span></label>`).join(''); }
+function renderCfg(){ $('cfgDias').value = cfg.dias||30; $('cfgTipos').innerHTML = TIPOS_FRETE.map(t=>`<label style="display:flex;gap:8px;align-items:center;margin:6px 0"><span style="min-width:150px">${t}</span><input type="number" min="1" max="60" data-tf="${esc(t)}" value="${esc(cfg.porTipo?.[t]||'')}" placeholder="${cfg.dias||30}" style="max-width:90px"><span class="muted">dias</span></label>`).join(''); }
 $('btnCfgDias').addEventListener('click', async ()=>{
   const n = parseInt($('cfgDias').value,10); if(!(n>=1 && n<=60)){ toast('Informe entre 1 e 60 dias.'); return; }
   const porTipo = {}; document.querySelectorAll('#cfgTipos [data-tf]').forEach(i=>{ const v=parseInt(i.value,10); if(v>=1 && v<=60) porTipo[i.dataset.tf]=v; });
   try{ await setDoc(doc(db,'ciot_motoristas','_config'), {_config:true, dias:n, porTipo, inativo:true, nome:'_config', atualizadoEm:serverTimestamp()}); await logHist('atualizado','—',`Duração do CIOT: padrão ${n} d${Object.entries(porTipo).map(([k,v])=>` · ${k} ${v} d`).join('')}`); toast('Duração salva.'); }
   catch(err){ toast(erroTxt(err)); }
 });
+
+/* ---------------------------- consulta rápida (criação de CIOT) ---------------------------- */
+// CPF, CPF do condutor, telefone e CNPJ ficam SÓ no navegador deste computador (localStorage). Nunca vão para o banco público.
+const SENS_KEY = 'ciot_dados_sensiveis_v1';
+let SENS = {};
+try{ SENS = JSON.parse(localStorage.getItem(SENS_KEY)||'{}') || {}; }catch(e){ SENS = {}; }
+const salvarSens = () => { try{ localStorage.setItem(SENS_KEY, JSON.stringify(SENS)); return true; }catch(e){ return false; } };
+const dig = v => String(v||'').replace(/\D/g,'');
+const fmtCPF = v => { const d=dig(v); return d.length===11 ? d.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/,'$1.$2.$3-$4') : (v||''); };
+const fmtCNPJ = v => { const d=dig(v); return d.length===14 ? d.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/,'$1.$2.$3/$4-$5') : d.length===11 ? fmtCPF(d) : (v||''); };
+function guardarSensDeLinhas(text){
+  const lines = String(text||'').split(/\r?\n/).filter(l=>l.trim()).map(l=>l.split('\t').map(c=>c.trim()));
+  let n=0;
+  lines.forEach(c=>{
+    if(c.some(x=>/^MOTORISTA$/i.test(x))) return;
+    let o = c.findIndex(x=>/^(TAC|ETC)$/i.test(x)) - 3; if(o<0) o = /^\d+$/.test(c[0]||'') ? 1 : 0;
+    const nome=(c[o]||'').trim(); if(!nome) return;
+    const tel=c[o+6]||'', cpf=dig(c[o+7]), cpfc=dig(c[o+8]), cnpj=dig(c[o+9]);
+    if(!tel && !cpf && !cpfc && !cnpj) return;
+    SENS[idMot(nome)] = {tel, cpf, cpfCond:cpfc, cnpj, em:hojeISO()}; n++;
+  });
+  return salvarSens() ? n : -1;
+}
+let qSel = null;
+const matchMot = q => { const t=norm(q); if(!t) return []; const td=t.replace(/[^A-Z0-9]/g,''); return motoristas().filter(m=>norm(m.nome).includes(t) || (td && (norm(m.placa).includes(td) || dig(m.tac).includes(td)))).sort((a,b)=>norm(a.nome).indexOf(t)-norm(b.nome).indexOf(t) || norm(a.nome).localeCompare(norm(b.nome))).slice(0,8); };
+function renderSugestoes(){
+  const q = $('qBusca').value, l = matchMot(q);
+  $('qSug').innerHTML = (q && !(qSel && rotMot(motoristas().find(m=>m.id===qSel)||{nome:''})===q)) ? (l.length ? l.map(m=>{ const ab=ciotAberto(m); return `<button type="button" class="q-sug" data-qm="${esc(m.id)}"><span class="av" style="background:${avCor(m.nome)}">${esc(iniciais(m.nome))}</span><span style="min-width:0;flex:1"><b>${esc(titulo(m.nome))}</b><small>${esc(m.placa||'sem placa')} · ${esc(titulo(m.veiculo||''))} · ${esc(m.registro||'')} ${esc(m.tac||'')}</small></span>${ab?`<span class="badge ${sitCiot(ab).cls}">CIOT aberto</span>`:''}</button>`; }).join('') : '<div class="muted" style="padding:10px 4px;font-size:12.5px">Nenhum motorista encontrado.</div>') : '';
+}
+function campo(label, valor, copia, extra){
+  const v = (valor===undefined||valor===null||valor==='') ? '' : String(valor);
+  return `<div class="q-f${extra?.cls?' '+extra.cls:''}"><span>${label}</span><div class="q-v">${v?`<b>${extra?.html||esc(v)}</b>${copia!==false?copyVal(copia??v, label):''}`:`<b class="muted">${extra?.vazio||'—'}</b>`}</div></div>`;
+}
+function renderConsulta(){
+  const nSens = Object.keys(SENS).length;
+  $('qSensTxt').innerHTML = nSens ? `CPF, CNPJ e telefone de <b>${nSens}</b> motorista(s) guardados <b>só neste computador</b>.` : 'CPF, CNPJ e telefone ainda não foram guardados neste computador.';
+  $('qSensApagar').style.display = nSens ? '' : 'none';
+  renderSugestoes();
+  const m = motoristas().find(x=>x.id===qSel);
+  if(!m){ $('qResultado').innerHTML = `<div class="card empty" style="padding:40px 20px">Digite o nome, a placa ou o nº TAC/ETC do motorista para ver os dados de criação do CIOT.</div>`; return; }
+  const s = SENS[m.id] || {};
+  const cs = ciotsDe(m).sort((a,b)=>String(b.abertura).localeCompare(String(a.abertura)));
+  const ab = cs.filter(aberto);
+  const bad = m.statusTac==='INVÁLIDO' || m.statusGeral==='inval';
+  const ap = bad ? ['cr', `<b>Não apto:</b> RNTRC/cadastro inválido${m.obs?' — '+esc(m.obs):''}. Regularize antes de criar o CIOT.`]
+    : m.statusGeral==='pend' ? ['at', `<b>Atenção:</b> pendência no cadastro${m.obs?' — '+esc(m.obs):''}.`]
+    : ab.length ? ['at', `<b>Já tem CIOT aberto:</b> ${ab.map(r=>`${esc(r.numero)} (emitido ${brData(r.abertura)}, ${sitCiot(r).l.toLowerCase()})`).join('; ')}.`]
+    : ['ok', '<b>Apto para criar CIOT.</b> Cadastro OK e sem CIOT aberto.'];
+  const cl = CAD_LABEL[m.statusGeral]||['—','dev'];
+  const semSens = '— <small>(não guardado neste computador)</small>';
+  $('qResultado').innerHTML = `
+  <div class="card">
+    <div class="card-h"><h3>${esc(titulo(m.nome))}</h3><span class="sub">${m.pj?'Pessoa jurídica':'Pessoa física'}</span>
+      <span style="margin-left:auto; display:flex; gap:8px; flex-wrap:wrap;">${canWrite?`<button type="button" class="btn btn-dark" data-qnovo="${esc(m.id)}" style="height:34px">Abrir CIOT no painel</button>`:''}<button type="button" class="btn btn-line" data-qficha="${esc(m.id)}" style="height:34px">Ficha completa</button></span></div>
+    <div class="ci-warn ${ap[0]}" style="margin-bottom:12px">${ap[1]}</div>
+    <div class="q-grid">
+      ${campo('Motorista', m.nome)}
+      ${campo('Tipo de veículo', m.veiculo)}
+      ${campo('Nº TAC/ETC', m.tac, dig(m.tac), {html:`<span class="mono">${esc(m.tac||'')}</span>`})}
+      ${campo('Tipo de registro', m.registro, false)}
+      ${campo('Status TAC', m.statusTac, false, {html:`<span style="color:${m.statusTac==='INVÁLIDO'?'var(--red)':'var(--green)'}">${esc(m.statusTac||'')}</span>`})}
+      ${campo('Placa', m.placa, m.placa, {html:placaHTML(m.placa,true)})}
+      ${campo('Telefone', s.tel, dig(s.tel), {vazio:semSens})}
+      ${campo('CPF titular', s.cpf, dig(s.cpf), {html:`<span class="mono">${esc(fmtCPF(s.cpf))}</span>`, vazio:semSens})}
+      ${campo('CPF condutor', s.cpfCond, dig(s.cpfCond), {html:`<span class="mono">${esc(fmtCPF(s.cpfCond))}</span>`, vazio: s.cpf||s.cnpj ? 'o próprio titular' : semSens})}
+      ${campo('CNPJ', s.cnpj, dig(s.cnpj), {html:`<span class="mono">${esc(fmtCNPJ(s.cnpj))}</span>`, vazio: s.cpf ? 'sem CNPJ' : semSens})}
+      ${campo('Obs / pendências', m.obs, false, {cls:'wide'})}
+      ${campo('Status geral', cl[0], false, {html:`<span class="badge ${cl[1]}">${cl[0]}</span>`})}
+    </div>
+  </div>
+  <div class="card" style="margin-top:16px">
+    <div class="card-h"><h3>CIOTs do motorista</h3><span class="sub">${cs.length} no total · ${ab.length} aberto(s)</span></div>
+    <div class="tablewrap"><table class="tb">
+      <thead><tr><th>CIOT</th><th>Data da emissão</th><th>Data encerramento</th><th>Status</th><th class="hide-sm">Tipo de frete</th><th>Tempo (dias)</th><th class="hide-sm">Pagamento</th></tr></thead>
+      <tbody>${cs.length ? cs.map(r=>{ const sx=sitCiot(r);
+        const enc = aberto(r) ? `<span class="muted">prev. ${brData(r.validade)}</span>` : (r.encerradoEm ? brData(r.encerradoEm) : '<span class="muted">—</span>');
+        const tempo = aberto(r) ? idadeCiot(r) : (r.encerradoEm ? difDias(r.encerradoEm, r.abertura) : '—');
+        return `<tr data-qc="${esc(r.id)}" style="cursor:pointer"><td style="white-space:nowrap"><span class="num">${esc(r.numero)}</span>${copyBtn(r.numero).replace('class="cp-btn"','class="cp-btn ic"')}${r.sufixo?`<small class="muted" style="display:block;font-size:11px">/${esc(r.sufixo)}</small>`:''}</td><td>${brData(r.abertura)}</td><td>${enc}</td><td><span class="badge ${sx.cls}">${aberto(r)?'Em aberto · '+esc(sx.l.replace(/^Ativo · /,'')):esc(sx.l)}</span></td><td class="hide-sm">${esc(r.tipoFrete||'—')}</td><td class="num">${tempo}</td><td class="hide-sm" style="color:${r.statusPg==='pago'?'var(--green)':'#b77400'};font-weight:700">${r.statusPg==='pago'?'Pago':r.statusPg==='aberto'?'Em aberto':'—'}</td></tr>`; }).join('') : '<tr><td colspan="7" class="empty">Nenhum CIOT registrado para este motorista.</td></tr>'}</tbody>
+    </table></div>
+  </div>`;
+}
+$('qBusca').addEventListener('input', ()=>{ const m = acharMot($('qBusca').value); if(m && norm(rotMot(m))===norm($('qBusca').value)){ qSel=m.id; } renderConsulta(); });
+$('qBusca').addEventListener('keydown', e=>{ if(e.key==='Enter'){ const l=matchMot($('qBusca').value); if(l.length){ qSel=l[0].id; $('qBusca').value=rotMot(l[0]); renderConsulta(); } } });
+$('qSug').addEventListener('click', e=>{ const b=e.target.closest('[data-qm]'); if(!b) return; const m=motoristas().find(x=>x.id===b.dataset.qm); qSel=m.id; $('qBusca').value=rotMot(m); renderConsulta(); window.scrollTo({top:0, behavior:'smooth'}); });
+$('qLimpar').addEventListener('click', ()=>{ $('qBusca').value=''; qSel=null; renderConsulta(); $('qBusca').focus(); });
+$('qResultado').addEventListener('click', e=>{
+  const g = a => e.target.closest('['+a+']')?.getAttribute(a);
+  if(g('data-qnovo')) return abrirCiot(null, motoristas().find(m=>m.id===g('data-qnovo')));
+  if(g('data-qficha')){ mSel=g('data-qficha'); mFiltro=''; showView('motoristas'); return; }
+  if(g('data-qc')){ cSel=g('data-qc'); cGrupo='todos'; cFiltro=''; showView('ciot'); }
+});
+$('qSensBtn').addEventListener('click', ()=>{ $('qSensBox').style.display = $('qSensBox').style.display==='none' ? '' : 'none'; });
+$('qSensSalvar').addEventListener('click', ()=>{
+  const n = guardarSensDeLinhas($('qSensInput').value);
+  $('qSensMsg').innerHTML = n>0 ? `<span style="color:var(--green)">✔ Dados de ${n} motorista(s) guardados só neste navegador.</span>` : n===0 ? '<span style="color:var(--red)">Nenhuma linha reconhecida. Copie da coluna A até a M da planilha de CADASTRO.</span>' : '<span style="color:var(--red)">O navegador bloqueou o armazenamento local.</span>';
+  if(n>0){ $('qSensInput').value=''; setTimeout(()=>{ $('qSensBox').style.display='none'; $('qSensMsg').textContent=''; }, 1800); renderConsulta(); }
+});
+$('qSensApagar').addEventListener('click', ()=>{ if(!confirm('Apagar CPF, CNPJ e telefone guardados neste computador?')) return; SENS={}; salvarSens(); renderConsulta(); toast('Dados apagados deste computador.'); });
+['goConsultaTop'].forEach(id=>$(id).addEventListener('click', ()=>{ showView('consulta'); setTimeout(()=>$('qBusca').focus(), 50); }));
 
 /* ---------------------------- copiar número do CIOT ---------------------------- */
 async function copiar(txt){
@@ -1380,7 +1517,7 @@ function onCopy(e){
   const b = e.target.closest('[data-copy]'); if(!b) return;
   e.preventDefault(); e.stopPropagation();
   copiar(b.dataset.copy).then(ok=>{
-    toast(ok ? `CIOT ${b.dataset.copy} copiado.` : 'Não foi possível copiar.');
+    toast(ok ? `${b.dataset.label||'Texto'} copiado: ${b.dataset.copy}` : 'Não foi possível copiar.');
     if(ok){ b.classList.add('ok'); const sp=b.querySelector('span'); if(sp) sp.textContent='Copiado'; setTimeout(()=>{ b.classList.remove('ok'); if(sp) sp.textContent='Copiar'; }, 1400); }
   });
 }
@@ -1388,7 +1525,7 @@ document.addEventListener('click', onCopy, true);
 document.addEventListener('keydown', e=>{ if((e.key==='Enter'||e.key===' ') && e.target.closest?.('[data-copy]')) onCopy(e); }, true);
 
 /* ---------------------------- navegação ---------------------------- */
-const VIEWS = {painel:['viewPainel','Painel do CIOT'], ciot:['viewCiot','Controle de CIOT'], motoristas:['viewMotoristas','Motoristas (cadastro)'], agenda:['viewAgenda','Agenda de encerramentos'], alertas:['viewAlertas','Alertas'], hist:['viewHist','Histórico de alterações'], edicao:['viewEdicao','Modo edição']};
+const VIEWS = {painel:['viewPainel','Painel do CIOT'], ciot:['viewCiot','Controle de CIOT'], consulta:['viewConsulta','Consulta rápida — criação de CIOT'], motoristas:['viewMotoristas','Motoristas (cadastro)'], agenda:['viewAgenda','Agenda de encerramentos'], alertas:['viewAlertas','Alertas'], hist:['viewHist','Histórico de alterações'], edicao:['viewEdicao','Modo edição']};
 let currentView = 'painel';
 function showView(v){
   if(!VIEWS[v]) v='painel';
@@ -1402,7 +1539,7 @@ function showView(v){
   renderAtual();
 }
 function renderAtual(){
-  if(currentView==='painel') renderPainel(); else if(currentView==='ciot') renderCiot(); else if(currentView==='motoristas') renderMotoristas();
+  if(currentView==='painel') renderPainel(); else if(currentView==='ciot') renderCiot(); else if(currentView==='consulta') renderConsulta(); else if(currentView==='motoristas') renderMotoristas();
   else if(currentView==='agenda') renderAgenda(); else if(currentView==='alertas') renderAlertas(); else if(currentView==='hist') renderHist();
 }
 function renderAll(){
@@ -1451,7 +1588,7 @@ function falhou(err){
 }
 onSnapshot(motRef, snap => {
   const all = snap.docs.map(d => ({id:d.id, ...d.data()}));
-  const c = all.find(x=>x._config); if(c){ cfg = {...cfg, dias:c.dias||10, porTipo:c.porTipo||{}}; atualizarRegs(); }
+  const c = all.find(x=>x._config); if(c){ cfg = {...cfg, dias:c.dias||30, porTipo:c.porTipo||{}}; atualizarRegs(); }
   motsDb = all.filter(x=>!x._config);
   carregou = true; semRegras = false; $('regrasBox').style.display='none'; online(); renderAll();
 }, falhou);
