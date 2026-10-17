@@ -480,6 +480,11 @@ textarea.bulk{width:100%; min-height:110px; padding:9px 11px; background:var(--c
 .cg:hover{border-color:var(--c);}
 .cg.on{background:var(--black); color:#fff; border-color:var(--black);} .cg.on b{color:#fff;}
 @media (max-width:760px){ .cg{flex:1; flex-direction:column; gap:2px; padding:8px; font-size:11px;} .cg b{font-size:17px;} }
+.cp-btn{display:inline-flex; align-items:center; gap:4px; height:22px; padding:0 7px; margin-left:4px; border:1px solid var(--line); border-radius:6px; background:#fff; color:var(--ink2); font-size:10.5px; font-weight:700; cursor:pointer; vertical-align:middle; white-space:nowrap; line-height:1;}
+.cp-btn:hover{border-color:var(--blue); color:var(--blue);}
+.cp-btn.ok{border-color:var(--green); color:var(--green); background:var(--green-soft);}
+.cp-btn svg{flex-shrink:0;} .cp-btn.ic{padding:0 5px; height:22px;} .cp-btn.ic span{display:none;}
+.show-md{display:none;} @media (max-width:1560px){ .hide-md{display:none !important;} .show-md{display:inline;} }
 </style>
 
 </head>
@@ -574,7 +579,7 @@ textarea.bulk{width:100%; min-height:110px; padding:9px 11px; background:var(--c
         <div class="fchips" id="cChips"></div>
         <div class="tablewrap" style="max-height:calc(100vh - 330px); min-height:300px;">
           <table class="tb vt">
-            <thead><tr id="cHead"><th class="sortable" data-k="numero">CIOT</th><th class="sortable" data-k="nome">Motorista</th><th class="sortable hide-sm" data-k="abertura">Emissão</th><th class="sortable hide-sm" data-k="tipoFrete">Frete</th><th class="sortable" data-k="validade">Validade</th><th class="sortable" data-k="sit">Situação</th></tr></thead>
+            <thead><tr id="cHead"><th class="sortable" data-k="numero">CIOT</th><th class="sortable" data-k="nome">Motorista</th><th class="sortable hide-sm" data-k="abertura">Emissão</th><th class="sortable hide-sm hide-md" data-k="tipoFrete">Frete</th><th class="sortable" data-k="validade">Validade</th><th class="sortable" data-k="sit">Situação</th></tr></thead>
             <tbody id="cBody"></tbody>
           </table>
         </div>
@@ -780,6 +785,7 @@ const iniciais = s => { const p=String(s||'').replace(/\(.*?\)/g,'').replace(/-\
 const AV_CORES = ['#3478f6','#14161b','#f5a524','#6b5bd6','#22a861','#e5484d','#0ea5b7','#8a5a2b'];
 const avCor = s => { let h=0; for(const c of String(s||'')) h=(h*31+c.charCodeAt(0))>>>0; return AV_CORES[h%AV_CORES.length]; };
 const placaHTML = (p, sm) => p ? `<span class="placa${sm?' sm':''}" aria-label="Placa ${esc(p)}"><i>BRASIL</i><b>${esc(p)}</b></span>` : '<span class="muted">sem placa</span>';
+const copyBtn = num => `<button type="button" class="cp-btn" data-copy="${esc(String(num||'').replace(/\D/g,''))}" title="Copiar o número do CIOT" aria-label="Copiar o número do CIOT ${esc(num)}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h8"/></svg><span>Copiar</span></button>`;
 const idMot = nome => 'm_' + norm(nome).replace(/[^A-Z0-9]+/g,'_').replace(/^_|_$/g,'').slice(0,120);
 function toast(t){ const el=$('toast'); el.textContent=t; el.classList.add('on'); clearTimeout(toast._t); toast._t=setTimeout(()=>el.classList.remove('on'),3400); }
 function preencherSelect(id, vals, rot){ const el=$(id), atual=el.value; el.innerHTML = `<option value="">${rot}</option>` + vals.map(v=>`<option value="${esc(v.v??v)}">${esc(v.l??v)}</option>`).join(''); if(vals.some(v=>(v.v??v)===atual)) el.value=atual; }
@@ -938,10 +944,10 @@ function renderCiot(){
     const s=r._s, usado = aberto(r) ? Math.min(1, Math.max(0, difDias(hoje, r.abertura)/dur(r))) : 1;
     const cor = s.k==='venc'?'var(--red)':s.k==='vence'?'var(--orange)':aberto(r)?'var(--green)':'#c4c8d0';
     return `<tr class="${r.id===cSel?'on':''}" data-c="${esc(r.id)}" tabindex="0">
-      <td><span class="num">${esc(r.numero)}</span><small class="muted" style="display:block;font-size:11px">${r.sufixo?'/'+esc(r.sufixo):''}${r.mdfe?' · MDF-e '+esc(r.mdfe):''}</small></td>
+      <td style="white-space:nowrap"><span class="num">${esc(r.numero)}</span>${copyBtn(r.numero).replace('class="cp-btn"','class="cp-btn ic"')}<small class="muted" style="display:block;font-size:11px">${r.sufixo?'/'+esc(r.sufixo):''}${r.mdfe?' · MDF-e '+esc(r.mdfe):''}</small></td>
       <td><div class="who"><span class="av" style="background:${avCor(r.nome)}; --s:${cor}">${esc(iniciais(r.nome))}</span><span style="min-width:0"><b>${esc(titulo(r.nome))}</b><small>${esc(r.placa||'—')} · ${esc(titulo(r._m?.veiculo||r.veiculo||''))}</small></span></div></td>
-      <td class="hide-sm">${brData(r.abertura)}<small class="muted" style="display:block;font-size:11px">${diaSem(r.abertura)}${aberto(r)?' · há '+idadeCiot(r)+' d':''}</small></td>
-      <td class="hide-sm">${r.tipoFrete?esc(r.tipoFrete):'<span class="muted">—</span>'}</td>
+      <td class="hide-sm">${brData(r.abertura)}<small class="muted" style="display:block;font-size:11px">${diaSem(r.abertura)}${aberto(r)?' · há '+idadeCiot(r)+' d':''}<span class="show-md">${r.tipoFrete?' · '+esc(r.tipoFrete):''}</span></small></td>
+      <td class="hide-sm hide-md">${r.tipoFrete?esc(r.tipoFrete):'<span class="muted">—</span>'}</td>
       <td>${aberto(r)?`${brData(r.validade)}<div class="dbar"><i style="width:${usado*100}%; background:${cor}"></i></div>`:`<span class="muted">${r.encerradoEm?'enc. '+brData(r.encerradoEm):'—'}</span>`}</td>
       <td><span class="badge ${s.cls}">${esc(s.l)}</span>${r.statusPg?`<small style="display:block;font-size:11px;margin-top:3px;color:${r.statusPg==='pago'?'var(--green)':'#b77400'};font-weight:700">${r.statusPg==='pago'?'Pago':'Pg. em aberto'}</small>`:''}</td></tr>`; }).join('')
       + (rows.length>LIM ? `<tr><td colspan="6" class="empty">Mostrando ${LIM} de ${fmt(rows.length)} — use a busca ou os filtros para achar os demais.</td></tr>` : '')
@@ -956,7 +962,7 @@ function fichaCiot(r){
   return `<div class="card ficha-card">
     ${r._seed?`<div class="note" style="margin:0 0 10px;">Dado da planilha${canWrite?' — importe os lançamentos (aviso no topo) para poder encerrar e editar.':'.'}</div>`:''}
     <div class="vh" style="margin-bottom:14px;">
-      <div class="vh-who"><span class="av" style="background:${avCor(r.nome)}">${esc(iniciais(r.nome))}</span><div style="min-width:0"><b>CIOT ${esc(r.numero)}</b><small>${esc(titulo(r.nome))}</small></div></div>
+      <div class="vh-who"><span class="av" style="background:${avCor(r.nome)}">${esc(iniciais(r.nome))}</span><div style="min-width:0"><b>CIOT ${esc(r.numero)}</b> ${copyBtn(r.numero)}<small>${esc(titulo(r.nome))}</small></div></div>
       <span class="badge ${s.cls}">${esc(s.l)}</span>
     </div>
     <div class="ficha">
@@ -968,7 +974,7 @@ function fichaCiot(r){
       <div><span>MDF-e</span><b>${esc(r.mdfe||'—')}</b></div>
       <div><span>Tipo de frete</span><b>${esc(r.tipoFrete||'—')}</b></div>
       <div><span>Pagamento</span><b style="color:${r.statusPg==='pago'?'var(--green)':r.statusPg==='aberto'?'#b77400':'inherit'}">${r.statusPg==='pago'?'Pago':r.statusPg==='aberto'?'Em aberto':'—'}</b></div>
-      <div class="full"><span>CIOT completo</span><b class="mono">${esc(r.numero)}${r.sufixo?'/'+esc(r.sufixo):''}${r.ordem?` <small class="muted">· ordem ${r.ordem}</small>`:''}</b></div>
+      <div class="full"><span>CIOT completo</span><b class="mono">${esc(r.numero)}${r.sufixo?'/'+esc(r.sufixo):''} ${copyBtn(r.numero)}${r.ordem?` <small class="muted">· ordem ${r.ordem}</small>`:''}</b></div>
       ${r.rota?`<div class="full"><span>Rota / destino</span><b>${esc(r.rota)}</b></div>`:''}
       ${r.status==='encerrado'?`<div class="full"><span>Encerrado em</span><b>${brData(r.encerradoEm)}</b></div>`:''}
       ${r.obs?`<div class="full"><span>Observação</span><b>${esc(r.obs)}</b></div>`:''}
@@ -982,7 +988,7 @@ function fichaCiot(r){
     </div>` : ''}
     ${m?`<button type="button" class="link" data-vermot="${esc(m.id)}" style="margin-top:12px;">Ver cadastro do motorista</button>`:''}
     <div class="eyebrow" style="margin:16px 0 10px;">Outros CIOTs do motorista</div>
-    ${outros.length?`<ul class="tl">${outros.map(x=>{const sx=sitCiot(x); return `<li class="${sx.k==='venc'?'al':''}"><b>${esc(x.numero)}</b> · ${esc(sx.l)}<small>${aberto(x)?brData(x.abertura)+' → '+brData(x.validade):'emitido '+brData(x.abertura)+(x.encerradoEm?' · encerrado '+brData(x.encerradoEm):'')}</small></li>`;}).join('')}</ul>`:'<div class="muted" style="font-size:12.5px;">Nenhum outro CIOT registrado.</div>'}
+    ${outros.length?`<ul class="tl">${outros.map(x=>{const sx=sitCiot(x); return `<li class="${sx.k==='venc'?'al':''}"><b>${esc(x.numero)}</b> ${copyBtn(x.numero)} · ${esc(sx.l)}<small>${aberto(x)?brData(x.abertura)+' → '+brData(x.validade):'emitido '+brData(x.abertura)+(x.encerradoEm?' · encerrado '+brData(x.encerradoEm):'')}</small></li>`;}).join('')}</ul>`:'<div class="muted" style="font-size:12.5px;">Nenhum outro CIOT registrado.</div>'}
     <div class="eyebrow" style="margin:16px 0 10px;">Histórico</div>
     ${hv.length?`<ul class="tl">${hv.map(h=>{const dt=h.quando?.toDate?h.quando.toDate():null; return `<li><b>${esc(h.resumo)}</b><small>${dt?dt.toLocaleString('pt-BR'):''}</small></li>`;}).join('')}</ul>`:'<div class="muted" style="font-size:12.5px;">Nenhuma alteração registrada.</div>'}
   </div>`;
@@ -1200,7 +1206,7 @@ function renderMotoristas(){
       <td>${placaHTML(m.placa,true)}<div class="muted" style="font-size:11px; margin-top:3px;">${esc(titulo(m.veiculo||''))}</div></td>
       <td class="hide-sm"><span class="mono">${esc(m.tac||'—')}</span><small class="muted" style="display:block;font-size:11px">${esc(m.registro||'')} · ${esc(m.statusTac||'')}</small></td>
       <td><span class="badge ${cl[1]}">${cl[0]}</span>${m.obs?`<small class="muted" style="display:block;font-size:11px;margin-top:3px;max-width:190px;white-space:normal">${esc(m.obs)}</small>`:''}</td>
-      <td>${s?`<span class="badge ${s.cls}">${esc(s.l)}</span><small class="muted" style="display:block;font-size:11px;margin-top:3px">${esc(m._c.numero)}</small>`:'<span class="muted">sem CIOT</span>'}</td></tr>`; }).join('')
+      <td>${s?`<span class="badge ${s.cls}">${esc(s.l)}</span><small class="muted" style="display:block;font-size:11px;margin-top:3px">${esc(m._c.numero)}${copyBtn(m._c.numero).replace('class="cp-btn"','class="cp-btn ic"')}</small>`:'<span class="muted">sem CIOT</span>'}</td></tr>`; }).join('')
     : '<tr><td colspan="5" class="empty">Nenhum motorista com esse filtro.</td></tr>';
   $('mFicha').innerHTML = fichaMot(ms.find(m=>m.id===mSel));
 }
@@ -1223,10 +1229,10 @@ function fichaMot(m){
       ${m.obs?`<div class="full"><span>Obs / pendências</span><b>${esc(m.obs)}</b></div>`:''}
     </div>
     <div class="eyebrow" style="margin:16px 0 8px;">CIOT atual</div>
-    ${ab?`<button type="button" class="cl-veic" data-verc="${esc(ab.id)}" style="width:100%; text-align:left; cursor:pointer; display:block;"><b style="font-size:13px">CIOT ${esc(ab.numero)}</b> <span class="badge ${s.cls}" style="margin-left:6px">${esc(s.l)}</span><small class="muted" style="display:block;margin-top:4px">${brData(ab.abertura)} → ${brData(ab.validade)}${ab.mdfe?' · MDF-e '+esc(ab.mdfe):''}</small></button>`:'<div class="muted" style="font-size:12.5px;">Sem CIOT aberto.</div>'}
+    ${ab?`<button type="button" class="cl-veic" data-verc="${esc(ab.id)}" style="width:100%; text-align:left; cursor:pointer; display:block;"><b style="font-size:13px">CIOT ${esc(ab.numero)}</b> ${copyBtn(ab.numero).replace(/<button type="button"/,'<span role="button" tabindex="0"').replace(/<\/button>$/,'</span>')} <span class="badge ${s.cls}" style="margin-left:6px">${esc(s.l)}</span><small class="muted" style="display:block;margin-top:4px">${brData(ab.abertura)} → ${brData(ab.validade)}${ab.mdfe?' · MDF-e '+esc(ab.mdfe):''}</small></button>`:'<div class="muted" style="font-size:12.5px;">Sem CIOT aberto.</div>'}
     ${canWrite?`<div class="edit-actions" style="margin-top:12px;"><button class="btn btn-dark" type="button" data-novoc="${esc(m.id)}">${ab?'Abrir outro CIOT':'Abrir CIOT'}</button></div>`:''}
     <div class="eyebrow" style="margin:16px 0 10px;">Histórico de CIOTs (${cs.length})</div>
-    ${cs.length?`<ul class="tl">${cs.slice(0,12).map(x=>{const sx=sitCiot(x); return `<li class="${sx.k==='venc'?'al':''}"><b>${esc(x.numero)}</b> · ${esc(sx.l)}<small>${aberto(x)?brData(x.abertura)+' → '+brData(x.validade):'emitido '+brData(x.abertura)+(x.encerradoEm?' · encerrado '+brData(x.encerradoEm):'')}${x.tipoFrete?' · '+esc(x.tipoFrete):''}</small></li>`;}).join('')}</ul>`:'<div class="muted" style="font-size:12.5px;">Nenhum CIOT registrado para este motorista.</div>'}
+    ${cs.length?`<ul class="tl">${cs.slice(0,12).map(x=>{const sx=sitCiot(x); return `<li class="${sx.k==='venc'?'al':''}"><b>${esc(x.numero)}</b> ${copyBtn(x.numero)} · ${esc(sx.l)}<small>${aberto(x)?brData(x.abertura)+' → '+brData(x.validade):'emitido '+brData(x.abertura)+(x.encerradoEm?' · encerrado '+brData(x.encerradoEm):'')}${x.tipoFrete?' · '+esc(x.tipoFrete):''}</small></li>`;}).join('')}</ul>`:'<div class="muted" style="font-size:12.5px;">Nenhum CIOT registrado para este motorista.</div>'}
     ${m._seed?`<div class="note">Cadastro vindo da planilha. ${canWrite?'Importe o cadastro (aviso no topo da aba) para poder editar.':''}</div>`:''}
   </div>`;
 }
@@ -1364,6 +1370,22 @@ $('btnCfgDias').addEventListener('click', async ()=>{
   try{ await setDoc(doc(db,'ciot_motoristas','_config'), {_config:true, dias:n, porTipo, inativo:true, nome:'_config', atualizadoEm:serverTimestamp()}); await logHist('atualizado','—',`Duração do CIOT: padrão ${n} d${Object.entries(porTipo).map(([k,v])=>` · ${k} ${v} d`).join('')}`); toast('Duração salva.'); }
   catch(err){ toast(erroTxt(err)); }
 });
+
+/* ---------------------------- copiar número do CIOT ---------------------------- */
+async function copiar(txt){
+  try{ await navigator.clipboard.writeText(txt); return true; }
+  catch(e){ const t=document.createElement('textarea'); t.value=txt; t.setAttribute('readonly',''); t.style.position='fixed'; t.style.opacity='0'; document.body.appendChild(t); t.select(); let ok=false; try{ ok=document.execCommand('copy'); }catch(_){} t.remove(); return ok; }
+}
+function onCopy(e){
+  const b = e.target.closest('[data-copy]'); if(!b) return;
+  e.preventDefault(); e.stopPropagation();
+  copiar(b.dataset.copy).then(ok=>{
+    toast(ok ? `CIOT ${b.dataset.copy} copiado.` : 'Não foi possível copiar.');
+    if(ok){ b.classList.add('ok'); const sp=b.querySelector('span'); if(sp) sp.textContent='Copiado'; setTimeout(()=>{ b.classList.remove('ok'); if(sp) sp.textContent='Copiar'; }, 1400); }
+  });
+}
+document.addEventListener('click', onCopy, true);
+document.addEventListener('keydown', e=>{ if((e.key==='Enter'||e.key===' ') && e.target.closest?.('[data-copy]')) onCopy(e); }, true);
 
 /* ---------------------------- navegação ---------------------------- */
 const VIEWS = {painel:['viewPainel','Painel do CIOT'], ciot:['viewCiot','Controle de CIOT'], motoristas:['viewMotoristas','Motoristas (cadastro)'], agenda:['viewAgenda','Agenda de encerramentos'], alertas:['viewAlertas','Alertas'], hist:['viewHist','Histórico de alterações'], edicao:['viewEdicao','Modo edição']};
