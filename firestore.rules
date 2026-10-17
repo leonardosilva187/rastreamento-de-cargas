@@ -20,10 +20,10 @@ service cloud.firestore {
     match /frota_checklists/{id}    { allow read: if true; allow write: if request.auth != null; }
 
     // Controle de CIOT — PRIVADO: só o(s) e-mail(s) da lista lê(em) e grava(m).
-    // Troque SEU_EMAIL@EXEMPLO.COM pelo e-mail criado em Authentication > Users (pode pôr mais de um, separados por vírgula).
+    // Administradores com acesso (cada um precisa ter usuário em Authentication > Users).
     function ciotLiberado() {
       return request.auth != null
-        && request.auth.token.email in ['SEU_EMAIL@EXEMPLO.COM'];
+        && request.auth.token.email in ['leonardools187@gmail.com', 'lucasjhones02@gmail.com'];
     }
     match /ciot_motoristas/{id}     { allow read, write: if ciotLiberado(); }
     match /ciot_registros/{id}      { allow read, write: if ciotLiberado(); }

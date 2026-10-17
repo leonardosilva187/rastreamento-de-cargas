@@ -803,6 +803,8 @@ const firebaseConfig = {
   measurementId: "G-JY8E8BJT16"
 };
 // Acesso privado: login por e-mail e senha (Firebase Authentication). Leitura e gravação liberadas só para o e-mail autorizado nas Regras do Firestore.
+// Administradores (a proteção real está nas Regras do Firestore, com esta mesma lista).
+const ADMINS = ['leonardools187@gmail.com', 'lucasjhones02@gmail.com'];
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut, sendPasswordResetEmail, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
@@ -1612,6 +1614,7 @@ function iniciarDados(){
 }
 setPersistence(auth, browserLocalPersistence).catch(()=>{});
 onAuthStateChanged(auth, u => {
+  if(u && !u.isAnonymous && u.email && !ADMINS.includes(u.email.toLowerCase())){ signOut(auth); $('lgMsg').textContent = `O e-mail ${u.email} não tem acesso a este painel.`; return; }
   const ok = !!(u && !u.isAnonymous && u.email);
   usuario = ok ? u : null; canWrite = ok;
   document.body.classList.toggle('travado', !ok);
