@@ -4,7 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#040b18">
-<script>try{ if(localStorage.getItem('tema')==='glacial') document.documentElement.setAttribute('data-theme','glacial'); }catch(e){}</script>
+<script>try{ if(localStorage.getItem('temaV')!=='neon') document.documentElement.setAttribute('data-theme','glacial'); }catch(e){ document.documentElement.setAttribute('data-theme','glacial'); }</script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <title>Rastreamento de Cargas — DF e Entorno</title>
 <style>
 :root{
@@ -391,6 +392,100 @@ html.theme-anim, html.theme-anim *, html.theme-anim *::before{transition:backgro
 :root[data-theme="glacial"] .mk .mklab{color:#12324a; text-shadow:0 0 3px #fff,0 0 6px #fff,0 0 10px rgba(255,255,255,.9);}
 :root[data-theme="glacial"] .mk .mklab b{color:#1f6fa3;}
 :root[data-theme="glacial"] #markers .mk:hover .mklab, :root[data-theme="glacial"] #markers .mk.sel .mklab{color:#0b2a40; text-shadow:0 0 3px #fff,0 0 8px #fff;}
+/* ============ Tema claro "Vault" (referência: fundo cinza, menu preto, cartões brancos, destaque verde-limão) ============ */
+:root[data-theme="glacial"]{
+  --bg:#eceef1; --surface:#ffffff; --surface2:#f5f6f8; --line:#e6e8ec;
+  --ink:#15171c; --muted:#8a8f99; --teal:#4f8a0b; --amber:#e5940b; --red:#ec4b55; --blue:#3a7bf6;
+  --violet:#8b5cf6; --glow:rgba(205,236,58,.45); --none:#b9bec7;
+  --lime:#d4ef3e; --lime2:#c4e32a; --lime-soft:#f2fad0; --black:#141518;
+  --g-aegean:#d4ef3e; --g-ice:#e6e8ec; --g-frost:#eef0f3; --g-sky:#f5f6f8; --g-glacial:#ffffff;
+  color-scheme:light;
+}
+:root[data-theme="glacial"] body{background:var(--bg); font-family:"Plus Jakarta Sans",-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; letter-spacing:-.005em;}
+/* topo */
+:root[data-theme="glacial"] header{background:rgba(236,238,241,.88); border-bottom:0; box-shadow:none; backdrop-filter:blur(8px); padding:16px 22px;}
+:root[data-theme="glacial"] header h1{font-size:24px; font-weight:800; letter-spacing:-.4px; color:var(--ink);}
+:root[data-theme="glacial"] header h1 .accent{color:var(--muted); font-weight:600;}
+:root[data-theme="glacial"] .datetag{color:var(--muted);}
+:root[data-theme="glacial"] #clock{color:var(--ink); font-weight:700;}
+:root[data-theme="glacial"] #statusTag{background:#fff; color:var(--ink); border:1px solid var(--line); padding:6px 12px;}
+:root[data-theme="glacial"] .tag.live::before{background:#7bbf12; box-shadow:0 0 0 3px rgba(123,191,18,.18);}
+:root[data-theme="glacial"] #statusTag.bad{color:var(--red); background:#fff;}
+/* menu lateral preto */
+:root[data-theme="glacial"] #sidebar{background:var(--black); border-right:0; box-shadow:none; border-radius:0 22px 22px 0;}
+:root[data-theme="glacial"] .sb-brand{color:var(--lime);}
+:root[data-theme="glacial"] .sb-brand .lbl b{color:#fff;}
+:root[data-theme="glacial"] .sb-brand .lbl small, :root[data-theme="glacial"] .sb-label{color:#6f747e;}
+:root[data-theme="glacial"] .sb-min{color:#9aa0aa;}
+:root[data-theme="glacial"] .sb-item{color:#a3a8b2; border-color:transparent; position:relative;}
+:root[data-theme="glacial"] .sb-item:hover{background:#1f2125; color:#fff; border-color:transparent;}
+:root[data-theme="glacial"] .sb-item.on{background:#1f2125; color:var(--lime); box-shadow:none; font-weight:700;}
+:root[data-theme="glacial"] .sb-item.on::before{content:""; position:absolute; left:-12px; top:8px; bottom:8px; width:4px; border-radius:0 4px 4px 0; background:var(--lime);}
+:root[data-theme="glacial"] .sb-item svg{opacity:.95;}
+/* cartões brancos arredondados */
+:root[data-theme="glacial"] .panel{background:#fff; border:1px solid #eef0f3; border-radius:20px; box-shadow:0 1px 2px rgba(16,18,24,.04), 0 6px 20px rgba(16,18,24,.04); backdrop-filter:none; padding:18px;}
+:root[data-theme="glacial"] .panel::before{display:none;}
+:root[data-theme="glacial"] .panel h3, :root[data-theme="glacial"] .filters h2, :root[data-theme="glacial"] .form h2, :root[data-theme="glacial"] #editGate h2{color:var(--ink); text-shadow:none; text-transform:none; letter-spacing:-.1px; font-size:15px; font-weight:750;}
+:root[data-theme="glacial"] .hint{color:var(--muted);}
+/* indicadores: o primeiro em preto, como o cartão principal da referência */
+:root[data-theme="glacial"] .kpi{background:var(--surface2); border:1px solid #eef0f3; border-left:0; border-radius:16px; padding:14px 14px 12px; position:relative;}
+:root[data-theme="glacial"] .kpi .n{text-shadow:none; color:var(--ink); font-weight:800; letter-spacing:-.4px;}
+:root[data-theme="glacial"] .kpi .l{color:var(--muted); text-transform:none; letter-spacing:0; font-size:11.5px; font-weight:600;}
+:root[data-theme="glacial"] .kpi::after{content:""; position:absolute; top:14px; right:14px; width:10px; height:10px; border-radius:50%; background:var(--none);}
+:root[data-theme="glacial"] .kpi.ok::after{background:var(--lime2);} :root[data-theme="glacial"] .kpi.amber::after{background:var(--amber);}
+:root[data-theme="glacial"] .kpi.blue::after{background:var(--blue);} :root[data-theme="glacial"] .kpi.devolucao::after{background:var(--violet);}
+:root[data-theme="glacial"] .kpi.ok .n, :root[data-theme="glacial"] .kpi.blue .n, :root[data-theme="glacial"] .kpi.amber .n, :root[data-theme="glacial"] .kpi.devolucao .n{color:var(--ink);}
+:root[data-theme="glacial"] .kpis > .kpi:first-child{background:var(--black); border-color:var(--black);}
+:root[data-theme="glacial"] .kpis > .kpi:first-child .n{color:#fff;}
+:root[data-theme="glacial"] .kpis > .kpi:first-child .l{color:#a3a8b2;}
+:root[data-theme="glacial"] .kpis > .kpi:first-child::after{width:26px; height:26px; top:12px; right:12px; border-radius:8px; background:var(--lime) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23141518' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M7 17L17 7M9 7h8v8'/%3E%3C/svg%3E") center/15px no-repeat;}
+:root[data-theme="glacial"] .ind-card{border-radius:18px; border:1px solid #eef0f3; border-top:1px solid #eef0f3; background:var(--surface2); position:relative;}
+:root[data-theme="glacial"] .ind-card::after{content:""; position:absolute; top:14px; right:14px; width:10px; height:10px; border-radius:50%; background:var(--c,var(--lime2));}
+:root[data-theme="glacial"] .ind-card .t{text-transform:none; letter-spacing:0; font-weight:600; font-size:12px;}
+:root[data-theme="glacial"] .ind-card .n{text-shadow:none; color:var(--ink); font-weight:800; letter-spacing:-.5px;}
+:root[data-theme="glacial"] .ind-cards > .ind-card:first-child{background:var(--black); border-color:var(--black);}
+:root[data-theme="glacial"] .ind-cards > .ind-card:first-child, :root[data-theme="glacial"] .ind-cards > .ind-card:first-child .n, :root[data-theme="glacial"] .ind-cards > .ind-card:first-child .p, :root[data-theme="glacial"] .ind-cards > .ind-card:first-child .v{color:#fff;}
+:root[data-theme="glacial"] .ind-cards > .ind-card:first-child .t, :root[data-theme="glacial"] .ind-cards > .ind-card:first-child .vp{color:#a3a8b2;}
+:root[data-theme="glacial"] .ind-cards > .ind-card:first-child::after{width:26px; height:26px; top:12px; right:12px; border-radius:8px; background:var(--lime) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23141518' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M7 17L17 7M9 7h8v8'/%3E%3C/svg%3E") center/15px no-repeat;}
+:root[data-theme="glacial"] .ga-bar .bar-track{background:#eceef1; border:0;}
+:root[data-theme="glacial"] .ga-bar .bar-fill{background:linear-gradient(90deg,#141518,#c4e32a); box-shadow:none; border-radius:5px;}
+/* botões, abas e campos */
+:root[data-theme="glacial"] .btn-primary{background:var(--black); color:#fff; box-shadow:none; border-radius:999px; font-weight:700;}
+:root[data-theme="glacial"] .btn-primary:hover{background:#2a2c31; filter:none;}
+:root[data-theme="glacial"] .tabbtn{border-radius:999px; background:#fff; border-color:var(--line); color:var(--ink);}
+:root[data-theme="glacial"] .tabbtn.on{background:var(--black); color:#fff; border-color:var(--black); box-shadow:none;}
+:root[data-theme="glacial"] .filters select, :root[data-theme="glacial"] .filters input, :root[data-theme="glacial"] .form select, :root[data-theme="glacial"] .form input{background:var(--surface2); border:1px solid var(--line); border-radius:12px;}
+:root[data-theme="glacial"] .filters select:focus, :root[data-theme="glacial"] .filters input:focus, :root[data-theme="glacial"] .form select:focus, :root[data-theme="glacial"] .form input:focus{border-color:#9cbf10; box-shadow:0 0 0 3px var(--lime-soft);}
+:root[data-theme="glacial"] select option{background:#fff; color:var(--ink);}
+/* tabelas */
+:root[data-theme="glacial"] th{background:#fff; color:var(--muted); font-weight:600; letter-spacing:.2px; text-transform:none; font-size:11.5px; border-bottom:1px solid var(--line);}
+:root[data-theme="glacial"] td{border-bottom-color:#f0f1f4;}
+:root[data-theme="glacial"] tbody tr:hover{background:#f8f9fa;}
+:root[data-theme="glacial"] .problem-item, :root[data-theme="glacial"] .hist-item{border-bottom-color:#f0f1f4;}
+:root[data-theme="glacial"] .problem-item .ptext, :root[data-theme="glacial"] .hist-resumo{color:#4a4f59;}
+/* chips de regiões, tooltips e modais */
+:root[data-theme="glacial"] .zchip{background:#fff; border-color:var(--line); border-radius:14px;}
+:root[data-theme="glacial"] .zchip.sel{background:var(--lime-soft); box-shadow:0 0 0 2px var(--lime) inset;}
+:root[data-theme="glacial"] .tip, :root[data-theme="glacial"] #toast{background:var(--black); color:#fff; border-color:var(--black); border-radius:14px; box-shadow:0 10px 30px rgba(16,18,24,.25);}
+:root[data-theme="glacial"] .tip *{color:inherit;}
+:root[data-theme="glacial"] .modal{background:rgba(20,21,24,.35); backdrop-filter:blur(3px);}
+:root[data-theme="glacial"] .modal-box{background:#fff; border-color:var(--line); border-radius:20px; box-shadow:0 20px 50px rgba(16,18,24,.2);}
+:root[data-theme="glacial"] .zoomctl button{background:#fff; color:var(--ink); border-color:var(--line); border-radius:10px;}
+:root[data-theme="glacial"] .zoomhint{background:rgba(255,255,255,.92); color:var(--muted);}
+/* mapa: terreno claro, divisas escuras, DF em verde-limão */
+:root[data-theme="glacial"] .mapbox #mapsvg{--m-land:#f7f8fa; --m-land2:#eceef1; --m-ext:#cfd3da; --m-glow:rgba(20,21,24,.10); --m-edge:#23262c; --m-div:rgba(35,38,44,.38); --m-dot:rgba(35,38,44,.06); --m-df:rgba(212,239,62,.22); --m-dfedge:#7da312;}
+:root[data-theme="glacial"] .mapwrap.zoomdf{box-shadow:0 0 0 1px var(--line); border-radius:16px;}
+:root[data-theme="glacial"] .mk .mklab{color:#15171c; text-shadow:0 0 3px #fff,0 0 6px #fff,0 0 10px rgba(255,255,255,.9);}
+:root[data-theme="glacial"] .mk .mklab b{color:#4f8a0b;}
+:root[data-theme="glacial"] #markers .mk:hover .mklab, :root[data-theme="glacial"] #markers .mk.sel .mklab{color:#000;}
+/* botão de tema */
+:root[data-theme="glacial"] .theme-toggle{background:#fff; border-color:var(--line);}
+:root[data-theme="glacial"] .theme-toggle:hover{border-color:var(--ink); box-shadow:none;}
+:root[data-theme="glacial"] .theme-toggle .tt-track{background:var(--black); box-shadow:none;}
+:root[data-theme="glacial"] .theme-toggle .tt-knob{background:var(--lime); color:var(--black); box-shadow:none;}
+:root[data-theme="glacial"] .readonly-note{border-radius:14px;}
+@media (max-width:760px){ :root[data-theme="glacial"] header{padding:12px;} :root[data-theme="glacial"] header h1{font-size:19px;} :root[data-theme="glacial"] .hright{gap:8px;} :root[data-theme="glacial"] #statusTag{padding:4px 9px;} :root[data-theme="glacial"] #sidebar{border-radius:0;} :root[data-theme="glacial"] .sb-item.on::before{display:none;} }
+
 .dia-import{background:var(--surface2); border:1px dashed var(--line); border-radius:6px; padding:14px; margin:6px 0 14px;}
 .dia-import textarea{width:100%; min-height:130px; padding:8px 9px; background:var(--surface); border:1px solid var(--line); color:var(--ink); border-radius:4px; font:12.5px ui-monospace,Consolas,monospace; resize:vertical;}
 .dia-import-row{display:flex; gap:12px; align-items:end; flex-wrap:wrap; margin-top:10px;}
@@ -444,7 +539,7 @@ html.theme-anim, html.theme-anim *, html.theme-anim *::before{transition:backgro
         <svg class="tt-ic-moon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.5 14.6A8.5 8.5 0 0 1 9.4 3.5a8.5 8.5 0 1 0 11.1 11.1z"/></svg>
         <svg class="tt-ic-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 2v20M3.3 7l17.4 10M3.3 17L20.7 7M9 3.5l3 2.5 3-2.5M9 20.5l3-2.5 3 2.5"/></svg>
       </span></span>
-      <span class="tt-swatch" aria-hidden="true"><i style="background:#82BCE0"></i><i style="background:#A7D2E8"></i><i style="background:#CAE3F0"></i><i style="background:#F3F9FC"></i></span>
+      <span class="tt-swatch" aria-hidden="true"><i style="background:#141518"></i><i style="background:#d4ef3e"></i><i style="background:#ffffff"></i><i style="background:#eceef1"></i></span>
       <span class="tt-label" id="themeLabel">Glacial</span>
     </button>
   </div>
@@ -1348,22 +1443,23 @@ function drawGauge(rows){
   const pct = rows.length ? okn/rows.length : 0;
   const cx=w/2, cy=126, radius=Math.min(w/2-26,102);
   ctx.lineCap='round';
-  ctx.strokeStyle='rgba(120,170,255,.35)'; ctx.lineWidth=1;
+  ctx.strokeStyle= temaAtual()==='glacial' ? 'rgba(20,21,24,.22)' : 'rgba(120,170,255,.35)'; ctx.lineWidth=1;
   for(let i=0;i<=20;i++){
     const ang=Math.PI+Math.PI*i/20, r1=radius+13, r2=radius+(i%5===0?22:18);
     ctx.beginPath(); ctx.moveTo(cx+Math.cos(ang)*r1,cy+Math.sin(ang)*r1); ctx.lineTo(cx+Math.cos(ang)*r2,cy+Math.sin(ang)*r2); ctx.stroke();
   }
-  ctx.lineWidth=14; ctx.strokeStyle='rgba(70,150,255,.18)';
+  ctx.lineWidth=14; ctx.strokeStyle= temaAtual()==='glacial' ? '#eceef1' : 'rgba(70,150,255,.18)';
   ctx.beginPath(); ctx.arc(cx,cy,radius,Math.PI,0); ctx.stroke();
   if(pct>0){
     const g=ctx.createLinearGradient(cx-radius,0,cx+radius,0);
-    g.addColorStop(0,cssVar('--blue')); g.addColorStop(1,cssVar('--teal'));
-    ctx.shadowColor=cssVar('--teal'); ctx.shadowBlur=16; ctx.strokeStyle=g;
+    const vlt = temaAtual()==='glacial';
+    g.addColorStop(0, vlt ? '#d4ef3e' : cssVar('--blue')); g.addColorStop(1, vlt ? '#7bbf12' : cssVar('--teal'));
+    ctx.shadowColor=cssVar('--teal'); ctx.shadowBlur = vlt ? 0 : 16; ctx.strokeStyle=g;
     ctx.beginPath(); ctx.arc(cx,cy,radius,Math.PI,Math.PI+Math.PI*pct); ctx.stroke();
     ctx.shadowBlur=0;
   }
   ctx.fillStyle=cssVar('--ink'); ctx.textAlign='center';
-  ctx.shadowColor=cssVar('--teal'); ctx.shadowBlur=12;
+  ctx.shadowColor=cssVar('--teal'); ctx.shadowBlur = temaAtual()==='glacial' ? 0 : 12;
   ctx.font='700 30px -apple-system,sans-serif'; ctx.fillText((pct*100).toFixed(1)+'%', cx, cy-14);
   ctx.shadowBlur=0;
   ctx.font='12px -apple-system,sans-serif'; ctx.fillStyle=cssVar('--muted');
@@ -1383,8 +1479,8 @@ function drawBarChart(rows){
     const y = top + i*(barH+gap);
     const bw = Math.max(2,(w-labelW-86) * (a[1].v/max));
     ctx.fillStyle = cssVar('--muted'); ctx.textAlign='left'; ctx.fillText(fitText(ctx,a[0],labelW-8), 0, y+barH/2);
-    const g=ctx.createLinearGradient(labelW,0,labelW+bw,0); g.addColorStop(0,cssVar('--blue')); g.addColorStop(1,cssVar('--amber'));
-    ctx.shadowColor=cssVar('--amber'); ctx.shadowBlur=10; ctx.fillStyle=g; ctx.fillRect(labelW,y,bw,barH); ctx.shadowBlur=0;
+    const vlt=temaAtual()==='glacial', g=ctx.createLinearGradient(labelW,0,labelW+bw,0); g.addColorStop(0, vlt ? '#141518' : cssVar('--blue')); g.addColorStop(1, vlt ? '#c4e32a' : cssVar('--amber'));
+    ctx.shadowColor=cssVar('--amber'); ctx.shadowBlur = vlt ? 0 : 10; ctx.fillStyle=g; ctx.fillRect(labelW,y,bw,barH); ctx.shadowBlur=0;
     ctx.fillStyle = cssVar('--ink'); ctx.fillText(fmtK(a[1].v)+' · '+a[1].n, labelW+bw+6, y+barH/2);
   });
 }
@@ -1649,15 +1745,15 @@ function renderMap(rows){
 const themeBtn = document.getElementById('themeToggle'), themeMeta = document.querySelector('meta[name="theme-color"]');
 function syncThemeBtn(){
   const g = temaAtual()==='glacial';
-  themeBtn.setAttribute('aria-pressed', g); document.getElementById('themeLabel').textContent = g ? 'Neon' : 'Glacial';
-  themeBtn.title = g ? 'Voltar ao tema Neon (escuro)' : 'Mudar para o tema Glacial (claro)';
-  themeMeta.setAttribute('content', g ? '#F3F9FC' : '#040b18');
+  themeBtn.setAttribute('aria-pressed', g); document.getElementById('themeLabel').textContent = g ? 'Neon' : 'Claro';
+  themeBtn.title = g ? 'Mudar para o tema Neon (escuro)' : 'Voltar ao tema Claro';
+  themeMeta.setAttribute('content', g ? '#eceef1' : '#040b18');
 }
 themeBtn.addEventListener('click',()=>{
   const root=document.documentElement, g = temaAtual()!=='glacial';
   root.classList.add('theme-anim');
   if(g) root.setAttribute('data-theme','glacial'); else root.removeAttribute('data-theme');
-  try{ localStorage.setItem('tema', g?'glacial':'neon'); }catch(e){}
+  try{ localStorage.setItem('temaV', g?'glacial':'neon'); }catch(e){}
   syncThemeBtn(); renderAll();
   setTimeout(()=>root.classList.remove('theme-anim'), 450);
 });
