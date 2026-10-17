@@ -1,0 +1,1360 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#eef0f4">
+<title>Controle de CIOT — Disdal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* Layout: trilho preto de ícones + área clara com cartões brancos (referência "fleet manager") */
+:root{
+  --bg:#e9ecf1; --canvas:#f6f7f9; --card:#ffffff; --line:#e6e8ee; --line2:#f0f1f5;
+  --ink:#14161b; --ink2:#3c4150; --muted:#8a90a0; --rail:#0d0e11;
+  --blue:#3478f6; --blue-soft:#e6efff; --lav:#dfe3f7; --orange:#f5a524; --orange-soft:#fff4e0;
+  --black:#14161b; --red:#e5484d; --red-soft:#fdecec; --green:#22a861; --green-soft:#e6f6ee;
+  --font:"Plus Jakarta Sans",-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --r:14px; --r-sm:9px;
+  --shadow:0 1px 2px rgba(20,22,27,.04), 0 6px 24px rgba(20,22,27,.05);
+}
+*{box-sizing:border-box;}
+html,body{margin:0;}
+body{font-family:var(--font); color:var(--ink); background:var(--bg); font-size:13.5px; -webkit-font-smoothing:antialiased; min-height:100vh;}
+button{font-family:inherit; cursor:pointer;}
+input,select,textarea{font-family:inherit;}
+:focus-visible{outline:2px solid var(--blue); outline-offset:2px;}
+
+/* ---------- trilho de ícones ---------- */
+#rail{position:fixed; inset:0 auto 0 0; width:68px; background:var(--rail); display:flex; flex-direction:column; align-items:center; gap:6px; padding:18px 0; z-index:20;}
+.rail-logo{width:38px; height:38px; border-radius:11px; background:#1d1f25; color:#fff; display:grid; place-items:center; margin-bottom:14px;}
+.rail-btn{width:44px; height:44px; border-radius:11px; border:0; background:transparent; color:#8b909c; display:grid; place-items:center; position:relative;}
+.rail-btn:hover{color:#fff; background:#1b1d22;}
+.rail-btn.on{background:var(--blue); color:#fff; box-shadow:0 6px 16px rgba(52,120,246,.45);}
+.rail-btn .tt{position:absolute; left:54px; top:50%; transform:translateY(-50%); background:var(--black); color:#fff; font-size:12px; font-weight:600; padding:5px 9px; border-radius:7px; white-space:nowrap; opacity:0; pointer-events:none; transition:opacity .12s;}
+.rail-btn:hover .tt{opacity:1;}
+.rail-sep{width:28px; height:1px; background:#24262c; margin:8px 0;}
+.rail-foot{margin-top:auto; width:36px; height:36px; border-radius:50%; background:linear-gradient(135deg,var(--blue),#7aa7ff); color:#fff; font-weight:800; font-size:12px; display:grid; place-items:center;}
+
+/* ---------- área principal ---------- */
+.main{margin-left:68px; padding:22px 26px 32px; min-height:100vh;}
+.topbar{display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; margin-bottom:18px;}
+.topbar h1{margin:0; font-size:20px; font-weight:800; letter-spacing:-.2px;}
+.topbar h1 small{display:block; font-size:12px; font-weight:500; color:var(--muted); letter-spacing:0; margin-top:2px;}
+.tb-right{display:flex; align-items:center; gap:10px; flex-wrap:wrap;}
+.pill{display:inline-flex; align-items:center; gap:7px; height:32px; padding:0 12px; border-radius:999px; background:var(--card); border:1px solid var(--line); font-size:12px; font-weight:600; color:var(--ink2);}
+.pill .dot{width:7px; height:7px; border-radius:50%; background:var(--muted);}
+.pill.live .dot{background:var(--green); box-shadow:0 0 0 3px var(--green-soft);}
+.pill.bad{color:var(--red);} .pill.bad .dot{background:var(--red);}
+#clock{font-variant-numeric:tabular-nums;}
+
+.card{background:var(--card); border:1px solid var(--line); border-radius:var(--r); box-shadow:var(--shadow); padding:18px 20px; min-width:0;}
+.card-h{display:flex; align-items:center; justify-content:space-between; gap:10px; margin:0 0 14px;}
+.card-h h3{margin:0; font-size:14.5px; font-weight:700;}
+.card-h .sub{font-size:11.5px; color:var(--muted); font-weight:500;}
+.eyebrow{font-size:10.5px; font-weight:700; letter-spacing:.7px; text-transform:uppercase; color:var(--muted);}
+.link{background:none; border:0; padding:0; color:var(--ink2); font-size:12px; font-weight:600; text-decoration:underline; text-underline-offset:3px; text-decoration-color:var(--line);}
+.link:hover{color:var(--blue);}
+.empty{color:var(--muted); font-size:13px; padding:22px 0; text-align:center;}
+.muted{color:var(--muted);}
+
+/* status */
+.st{display:inline-flex; align-items:center; gap:5px; font-size:10.5px; font-weight:700; letter-spacing:.5px; text-transform:uppercase; white-space:nowrap; color:var(--muted);}
+.st i{width:6px; height:6px; border-radius:50%; background:currentColor;}
+.st.uso{color:#9aa0ad;} .st.uso i{background:var(--green);}
+.st.patio{color:var(--orange);} .st.ofic{color:var(--red);} .st.dev{color:#b3b8c3;}
+.badge{display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:700; padding:3px 9px; border-radius:999px; white-space:nowrap;}
+.badge.crit{background:var(--red-soft); color:var(--red);} .badge.aten{background:var(--orange-soft); color:#b77400;}
+.badge.uso{background:var(--green-soft); color:var(--green);} .badge.patio{background:var(--orange-soft); color:#b77400;}
+.badge.ofic{background:var(--red-soft); color:var(--red);} .badge.dev{background:var(--line2); color:var(--muted);}
+
+/* ---------- painel ---------- */
+.resumo{font-size:14px; line-height:1.6; color:var(--ink2); margin:0 0 16px; max-width:115ch;}
+.resumo b{color:var(--ink);}
+.kpis{display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:12px; margin-bottom:16px;}
+.kpi{background:var(--card); border:1px solid var(--line); border-radius:var(--r); box-shadow:var(--shadow); padding:15px 16px;}
+.kpi .t{display:flex; align-items:center; gap:7px; font-size:12px; color:var(--muted); font-weight:600;}
+.kpi .t i{width:8px; height:8px; border-radius:3px; background:var(--c,var(--blue));}
+.kpi .n{font-size:28px; font-weight:800; letter-spacing:-.5px; margin:6px 0 2px; font-variant-numeric:tabular-nums;}
+.kpi .p{font-size:11.5px; color:var(--muted);}
+.grid2{display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,400px),1fr)); gap:16px; margin-bottom:16px;}
+.lg{display:flex; flex-wrap:wrap; gap:6px 14px; font-size:11.5px; color:var(--muted); margin:-6px 0 8px;}
+.lg em{display:inline-block; width:10px; height:10px; border-radius:3px; margin-right:5px; vertical-align:-1px;}
+.c-uso{background:var(--blue);} .c-patio{background:var(--orange);} .c-ofic{background:var(--black);}
+.c-prop{background:var(--blue);} .c-alug{background:var(--lav);}
+.hbar{display:grid; grid-template-columns:minmax(90px,128px) 1fr 30px; align-items:center; gap:10px; margin:10px 0; font-size:12.5px;}
+.hbar .nm{color:var(--ink2); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-weight:500;}
+.hbar .tr{display:flex; height:12px; gap:2px; border-radius:4px; overflow:hidden;}
+.hbar .tr i{display:block; height:100%; border-radius:3px;}
+.hbar .vl{text-align:right; font-variant-numeric:tabular-nums; font-weight:700;}
+.cols{display:flex; align-items:flex-end; gap:16px; height:180px; padding-top:10px;}
+.cols .cl{flex:1; height:100%; display:flex; flex-direction:column; justify-content:flex-end; align-items:center; gap:6px; position:relative;}
+.cols .cl::before{content:""; position:absolute; inset:0 calc(50% - 22px) 0; background:var(--line2); border-radius:6px; z-index:0;}
+.cols .cl b{position:relative; z-index:1; font-size:13px; font-variant-numeric:tabular-nums;}
+.cols .cl i{position:relative; z-index:1; display:block; width:20px; background:var(--black); border-radius:5px;}
+.cols .cl.old i{background:var(--orange);}
+.cols-lab{display:flex; gap:16px; padding-top:8px;}
+.cols-lab span{flex:1; text-align:center; font-size:11px; color:var(--muted); font-weight:500;}
+.alert-mini{display:flex; justify-content:space-between; gap:10px; align-items:center; padding:10px 0; border-bottom:1px solid var(--line2);}
+.alert-mini:last-child{border-bottom:0;}
+.alert-mini b{font-weight:700;} .alert-mini small{display:block; color:var(--muted); font-size:11.5px; margin-top:2px;}
+.scroll{max-height:330px; overflow-y:auto;}
+
+/* ---------- veículos (frota por modelo) ---------- */
+.fleet{display:grid; grid-template-columns:290px minmax(0,1fr); gap:16px; align-items:start;}
+.fleet-list{padding:0; overflow:hidden; position:sticky; top:16px;}
+.fl-search{padding:14px 14px 10px; border-bottom:1px solid var(--line2);}
+.fl-search input{width:100%; height:36px; border:1px solid var(--line); border-radius:9px; padding:0 12px 0 34px; font-size:13px; background:var(--canvas) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%238a90a0' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='7' cy='7' r='5'/%3E%3Cpath d='M11 11l3.5 3.5'/%3E%3C/svg%3E") 11px 50% no-repeat; color:var(--ink);}
+.fl-search input:focus{outline:none; border-color:var(--blue); background-color:#fff;}
+.fl-filt{display:flex; gap:5px; flex-wrap:wrap; margin-top:9px;}
+.fl-filt button{border:1px solid var(--line); background:#fff; color:var(--ink2); font-size:11px; font-weight:600; padding:4px 9px; border-radius:999px;}
+.fl-filt button.on{background:var(--black); color:#fff; border-color:var(--black);}
+.fl-body{max-height:calc(100vh - 170px); overflow-y:auto; padding:4px 8px 12px;}
+.fl-group{margin-top:8px;}
+.fl-gh{width:100%; display:flex; align-items:center; justify-content:space-between; gap:8px; background:none; border:0; padding:8px 8px 6px; font-size:10.5px; font-weight:800; letter-spacing:.7px; text-transform:uppercase; color:var(--ink2);}
+.fl-gh span{color:var(--muted); font-weight:700;}
+.fl-gh .chev{transition:transform .15s; color:var(--muted);}
+.fl-group.closed .chev{transform:rotate(180deg);} .fl-group.closed .fl-items{display:none;}
+.fl-item{width:100%; display:grid; grid-template-columns:34px minmax(0,1fr) auto; align-items:center; gap:10px; text-align:left; background:none; border:0; padding:8px; border-radius:10px; color:var(--ink);}
+.fl-item:hover{background:var(--canvas);}
+.fl-item.on{background:var(--blue-soft);}
+.av{width:34px; height:34px; border-radius:50%; display:grid; place-items:center; font-size:11.5px; font-weight:800; color:#fff; position:relative; flex-shrink:0;}
+.av::after{content:""; position:absolute; right:-1px; bottom:-1px; width:10px; height:10px; border-radius:50%; border:2px solid #fff; background:var(--s,var(--green));}
+.fl-item .nm{font-size:12.5px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.fl-item .sm{font-size:11px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:1px;}
+
+.hero-wrap{display:flex; flex-direction:column; gap:16px;}
+.vh{display:flex; align-items:center; justify-content:space-between; gap:12px; padding:2px 2px 0;}
+.vh-who{display:flex; align-items:center; gap:12px; min-width:0;}
+.vh-who .av{width:42px; height:42px; font-size:13.5px;}
+.vh-who b{display:block; font-size:15px; font-weight:800; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.vh-who small{display:block; font-size:12px; color:var(--muted); margin-top:1px;}
+.vh-act{display:flex; gap:8px;}
+.icon-btn{width:36px; height:36px; border-radius:10px; border:1px solid var(--line); background:#fff; color:var(--ink2); display:grid; place-items:center;}
+.icon-btn:hover{border-color:var(--blue); color:var(--blue);}
+.hero{position:relative; overflow:hidden; background:linear-gradient(135deg,#f4f6fa 0%,#eef1f6 60%,#e8ecf3 100%); border:1px solid var(--line); border-radius:var(--r); padding:24px 26px 20px; display:grid; grid-template-columns:minmax(220px,.9fr) minmax(280px,1.4fr); gap:10px 24px; align-items:center;}
+.hero::after{content:""; position:absolute; right:-60px; top:-40px; width:340px; height:340px; border-radius:50%; border:46px solid rgba(255,255,255,.55); pointer-events:none;}
+.hero h2{margin:0 0 4px; font-size:17px; font-weight:800; letter-spacing:-.2px;}
+.hero .tipo{font-size:11.5px; color:var(--muted); margin-bottom:18px;}
+.specs{display:grid; grid-template-columns:1fr 1fr; gap:16px 22px;}
+.specs div span{display:block; font-size:11.5px; color:var(--muted); font-weight:500;}
+.specs div b{display:block; font-size:16px; font-weight:800; margin-top:3px; font-variant-numeric:tabular-nums;}
+.hero-foot{display:flex; align-items:center; gap:14px; margin-top:20px;}
+.placa{display:inline-flex; flex-direction:column; border:1.5px solid #20232b; border-radius:5px; overflow:hidden; background:#fff; min-width:96px; box-shadow:0 1px 0 rgba(0,0,0,.06);}
+.placa i{display:block; background:#1d4fb5; color:#fff; font-style:normal; font-size:6.5px; font-weight:800; letter-spacing:1.4px; text-align:center; padding:1.5px 0;}
+.placa b{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace; font-size:16px; font-weight:800; letter-spacing:1.6px; text-align:center; padding:2px 8px 3px; color:#15171c;}
+.hero-img{position:relative; z-index:1; display:flex; justify-content:center; align-items:flex-end; min-height:170px;}
+.hero-img svg{width:100%; max-width:470px; height:auto; filter:drop-shadow(0 18px 18px rgba(20,22,27,.12));}
+.hero-img img{display:block; width:auto; max-width:100%; max-height:230px; object-fit:contain; filter:drop-shadow(0 22px 16px rgba(20,22,27,.16));}
+.chips-wrap{grid-column:1/-1; position:relative; z-index:1; border-top:1px solid rgba(20,22,27,.07); margin-top:10px; padding-top:14px;}
+.chips-wrap .eyebrow{display:block; margin-bottom:9px;}
+.pchips{display:flex; flex-wrap:wrap; gap:7px;}
+.pchip{display:inline-flex; align-items:center; gap:7px; border:1px solid var(--line); background:#fff; border-radius:9px; padding:6px 10px; font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace; font-size:12.5px; font-weight:700; letter-spacing:.6px; color:var(--ink);}
+.pchip i{width:7px; height:7px; border-radius:50%; background:var(--s,var(--green));}
+.pchip:hover{border-color:var(--blue);}
+.pchip.on{background:var(--black); color:#fff; border-color:var(--black);}
+.vgrid{display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,360px),1fr)); gap:16px;}
+.ficha{display:grid; grid-template-columns:1fr 1fr; gap:0 18px;}
+.ficha div{padding:9px 0; border-bottom:1px solid var(--line2); min-width:0;}
+.ficha div span{display:block; font-size:11px; color:var(--muted); font-weight:600;}
+.ficha div b{display:block; font-size:13px; font-weight:700; margin-top:2px; overflow-wrap:anywhere;}
+.ficha .full{grid-column:1/-1;}
+.stackbar{display:flex; height:34px; border-radius:7px; overflow:hidden; gap:2px; margin:6px 0 4px;}
+.stackbar div{display:flex; align-items:center; padding:0 9px; font-size:11.5px; font-weight:700; min-width:0; white-space:nowrap; overflow:hidden;}
+.sb-uso{background:var(--lav); color:var(--ink);} .sb-patio{background:var(--orange); color:#fff;} .sb-ofic{background:var(--black); color:#fff;}
+.sb-lab{display:flex; justify-content:space-between; font-size:11px; color:var(--muted); font-weight:600; margin-top:6px;}
+.mtable{width:100%; border-collapse:collapse; margin-top:10px; font-size:12.5px;}
+.mtable td{padding:9px 0; border-bottom:1px solid var(--line2);}
+.mtable td:last-child,.mtable td:nth-child(2){text-align:right; font-weight:700; font-variant-numeric:tabular-nums;}
+.mtable td:nth-child(2){color:var(--muted); font-weight:600; padding-right:14px;}
+.tl{list-style:none; margin:0; padding:0;}
+.tl li{position:relative; padding:0 0 14px 18px; font-size:12.5px;}
+.tl li::before{content:""; position:absolute; left:3px; top:5px; width:7px; height:7px; border-radius:50%; background:var(--blue);}
+.tl li::after{content:""; position:absolute; left:6px; top:14px; bottom:0; width:1px; background:var(--line);}
+.tl li:last-child::after{display:none;}
+.tl li b{font-weight:700;} .tl li small{display:block; color:var(--muted); font-size:11px; margin-top:2px;}
+.tl li.al::before{background:var(--red);}
+
+/* ---------- tabelas e formulários ---------- */
+.ftools{display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:10px; margin-bottom:12px;}
+.ftools input,.ftools select,.form input,.form select,.form textarea{width:100%; padding:9px 11px; background:var(--canvas); border:1px solid var(--line); color:var(--ink); border-radius:9px; font-size:13px;}
+.ftools input:focus,.ftools select:focus,.form input:focus,.form select:focus,.form textarea:focus{outline:none; border-color:var(--blue); background:#fff;}
+.form label{display:block; font-size:11.5px; color:var(--muted); font-weight:600; margin:12px 0 5px;}
+.tablewrap{overflow:auto; max-height:calc(100vh - 290px); min-height:300px; border:1px solid var(--line2); border-radius:10px;}
+table.tb{width:100%; border-collapse:collapse; font-size:12.5px;}
+.tb th{position:sticky; top:0; background:#fafbfc; text-align:left; font-size:10.5px; font-weight:700; letter-spacing:.6px; text-transform:uppercase; color:var(--muted); padding:10px 11px; border-bottom:1px solid var(--line); white-space:nowrap; z-index:1;}
+.tb td{padding:9px 11px; border-bottom:1px solid var(--line2); vertical-align:middle;}
+.tb tbody tr:hover{background:#fafbff;}
+th.sortable{cursor:pointer; user-select:none;} th.sortable:hover{color:var(--blue);}
+th[aria-sort="ascending"]::after{content:" ▲"; font-size:9px;} th[aria-sort="descending"]::after{content:" ▼"; font-size:9px;}
+.obs-cell{max-width:230px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.cond-edit{width:100%; min-width:180px; max-width:260px; padding:6px 8px; border:1px solid var(--line); border-radius:8px; background:#fff; font-size:12.5px; font-weight:600; color:var(--ink);}
+.cond-edit:focus,.obs-edit:focus{outline:none; border-color:var(--blue); box-shadow:0 0 0 3px var(--blue-soft);}
+.obs-edit{width:100%; min-width:190px; padding:6px 8px; border:1px solid var(--line); border-radius:8px; background:#fff; font:inherit; font-size:12px; color:var(--ink); resize:vertical; line-height:1.4;}
+.obs-edit.salvo{border-color:var(--green); box-shadow:0 0 0 3px var(--green-soft);}
+.lock-card{display:flex; align-items:center; gap:16px; flex-wrap:wrap;}
+.lock-card .ic{width:44px; height:44px; border-radius:12px; background:var(--canvas); display:grid; place-items:center; color:var(--ink2);}
+.colab-tag{font-size:10.5px; font-weight:700; padding:2px 8px; border-radius:999px; background:var(--line2); color:var(--muted);}
+.colab-tag.cad{background:var(--blue-soft); color:var(--blue);}
+.st-edit{padding:5px 8px; border-radius:999px; font-size:12px; font-weight:700; border:1px solid var(--line); background:#fff; color:var(--ink);}
+.st-edit.uso{color:var(--green); background:var(--green-soft); border-color:transparent;}
+.st-edit.patio{color:#b77400; background:var(--orange-soft); border-color:transparent;}
+.st-edit.ofic{color:var(--red); background:var(--red-soft); border-color:transparent;}
+.st-edit.dev{color:var(--muted); background:var(--line2); border-color:transparent;}
+.dias{font-size:11.5px; color:var(--muted); white-space:nowrap;} .dias.alto{color:var(--red); font-weight:700;}
+.fchips{display:flex; flex-wrap:wrap; gap:6px; margin:0 0 12px;}
+.fchip{border:1px solid var(--line); background:#fff; color:var(--ink2); font-size:12px; font-weight:600; padding:6px 11px; border-radius:999px;}
+.fchip:hover{border-color:var(--blue);}
+.fchip.on{background:var(--black); color:#fff; border-color:var(--black);}
+.btn{display:inline-flex; align-items:center; justify-content:center; gap:8px; height:40px; padding:0 16px; border-radius:10px; border:0; font-size:13px; font-weight:700;}
+.btn-dark{background:var(--black); color:#fff;} .btn-dark:hover{background:#2a2d35;}
+.btn-dark:disabled{opacity:.55; cursor:wait;}
+.btn-line{background:#fff; color:var(--ink2); border:1px solid var(--line);} .btn-line:hover{border-color:var(--blue); color:var(--blue);}
+.btn-del{background:#fff; color:var(--red); border:1px solid #f4c7c8;}
+.btn-mini{height:30px; padding:0 11px; border-radius:8px; font-size:12px; font-weight:700; border:1px solid var(--line); background:#fff; color:var(--ink2);}
+.btn-mini:hover{border-color:var(--blue); color:var(--blue);}
+.btn-x{border:1px solid #f4c7c8; background:#fff; color:var(--red); font-size:12px; font-weight:700; padding:5px 10px; border-radius:8px;}
+.note{font-size:12px; color:var(--muted); line-height:1.55; margin-top:10px;}
+.form-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:0 16px;}
+.form-grid .full{grid-column:1/-1;}
+.box{border:1px dashed #cfd4de; border-radius:12px; padding:14px; margin:12px 0;}
+.box h4{margin:0 0 6px; font-size:13px;}
+.box.warn{border:1px solid #f7d79a; background:var(--orange-soft); border-style:solid;}
+#bulkInput{min-height:110px; font:12px ui-monospace,Menlo,Consolas,monospace; white-space:pre; overflow:auto; resize:vertical;}
+.afs-row{display:grid; grid-template-columns:1.6fr 1fr 1.2fr 1.2fr auto; gap:10px; align-items:center; padding:11px 0; border-bottom:1px solid var(--line2); font-size:13px;}
+.afs-row:last-child{border-bottom:0;}
+.afs-row.head{font-size:10.5px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.6px;}
+.venc{color:var(--red); font-weight:700;}
+.hist-item{padding:11px 0; border-bottom:1px solid var(--line2); font-size:13px;}
+.hist-item:last-child{border-bottom:0;}
+.hist-tipo{font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:.5px; padding:3px 8px; border-radius:999px; background:var(--line2); color:var(--ink2); margin-right:7px;}
+.hist-tipo.criado{background:var(--green-soft); color:var(--green);} .hist-tipo.atualizado{background:var(--blue-soft); color:var(--blue);}
+.hist-tipo.excluido{background:var(--red-soft); color:var(--red);} .hist-tipo.importacao{background:var(--lav); color:#4a52a8;}
+.hist-data{float:right; color:var(--muted); font-size:11.5px;}
+.hist-resumo{color:var(--ink2); margin-top:5px; font-size:12.5px; overflow-wrap:anywhere;}
+
+/* modais e toast */
+.modal{position:fixed; inset:0; z-index:40; background:rgba(13,14,17,.45); display:none; align-items:flex-start; justify-content:center; padding:28px 12px; overflow-y:auto;}
+.modal.on{display:flex;}
+.modal-box{width:min(1100px,100%); background:#fff; border-radius:16px; box-shadow:0 24px 60px rgba(13,14,17,.25); padding:20px 22px;}
+.modal-box.sm{width:min(780px,100%);}
+.modal-box h3{margin:0 0 6px; font-size:16px; font-weight:800;}
+.edit-actions{display:flex; gap:10px; flex-wrap:wrap; margin-top:16px;}
+.bulk-summary{font-size:13px; line-height:1.7; margin:6px 0 10px;}
+.flag{font-size:11px; font-weight:700; padding:2px 8px; border-radius:999px; display:inline-block;}
+.flag.n{background:var(--green-soft); color:var(--green);} .flag.u{background:var(--blue-soft); color:var(--blue);} .flag.d{background:var(--line2); color:var(--muted);}
+.bulk-errors{font-size:12px; color:var(--red); background:var(--red-soft); border-radius:9px; padding:9px 11px; margin-bottom:10px; max-height:110px; overflow:auto;}
+.bulk-preview{max-height:52vh; overflow:auto; border:1px solid var(--line); border-radius:10px;}
+#toast{position:fixed; right:92px; bottom:26px; z-index:50; max-width:340px; padding:11px 15px; background:var(--black); color:#fff; border-radius:11px; font-size:13px; font-weight:600; opacity:0; transform:translateY(8px); transition:opacity .2s, transform .2s; pointer-events:none;}
+#toast.on{opacity:1; transform:none;}
+
+
+/* ---------- abas por modelo ---------- */
+.mtabs{display:flex; gap:8px; overflow-x:auto; padding:2px 2px 12px; margin-bottom:6px; scrollbar-width:thin;}
+.mtab{flex:0 0 auto; display:flex; align-items:center; gap:10px; background:#fff; border:1px solid var(--line); border-radius:12px; padding:6px 14px 6px 6px; font-size:13px; font-weight:700; color:var(--ink2); text-align:left; box-shadow:var(--shadow);}
+.mtab:hover{border-color:var(--blue);}
+.mtab .th{width:60px; height:36px; border-radius:8px; background:var(--canvas); display:grid; place-items:center; overflow:hidden; flex-shrink:0;}
+.mtab .th img,.mtab .th svg{max-width:56px; max-height:32px; width:auto; height:auto;}
+.mtab .th.ic{color:var(--ink2);}
+.mtab small{display:block; font-size:11px; color:var(--muted); font-weight:600; margin-top:1px;}
+.mtab.on{background:var(--black); color:#fff; border-color:var(--black);}
+.mtab.on small{color:#a9adb8;} .mtab.on .th{background:#fff;}
+.mgrid{display:grid; grid-template-columns:repeat(auto-fill,minmax(min(100%,270px),1fr)); gap:14px;}
+.mcard{background:var(--card); border:1px solid var(--line); border-radius:var(--r); box-shadow:var(--shadow); padding:16px; text-align:left; display:flex; flex-direction:column; gap:10px; color:var(--ink);}
+.mcard:hover{border-color:var(--blue);}
+.mcard .ph{height:120px; display:flex; align-items:center; justify-content:center; background:linear-gradient(135deg,#f4f6fa,#e9edf3); border-radius:10px;}
+.mcard .ph img,.mcard .ph svg{max-height:104px; max-width:92%; width:auto; height:auto; filter:drop-shadow(0 10px 8px rgba(20,22,27,.12));}
+.mcard .ttl{display:flex; justify-content:space-between; align-items:baseline; gap:8px;}
+.mcard .ttl b{font-size:15px; font-weight:800;} .mcard .ttl span{font-size:12px; color:var(--muted); font-weight:600;}
+.mcard .cnt{display:flex; gap:12px; font-size:12px; color:var(--ink2); font-weight:600; flex-wrap:wrap;}
+.mcard .cnt i{display:inline-block; width:7px; height:7px; border-radius:50%; margin-right:5px; vertical-align:1px;}
+.stackbar.sm{height:8px; border-radius:4px; margin:0;}
+.stackbar.sm div{padding:0;}
+.mlayout{display:grid; grid-template-columns:minmax(0,1fr) 360px; gap:16px; align-items:start; margin-top:16px;}
+.ficha-card{position:sticky; top:16px;}
+.ficha-card .ficha{grid-template-columns:1fr 1fr;}
+.vtools{display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:12px;}
+.vtools input{flex:1 1 200px; min-width:0; height:36px; border:1px solid var(--line); border-radius:9px; padding:0 12px; font-size:13px; background:var(--canvas); color:var(--ink);}
+.vtools input:focus{outline:none; border-color:var(--blue); background:#fff;}
+.vt tbody tr{cursor:pointer;}
+.vt tbody tr.on{background:var(--blue-soft);}
+.vt tbody tr.on:hover{background:var(--blue-soft);}
+.who{display:flex; align-items:center; gap:10px; min-width:0;}
+.who .av{width:30px; height:30px; font-size:10.5px;}
+.who b{display:block; font-size:12.5px; font-weight:700; white-space:nowrap;}
+.who small{display:block; font-size:11px; color:var(--muted);}
+.placa.sm{min-width:76px;} .placa.sm i{font-size:5px; padding:1px 0;} .placa.sm b{font-size:12px; letter-spacing:1px; padding:1px 6px 2px;}
+.legend-row{display:flex; gap:14px; flex-wrap:wrap; font-size:11.5px; color:var(--muted); font-weight:600; margin-top:8px;}
+.legend-row em{display:inline-block; width:10px; height:10px; border-radius:3px; margin-right:5px; vertical-align:-1px;}
+@media (max-width:1180px){ .mlayout{grid-template-columns:1fr;} .ficha-card{position:static;} }
+
+/* ---------- notificações ---------- */
+#notif{position:fixed; right:22px; bottom:22px; z-index:45;}
+.nb{width:56px; height:56px; border-radius:50%; border:0; background:var(--black); color:#fff; display:grid; place-items:center; box-shadow:0 10px 26px rgba(13,14,17,.32); position:relative; transition:transform .15s;}
+.nb:hover{transform:translateY(-2px);}
+.nb[aria-expanded="true"]{background:var(--blue);}
+.nb .cnt{position:absolute; top:-3px; right:-3px; min-width:22px; height:22px; padding:0 6px; border-radius:999px; background:var(--red); color:#fff; font-size:11.5px; font-weight:800; display:grid; place-items:center; border:2.5px solid var(--bg);}
+.nb .cnt[hidden]{display:none;}
+.nb.ping .cnt{animation:ping .9s ease-out 2;}
+@keyframes ping{0%{transform:scale(1);} 40%{transform:scale(1.35);} 100%{transform:scale(1);}}
+.np{position:absolute; right:0; bottom:70px; width:min(400px, calc(100vw - 28px)); max-height:min(560px, calc(100vh - 120px)); background:#fff; border:1px solid var(--line); border-radius:16px; box-shadow:0 24px 60px rgba(13,14,17,.22); display:flex; flex-direction:column; overflow:hidden; transform-origin:bottom right;}
+.np[hidden]{display:none;}
+@media (prefers-reduced-motion:no-preference){ .np:not([hidden]){animation:npIn .16s ease-out;} @keyframes npIn{from{opacity:0; transform:translateY(8px) scale(.98);} to{opacity:1; transform:none;}} }
+.np-h{display:flex; align-items:center; justify-content:space-between; gap:10px; padding:14px 16px 10px;}
+.np-h b{font-size:15px; font-weight:800;}
+.np-f{display:flex; gap:6px; padding:0 16px 10px; flex-wrap:wrap; border-bottom:1px solid var(--line2);}
+.np-f button{border:1px solid var(--line); background:#fff; color:var(--ink2); font-size:11.5px; font-weight:700; padding:4px 10px; border-radius:999px;}
+.np-f button.on{background:var(--black); border-color:var(--black); color:#fff;}
+.np-l{overflow-y:auto; padding:6px 8px 10px;}
+.ni{width:100%; display:grid; grid-template-columns:34px minmax(0,1fr) auto; gap:10px; align-items:start; text-align:left; background:none; border:0; padding:10px 8px; border-radius:11px; color:var(--ink);}
+.ni:hover{background:var(--canvas);}
+.ni .ic{width:34px; height:34px; border-radius:10px; display:grid; place-items:center;}
+.ni .ic.prazo{background:var(--red-soft); color:var(--red);} .ni .ic.aviso{background:var(--orange-soft); color:#b77400;}
+.ni .ic.alt{background:var(--blue-soft); color:var(--blue);} .ni .ic.cad{background:var(--green-soft); color:var(--green);}
+.ni b{display:block; font-size:12.8px; font-weight:700; line-height:1.35;}
+.ni small{display:block; font-size:11.5px; color:var(--muted); margin-top:2px; line-height:1.4; overflow-wrap:anywhere;}
+.ni .tm{font-size:10.5px; color:var(--muted); white-space:nowrap; display:flex; flex-direction:column; align-items:flex-end; gap:6px;}
+.ni .tm i{width:8px; height:8px; border-radius:50%; background:var(--blue);}
+.ni.lida b{font-weight:600; color:var(--ink2);}
+.np-sec{font-size:10.5px; font-weight:800; letter-spacing:.7px; text-transform:uppercase; color:var(--muted); padding:10px 8px 4px;}
+@media (max-width:760px){ #notif{right:14px; bottom:76px;} #toast{right:14px; bottom:142px;} }
+
+/* ---------- revisão ---------- */
+.kmbar{display:flex; align-items:center; gap:8px; min-width:150px;}
+.kmbar .tr{flex:1; height:7px; border-radius:4px; background:var(--line2); overflow:hidden;}
+.kmbar .tr i{display:block; height:100%; border-radius:4px; background:var(--green);}
+.kmbar .tr i.prox{background:var(--orange);} .kmbar .tr i.venc{background:var(--red);}
+.kmbar span{font-size:11.5px; font-variant-numeric:tabular-nums; color:var(--ink2); white-space:nowrap; font-weight:600;}
+.in-sm{width:100%; min-width:96px; padding:6px 8px; border:1px solid var(--line); border-radius:8px; background:#fff; font-size:12.5px; color:var(--ink); font-variant-numeric:tabular-nums;}
+.in-sm:focus{outline:none; border-color:var(--blue); box-shadow:0 0 0 3px var(--blue-soft);}
+.in-sm.salvo{border-color:var(--green); box-shadow:0 0 0 3px var(--green-soft);}
+select[data-bcc="bancoMotorista"],select[data-bcc="bancoPassageiro"]{min-width:205px;} select[data-bcc="bancoStatus"]{min-width:128px;}
+.rv-big{display:flex; align-items:baseline; gap:6px; margin:6px 0 4px;}
+.rv-big b{font-size:24px; font-weight:800; font-variant-numeric:tabular-nums;} .rv-big span{color:var(--muted); font-size:12px; font-weight:600;}
+
+/* ---------- colaboradores ---------- */
+.cnh{display:inline-flex; align-items:center; gap:6px; white-space:nowrap; font-variant-numeric:tabular-nums;}
+.cl-layout{display:grid; grid-template-columns:minmax(0,1fr) 360px; gap:16px; align-items:start;}
+.cl-veic{display:flex; align-items:center; gap:12px; padding:10px; border:1px solid var(--line2); border-radius:12px; background:var(--canvas); margin-top:8px;}
+.cl-veic .th{width:84px; height:48px; display:grid; place-items:center; flex-shrink:0;}
+.cl-veic .th img,.cl-veic .th svg{max-width:84px; max-height:46px; width:auto; height:auto;}
+@media (max-width:1180px){ .cl-layout{grid-template-columns:1fr;} }
+
+
+/* ---------- checklist de saída e retorno ---------- */
+.ck-layout{display:grid; grid-template-columns:minmax(0,1fr) 330px; gap:16px; align-items:start;}
+.ck-main{display:flex; flex-direction:column; gap:16px; min-width:0;}
+.ck-head{display:grid; grid-template-columns:180px minmax(0,1fr); gap:20px; align-items:center;}
+.ck-ph{height:104px; display:grid; place-items:center; background:linear-gradient(135deg,#f4f6fa,#e9edf3); border-radius:12px;}
+.ck-ph img,.ck-ph svg{max-height:92px; max-width:92%; width:auto; height:auto; filter:drop-shadow(0 10px 8px rgba(20,22,27,.12));}
+.ck-head h3{margin:0 0 3px; font-size:16.5px; font-weight:800; letter-spacing:-.2px;}
+.ck-head .muted{font-size:12px;}
+.seg{display:inline-flex; background:var(--canvas); border:1px solid var(--line); border-radius:11px; padding:3px; gap:3px; margin-top:12px;}
+.seg button{border:0; background:transparent; color:var(--ink2); font-size:13px; font-weight:700; padding:0 18px; border-radius:8px; min-height:36px; display:inline-flex; align-items:center; gap:7px;}
+.seg button[aria-pressed="true"]{background:var(--black); color:#fff;}
+.seg button i{width:8px; height:8px; border-radius:50%; background:var(--c);}
+.gauge{display:grid; grid-template-columns:repeat(5,1fr); gap:5px;}
+.gauge button{border:1px solid var(--line); background:#fff; border-radius:9px; padding:7px 0 6px; font-size:11.5px; font-weight:700; color:var(--ink2); display:flex; flex-direction:column; align-items:center; gap:5px; min-height:46px;}
+.gauge button i{display:block; width:68%; height:6px; border-radius:3px; background:linear-gradient(90deg,var(--c) var(--p),var(--line2) var(--p));}
+.gauge button:hover{border-color:var(--blue);}
+.gauge button[aria-pressed="true"]{border-color:var(--black); background:var(--black); color:#fff;}
+.ck-secs{columns:2 340px; column-gap:16px; margin-bottom:-16px;}
+.ck-sec{padding:14px 14px 8px; break-inside:avoid; margin-bottom:16px; display:block;}
+.ck-sec-h{display:flex; align-items:center; gap:8px; margin-bottom:6px;}
+.ck-sec-h b{flex:1; font-size:13.5px; font-weight:800; min-width:0;}
+.ck-sec-h .cnt{font-size:11.5px; color:var(--muted); font-weight:700; font-variant-numeric:tabular-nums; white-space:nowrap;}
+.ck-sec-h .cnt.ok{color:var(--green);}
+.ck-it{display:grid; grid-template-columns:minmax(0,1fr) auto; gap:10px; align-items:center; padding:7px 6px; border-top:1px solid var(--line2); font-size:12.5px; border-radius:8px;}
+.ck-it .lb{min-width:0; overflow-wrap:anywhere; line-height:1.35;}
+.ck-it .lb em{font-style:normal; color:var(--muted); font-variant-numeric:tabular-nums; margin-right:4px;}
+.ck-it .lb small{display:block; font-size:10.5px; color:#b77400; font-weight:700; margin-top:1px;}
+.ck-it.nok{background:var(--red-soft);}
+.ck-it.falta{box-shadow:inset 3px 0 0 var(--orange); background:var(--orange-soft);}
+.tri{display:inline-flex; gap:4px;}
+.tri button{min-width:44px; height:31px; border:1px solid var(--line); background:#fff; border-radius:7px; font-size:11px; font-weight:800; color:var(--muted); padding:0 6px;}
+.tri button:hover{border-color:var(--ink2); color:var(--ink2);}
+.tri button[data-v="ok"][aria-pressed="true"]{background:var(--green); border-color:var(--green); color:#fff;}
+.tri button[data-v="nok"][aria-pressed="true"]{background:var(--red); border-color:var(--red); color:#fff;}
+.tri button[data-v="na"][aria-pressed="true"]{background:#8a90a0; border-color:#8a90a0; color:#fff;}
+.ck-diag{position:relative; border:1px solid var(--line2); border-radius:12px; overflow:hidden; background:#fff; max-width:760px; margin:0 auto; user-select:none; -webkit-user-select:none;}
+.ck-diag.ed{cursor:crosshair; touch-action:manipulation;}
+.ck-diag img{display:block; width:100%; height:auto; pointer-events:none;}
+.mk{position:absolute; transform:translate(-50%,-50%); width:24px; height:24px; border-radius:50%; background:var(--red); color:#fff; font-size:11px; font-weight:800; display:grid; place-items:center; border:2px solid #fff; box-shadow:0 2px 6px rgba(0,0,0,.3); pointer-events:none;}
+.mk.old{background:#8a90a0;}
+.mk-i{display:inline-grid; place-items:center; width:22px; height:22px; border-radius:50%; background:var(--red); color:#fff; font-size:11px; font-weight:800; flex-shrink:0;}
+.mk-i.old{background:#8a90a0;}
+.av-row{display:grid; grid-template-columns:auto 140px minmax(0,1fr) auto; gap:8px; align-items:center; padding:8px 0; border-bottom:1px solid var(--line2);}
+.av-row:last-child{border-bottom:0;}
+.av-ro{display:flex; gap:9px; align-items:flex-start; padding:7px 0; border-bottom:1px solid var(--line2); font-size:12.5px;}
+.av-ro:last-child{border-bottom:0;}
+.ck-side .prog{height:10px; border-radius:5px; background:var(--line2); overflow:hidden; margin:10px 0 4px;}
+.ck-side .prog i{display:block; height:100%; background:var(--blue); border-radius:5px; transition:width .2s;}
+.ck-side .prog i.full{background:var(--green);}
+.ck-cnts{display:grid; grid-template-columns:repeat(4,1fr); gap:6px; margin:12px 0;}
+.ck-cnts div{background:var(--canvas); border-radius:9px; padding:8px 4px; text-align:center;}
+.ck-cnts b{display:block; font-size:18px; font-weight:800; font-variant-numeric:tabular-nums;}
+.ck-cnts span{font-size:10.5px; color:var(--muted); font-weight:700;}
+.ck-check{display:flex; gap:9px; align-items:flex-start; font-size:12.5px; line-height:1.4; margin-top:12px; cursor:pointer;}
+.ck-check input{width:18px; height:18px; margin-top:1px; flex-shrink:0; accent-color:var(--blue);}
+.ck-cmp{display:grid; grid-template-columns:repeat(auto-fit,minmax(118px,1fr)); gap:10px; background:var(--blue-soft); border-radius:12px; padding:12px 14px; margin-top:14px; font-size:12px;}
+.ck-cmp span{display:block; color:var(--muted); font-weight:600; font-size:11px;}
+.ck-cmp b{font-size:14px; font-weight:800;}
+.badge.rota{background:var(--blue-soft); color:var(--blue);}
+.nok-list{margin:4px 0 0; padding:0; list-style:none; font-size:12.5px;}
+.nok-list li{padding:6px 0; border-bottom:1px solid var(--line2); display:flex; gap:8px; align-items:baseline;}
+.nok-list li:last-child{border-bottom:0;}
+.nok-list li::before{content:""; width:7px; height:7px; border-radius:50%; background:var(--red); flex-shrink:0; transform:translateY(-1px);}
+.nok-list li small{color:var(--muted); font-size:11px; margin-left:auto; white-space:nowrap;}
+.nok-list li.novo b{color:var(--red);}
+.ck-tpl-sec{columns:2 260px; column-gap:22px; font-size:12.5px; margin:0; padding:0; list-style:none;}
+.ck-tpl-sec li{padding:5px 0; border-bottom:1px solid var(--line2); break-inside:avoid;}
+.ck-tpl-sec li em{font-style:normal; color:var(--muted); margin-right:6px; font-variant-numeric:tabular-nums;}
+@media (max-width:1180px){ .ck-layout{grid-template-columns:1fr;} }
+@media (max-width:760px){
+  .ck-head{grid-template-columns:1fr; gap:12px;} .ck-ph{height:96px;}
+  .seg{display:flex;} .seg button{flex:1; justify-content:center;}
+  .tri button{min-width:46px; height:38px;}
+  .ck-it{grid-template-columns:1fr; gap:6px;} .ck-it .tri{justify-content:flex-end;}
+  .av-row{grid-template-columns:auto minmax(0,1fr) auto;} .av-row input{grid-column:1/-1;}
+}
+
+/* atalho do checklist (bem visível) */
+.ck-go{display:inline-flex; align-items:center; gap:8px; height:38px; padding:0 16px 0 13px; border-radius:999px; border:0; background:var(--orange); color:#14161b; font-size:13px; font-weight:800; box-shadow:0 6px 16px rgba(245,165,36,.35);}
+.ck-go:hover{filter:brightness(1.05); transform:translateY(-1px);}
+.ck-go.on{background:var(--black); color:#fff; box-shadow:none;}
+.rail-btn[data-view="checklist"]{color:var(--orange);}
+.rail-btn .novo{position:absolute; top:-4px; right:-8px; background:var(--orange); color:#14161b; font-size:8.5px; font-weight:900; letter-spacing:.4px; padding:1px 4px; border-radius:5px;}
+.ck-banner{display:flex; align-items:center; gap:16px; flex-wrap:wrap; background:linear-gradient(120deg,#14161b,#2a2d35); color:#fff; border-radius:var(--r); padding:16px 20px; margin-bottom:16px; box-shadow:var(--shadow);}
+.ck-banner .ic{width:46px; height:46px; border-radius:12px; background:var(--orange); color:#14161b; display:grid; place-items:center; flex-shrink:0;}
+.ck-banner b{font-size:15px;} .ck-banner small{display:block; color:#b9bdc8; font-size:12.5px; margin-top:2px;}
+.ck-banner .btn{margin-left:auto; background:var(--orange); color:#14161b;}
+@media (max-width:760px){ .ck-go span{display:none;} .ck-go{padding:0 12px;} .rail-btn .novo{display:none;} }
+
+@media (max-width:1100px){ .fleet{grid-template-columns:1fr;} .fleet-list{position:static;} .fl-body{max-height:340px;} }
+@media (max-width:760px){
+  #rail{inset:auto 0 0 0; width:auto; height:62px; flex-direction:row; justify-content:space-around; padding:0 6px; gap:0;}
+  .rail-logo,.rail-sep,.rail-foot,.rail-btn .tt{display:none;}
+  .main{margin-left:0; padding:16px 14px 86px;}
+  .hero{grid-template-columns:1fr; padding:18px;}
+  .hero-img{order:-1; min-height:0;}
+  .ficha{grid-template-columns:1fr;}
+  .afs-row{grid-template-columns:1fr 1fr;} .afs-row.head{display:none;}
+  .hide-sm{display:none;}
+}
+@media (prefers-reduced-motion:no-preference){
+  .hero-img svg,.hero-img img{animation:drive .45s cubic-bezier(.2,.8,.2,1);}
+  @keyframes drive{from{opacity:0; transform:translateX(-26px);} to{opacity:1; transform:none;}}
+}
+</style>
+<style>
+/* ---------- CIOT (extras sobre o visual do Controle de Frota) ---------- */
+textarea.bulk{width:100%; min-height:110px; padding:9px 11px; background:var(--canvas); border:1px solid var(--line); color:var(--ink); border-radius:9px; font:12px ui-monospace,Menlo,Consolas,monospace; white-space:pre; overflow:auto; resize:vertical;}
+.num{font-variant-numeric:tabular-nums; font-weight:700; letter-spacing:.2px;}
+.mono{font-family:ui-monospace,Menlo,Consolas,monospace; font-size:12px;}
+.dbar{height:6px; border-radius:4px; background:var(--line2); overflow:hidden; margin-top:5px; max-width:130px;}
+.dbar i{display:block; height:100%; border-radius:4px;}
+.ag-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(210px,1fr)); gap:12px;}
+.ag-day{border:1px solid var(--line); border-radius:12px; padding:12px; background:#fff; min-height:120px;}
+.ag-day.hoje{border-color:var(--orange); box-shadow:0 0 0 2px var(--orange-soft);}
+.ag-day.atras{border-color:#f4c7c8; background:var(--red-soft);}
+.ag-day h4{margin:0 0 2px; font-size:13px; display:flex; justify-content:space-between; gap:8px;}
+.ag-day h4 span{font-size:11px; color:var(--muted); font-weight:600;}
+.ag-day ul{list-style:none; margin:8px 0 0; padding:0;}
+.ag-day li{font-size:12px; padding:6px 0; border-top:1px solid var(--line2); cursor:pointer; display:flex; justify-content:space-between; gap:8px;}
+.ag-day li:hover b{color:var(--blue);}
+.ag-day li small{color:var(--muted);}
+.ag-day .vazio{font-size:12px; color:var(--muted); margin-top:8px;}
+.ci-warn{font-size:12px; border-radius:9px; padding:8px 10px; margin:2px 0 6px; line-height:1.5;}
+.ci-warn.ok{background:var(--green-soft); color:#16794a;}
+.ci-warn.at{background:var(--orange-soft); color:#8a5800;}
+.ci-warn.cr{background:var(--red-soft); color:var(--red);}
+.prev-tb{max-height:260px; overflow:auto; border:1px solid var(--line2); border-radius:9px; margin:8px 0;}
+.prev-tb table{width:100%; border-collapse:collapse; font-size:12px;} .prev-tb th,.prev-tb td{padding:6px 8px; border-bottom:1px solid var(--line2); text-align:left; white-space:nowrap;} .prev-tb th{background:var(--canvas); position:sticky; top:0;}
+#chAgenda,#chAgendaLab{gap:8px;} #chAgenda .cl::before{inset:0 calc(50% - 14px) 0;} #chAgendaLab span{min-width:0; overflow:hidden;}
+@media (max-width:760px){ #chAgenda,#chAgendaLab{gap:3px;} #chAgendaLab span{font-size:9px; line-height:1.2;} #chAgenda .cl b{font-size:11px;} #chAgenda .cl i{width:14px;} #chAgenda .cl::before{inset:0 calc(50% - 10px) 0;} .ag-grid{grid-template-columns:1fr 1fr;} }
+.ficha div .badge{display:inline-flex;} .ficha div .placa{display:inline-flex;}
+</style>
+
+</head>
+<body>
+
+<nav id="rail" aria-label="Menu principal">
+  <div class="rail-logo" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h9l4 4v14H6z"/><path d="M15 3v4h4"/><path d="M9 13h6M9 17h4"/></svg></div>
+  <button type="button" class="rail-btn" data-view="painel" aria-label="Painel"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg><span class="tt">Painel</span></button>
+  <button type="button" class="rail-btn" data-view="ciot" aria-label="Controle de CIOT"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h9l4 4v14H6z"/><path d="M15 3v4h4"/><path d="M9 14l2 2 4-4"/></svg><span class="tt">Controle de CIOT</span></button>
+  <button type="button" class="rail-btn" data-view="motoristas" aria-label="Motoristas"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M2 15V8h12v7"/><path d="M14 10h4l3 3v2h-7"/><circle cx="6.5" cy="16.5" r="1.8"/><circle cx="17" cy="16.5" r="1.8"/></svg><span class="tt">Motoristas (cadastro)</span></button>
+  <button type="button" class="rail-btn" data-view="agenda" aria-label="Agenda"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><span class="tt">Agenda de encerramentos</span></button>
+  <button type="button" class="rail-btn" data-view="alertas" aria-label="Alertas"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9.5 17h-19z"/><path d="M12 10v4M12 17.5v.5"/></svg><span class="tt">Alertas</span></button>
+  <div class="rail-sep"></div>
+  <button type="button" class="rail-btn" data-view="hist" aria-label="Histórico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span class="tt">Histórico de alterações</span></button>
+  <button type="button" class="rail-btn" data-view="edicao" aria-label="Modo edição"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg><span class="tt">Modo edição</span></button>
+  <div class="rail-foot" aria-hidden="true">DS</div>
+</nav>
+
+<main class="main">
+  <div class="topbar">
+    <h1 id="pageTitle">Painel do CIOT<small id="dateTag"></small></h1>
+    <div class="tb-right">
+      <span class="pill" id="statusTag"><span class="dot"></span><span id="statusTxt">conectando…</span></span>
+      <span class="pill"><span id="clock">--:--</span></span>
+      <button type="button" class="ck-go" id="goNovoTop" title="Registrar um CIOT novo"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg><span>Novo CIOT</span></button>
+      <span class="pill" id="editPill" style="display:none;"><span class="dot" style="background:var(--blue)"></span>Modo edição</span>
+    </div>
+  </div>
+
+  <div class="box warn" id="regrasBox" style="display:none; margin-top:0;">
+    <h4>Falta publicar as regras do Firestore para o CIOT</h4>
+    <div class="note" style="margin-top:0;">O painel está mostrando o cadastro da planilha, mas ainda não consegue ler nem gravar no banco. No Firebase: Firestore Database → Regras → apagar tudo → colar o conteúdo do arquivo <b>firestore.rules</b> deste repositório → Publicar. Depois recarregue a página.</div>
+  </div>
+
+  <!-- ===================== PAINEL ===================== -->
+  <section id="viewPainel" class="view">
+    <div class="ck-banner"><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h9l4 4v14H6z"/><path d="M15 3v4h4"/><path d="M9 14l2 2 4-4"/></svg></span><div><b>Controle de CIOT</b><small id="bannerTxt">Abertura, validade e encerramento dos CIOTs dos freteiros, com alerta de vencimento.</small></div><button type="button" class="btn" id="goCiotBanner">Abrir controle</button></div>
+    <p class="resumo" id="resumo">Carregando…</p>
+    <div class="kpis" id="kpis"></div>
+    <div class="grid2">
+      <div class="card">
+        <div class="card-h"><h3>Situação dos CIOTs abertos</h3><span class="sub">ativos × vencendo × vencidos</span></div>
+        <div class="lg"><span><em style="background:var(--green)"></em>Ativo</span><span><em style="background:var(--orange)"></em>Vence hoje/amanhã</span><span><em style="background:var(--red)"></em>Vencido sem encerrar</span></div>
+        <div id="chSit"></div>
+        <div class="eyebrow" style="margin:18px 0 4px;">Motoristas</div>
+        <div id="chMot"></div>
+      </div>
+      <div class="card">
+        <div class="card-h"><h3>Alertas críticos</h3><button type="button" class="link" id="verAlertas">Ver todos</button></div>
+        <div id="alertasTop" class="scroll"></div>
+      </div>
+    </div>
+    <div class="grid2">
+      <div class="card">
+        <div class="card-h"><h3>Encerramentos nos próximos 10 dias</h3><button type="button" class="link" id="verAgenda">Abrir agenda</button></div>
+        <div class="cols" id="chAgenda"></div>
+        <div class="cols-lab" id="chAgendaLab"></div>
+      </div>
+      <div class="card">
+        <div class="card-h"><h3>Por tipo de veículo</h3><span class="sub">com CIOT aberto / total</span></div>
+        <div class="lg"><span><em style="background:var(--black)"></em>Com CIOT aberto</span><span><em style="background:var(--lav)"></em>Sem CIOT</span></div>
+        <div id="chVeic"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== CONTROLE DE CIOT ===================== -->
+  <section id="viewCiot" class="view" style="display:none;">
+    <div class="box" id="impCiotBox" style="display:none; margin-top:0;">
+      <h4>Lançar CIOTs em lote (colar da planilha)</h4>
+      <div class="note" style="margin-top:0;">Cole as colunas <b>Nº CIOT, MOTORISTA (ou PLACA), DATA DE ABERTURA</b> e, se tiver, <b>VALIDADE</b> (data ou nº de dias) e <b>MDF-e</b>. Pode incluir o cabeçalho, em qualquer ordem. Sem validade, o painel usa a duração padrão.</div>
+      <textarea id="ciotBulk" class="bulk" placeholder="Cole aqui as linhas copiadas…" spellcheck="false" style="margin-top:10px;"></textarea>
+      <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;"><button class="btn btn-dark" id="btnCiotBulk" type="button">Analisar e pré-visualizar</button><button class="btn btn-line" id="btnCiotBulkFechar" type="button">Fechar</button></div>
+      <div id="ciotBulkMsg" class="note"></div>
+    </div>
+    <div class="kpis" id="cKpis"></div>
+    <div class="cl-layout">
+      <div class="card">
+        <div class="card-h"><h3>CIOTs</h3><span class="sub" id="cCount"></span>
+          <span style="display:flex; gap:8px; margin-left:auto;" id="cAcoes"></span></div>
+        <div class="ftools">
+          <input id="cBusca" type="search" placeholder="Buscar CIOT, motorista, placa, MDF-e…" aria-label="Buscar CIOT">
+          <select id="cVeic" aria-label="Tipo de veículo"><option value="">Veículo: todos</option></select>
+          <select id="cMes" aria-label="Mês de abertura"><option value="">Abertura: todas</option></select>
+        </div>
+        <div class="fchips" id="cChips"></div>
+        <div class="tablewrap" style="max-height:calc(100vh - 330px); min-height:300px;">
+          <table class="tb vt">
+            <thead><tr id="cHead"><th class="sortable" data-k="numero">CIOT</th><th class="sortable" data-k="nome">Motorista</th><th class="sortable hide-sm" data-k="abertura">Abertura</th><th class="sortable" data-k="validade">Validade</th><th class="sortable" data-k="sit">Situação</th></tr></thead>
+            <tbody id="cBody"></tbody>
+          </table>
+        </div>
+      </div>
+      <div id="cFicha"></div>
+    </div>
+  </section>
+
+  <!-- ===================== MOTORISTAS ===================== -->
+  <section id="viewMotoristas" class="view" style="display:none;">
+    <div class="box warn" id="impCadBox" style="display:none; margin-top:0;">
+      <h4>Cadastro dos motoristas pronto para importar</h4>
+      <div class="note" style="margin-top:0;" id="impCadTxt"></div>
+      <button class="btn btn-dark" id="btnImpCad" type="button" style="margin-top:10px;">Importar cadastro</button>
+    </div>
+    <div class="kpis" id="mKpis"></div>
+    <div class="cl-layout">
+      <div class="card">
+        <div class="card-h"><h3>Motoristas</h3><span class="sub" id="mCount"></span></div>
+        <div class="ftools">
+          <input id="mBusca" type="search" placeholder="Buscar nome, placa, nº TAC/ETC…" aria-label="Buscar motorista">
+          <select id="mVeic" aria-label="Tipo de veículo"><option value="">Veículo: todos</option></select>
+          <select id="mReg" aria-label="Tipo de registro"><option value="">Registro: todos</option><option>TAC</option><option>ETC</option></select>
+        </div>
+        <div class="fchips" id="mChips"></div>
+        <div class="tablewrap" style="max-height:calc(100vh - 330px); min-height:300px;">
+          <table class="tb vt">
+            <thead><tr id="mHead"><th class="sortable" data-k="nome">Motorista</th><th class="sortable" data-k="placa">Veículo</th><th class="sortable hide-sm" data-k="tac">RNTRC</th><th class="sortable" data-k="cad">Cadastro</th><th class="sortable" data-k="ciot">CIOT</th></tr></thead>
+            <tbody id="mBody"></tbody>
+          </table>
+        </div>
+      </div>
+      <div id="mFicha"></div>
+    </div>
+  </section>
+
+  <!-- ===================== AGENDA ===================== -->
+  <section id="viewAgenda" class="view" style="display:none;">
+    <div class="card">
+      <div class="card-h"><h3>Agenda de encerramentos</h3><span class="sub">pela data de validade dos CIOTs abertos</span></div>
+      <div class="ag-grid" id="agGrid"></div>
+    </div>
+  </section>
+
+  <!-- ===================== ALERTAS ===================== -->
+  <section id="viewAlertas" class="view" style="display:none;">
+    <div class="card">
+      <div class="card-h"><h3>O que pede ação</h3><span class="sub">recalculado a cada alteração</span></div>
+      <div class="fchips" id="alChips"></div>
+      <div class="tablewrap">
+        <table class="tb">
+          <thead><tr><th>Nível</th><th>Motorista</th><th class="hide-sm">Placa</th><th>Alerta</th><th class="hide-sm">Detalhe</th></tr></thead>
+          <tbody id="alBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== HISTÓRICO ===================== -->
+  <section id="viewHist" class="view" style="display:none;">
+    <div class="card">
+      <div class="card-h"><h3>Histórico de alterações</h3><span class="sub">últimas 200</span></div>
+      <div id="histList"></div>
+    </div>
+  </section>
+
+  <!-- ===================== EDIÇÃO ===================== -->
+  <section id="viewEdicao" class="view" style="display:none;">
+    <div class="card form" style="max-width:860px;">
+      <div class="card-h"><h3>Modo edição</h3></div>
+      <div id="gateLocked">
+        <input id="emailInput" type="email" autocomplete="username" placeholder="E-mail do editor" style="display:none; margin-bottom:6px;">
+        <label id="pinLabel" for="pinInput">PIN de edição</label>
+        <input id="pinInput" type="password" placeholder="••••" style="max-width:260px;">
+        <div><button class="btn btn-dark" id="btnUnlock" type="button" style="margin-top:12px;">Entrar</button></div>
+      </div>
+      <div id="formPanel" style="display:none;">
+        <div class="box">
+          <h4>Duração padrão do CIOT</h4>
+          <div class="note" style="margin-top:0;">Usada para calcular a validade quando você abre um CIOT novo (pode ser ajustada em cada CIOT).</div>
+          <div style="display:flex; gap:10px; align-items:center; margin-top:10px;"><input id="cfgDias" type="number" min="1" max="60" style="max-width:110px;"><span class="muted">dias corridos</span><button class="btn btn-line" id="btnCfgDias" type="button">Salvar</button></div>
+        </div>
+        <div class="box">
+          <h4>Atualizar o cadastro pela planilha (colar)</h4>
+          <div class="note" style="margin-top:0;">Na planilha de CADASTRO, selecione da coluna <b>A (0=) até M (STATUS GERAL)</b>, copie e cole aqui. Pode incluir o cabeçalho. Motoristas novos são criados e os existentes atualizados. <b>CPF, telefone e CNPJ não são gravados</b>, porque o painel é público.</div>
+          <textarea id="cadBulk" class="bulk" placeholder="Cole aqui as linhas copiadas da planilha…" spellcheck="false" style="margin-top:10px;"></textarea>
+          <button class="btn btn-dark" id="btnCadBulk" type="button" style="margin-top:10px;">Analisar e pré-visualizar</button>
+          <div id="cadBulkMsg" class="note"></div>
+        </div>
+      </div>
+      <div class="note">Link público: qualquer pessoa vê o painel ao vivo. Só quem tiver o PIN consegue lançar e editar CIOTs.</div>
+    </div>
+  </section>
+</main>
+
+<!-- modal: CIOT -->
+<div class="modal" id="ciotModal" role="dialog" aria-modal="true" aria-labelledby="cmTitle">
+  <div class="modal-box sm form">
+    <h3 id="cmTitle">Novo CIOT</h3>
+    <div class="form-grid">
+      <div class="full"><label for="cm_mot">Motorista</label><input id="cm_mot" type="text" list="dlMot" placeholder="Digite o nome ou a placa" autocomplete="off"><datalist id="dlMot"></datalist></div>
+      <div class="full" id="cm_info"></div>
+      <div><label for="cm_num">Nº do CIOT</label><input id="cm_num" type="text" inputmode="numeric" placeholder="Ex.: 123456789012"></div>
+      <div><label for="cm_mdfe">Nº do MDF-e (opcional)</label><input id="cm_mdfe" type="text" inputmode="numeric"></div>
+      <div><label for="cm_ab">Data de abertura</label><input id="cm_ab" type="date"></div>
+      <div><label for="cm_dias">Duração (dias corridos)</label><input id="cm_dias" type="number" min="1" max="60"></div>
+      <div><label for="cm_val">Validade (encerrar até)</label><input id="cm_val" type="date"></div>
+      <div><label for="cm_rota">Rota / destino (opcional)</label><input id="cm_rota" type="text"></div>
+      <div class="full"><label for="cm_obs">Observação</label><textarea id="cm_obs" rows="2"></textarea></div>
+    </div>
+    <div class="edit-actions">
+      <button class="btn btn-dark" id="btnCmSalvar" type="button">Salvar CIOT</button>
+      <button class="btn btn-line" id="btnCmCancelar" type="button">Cancelar</button>
+    </div>
+    <div id="cmMsg" class="note"></div>
+  </div>
+</div>
+
+<!-- modal: motorista -->
+<div class="modal" id="motModal" role="dialog" aria-modal="true" aria-labelledby="mmTitle">
+  <div class="modal-box sm form">
+    <h3 id="mmTitle">Editar motorista</h3>
+    <div class="form-grid">
+      <div class="full"><label for="mm_nome">Nome</label><input id="mm_nome" type="text"></div>
+      <div><label for="mm_veic">Tipo de veículo</label><input id="mm_veic" type="text" list="dlVeic"><datalist id="dlVeic"></datalist></div>
+      <div><label for="mm_placa">Placa</label><input id="mm_placa" type="text" maxlength="8"></div>
+      <div><label for="mm_tac">Nº TAC/ETC (RNTRC)</label><input id="mm_tac" type="text" inputmode="numeric"></div>
+      <div><label for="mm_reg">Tipo de registro</label><select id="mm_reg"><option>TAC</option><option>ETC</option></select></div>
+      <div><label for="mm_sttac">Status do RNTRC</label><select id="mm_sttac"><option>VÁLIDO</option><option>INVÁLIDO</option></select></div>
+      <div><label for="mm_stg">Status geral</label><select id="mm_stg"><option value="ok">OK</option><option value="pend">Pendência</option><option value="inval">Inválido</option></select></div>
+      <div class="full"><label for="mm_obs">Obs / pendências</label><textarea id="mm_obs" rows="2"></textarea></div>
+      <div class="full"><label style="display:flex; gap:8px; align-items:center;"><input id="mm_inativo" type="checkbox" style="width:auto;"> Motorista inativo (não aparece nas contagens)</label></div>
+    </div>
+    <div class="edit-actions">
+      <button class="btn btn-dark" id="btnMmSalvar" type="button">Salvar</button>
+      <button class="btn btn-line" id="btnMmCancelar" type="button">Cancelar</button>
+    </div>
+    <div id="mmMsg" class="note"></div>
+  </div>
+</div>
+
+<div id="toast" role="status"></div>
+
+<script type="module">
+/* ======================================================================
+   CONTROLE DE CIOT — Disdal (mesmo projeto Firebase dos outros painéis)
+   ====================================================================== */
+const firebaseConfig = {
+  apiKey: "AIzaSyAYcAWcV_iDJNJiZpQsAbTP93WwF_JOQfE",
+  authDomain: "rastreamento-de-cargas-d20d0.firebaseapp.com",
+  projectId: "rastreamento-de-cargas-d20d0",
+  storageBucket: "rastreamento-de-cargas-d20d0.firebasestorage.app",
+  messagingSenderId: "114429895544",
+  appId: "1:114429895544:web:62609ed30c7c190dd6de8d",
+  measurementId: "G-JY8E8BJT16"
+};
+// PIN simples só para esconder a edição. A proteção real de escrita fica nas Regras do Firestore.
+const EDIT_PIN = "1507";
+const USE_EMAIL_LOGIN = false;
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+import { getAuth, signInAnonymously, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
+import {
+  getFirestore, collection, doc, setDoc, onSnapshot, serverTimestamp, updateDoc,
+  addDoc, query, orderBy, limit, writeBatch
+} from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const motRef = collection(db, "ciot_motoristas");
+const regRef = collection(db, "ciot_registros");
+const histRef = collection(db, "ciot_historico");
+
+// Cadastro da planilha (aba CADASTRO). CPF, CPF do condutor, telefone e CNPJ ficaram de fora: o banco é de leitura pública.
+const BASE_CAD = [{"n":1,"nome":"ADAILTON DUARTE - PJ","veiculo":"CAMINHÃO 3/4","tac":"049879911","registro":"TAC","statusTac":"VÁLIDO","placa":"KXA1237","obs":"","statusGeral":"ok","pj":true,"condutorDif":false},{"n":2,"nome":"ADAO DOMINGOS LIMA","veiculo":"FIORINO","tac":"058760366","registro":"TAC","statusTac":"VÁLIDO","placa":"RFJ5D40","obs":"","statusGeral":"ok","pj":false,"condutorDif":false},{"n":3,"nome":"ADRIANO LOPES DOS SANTOS - PJ","veiculo":"FIORINO","tac":"057194822","registro":"TAC","statusTac":"VÁLIDO","placa":"DVT2A13","obs":"","statusGeral":"ok","pj":true,"condutorDif":false},{"n":4,"nome":"ALAN EUSTAQUIO DE SOUZA - PJ","veiculo":"VAN","tac":"058436566","registro":"ETC","statusTac":"VÁLIDO","placa":"JER1F88","obs":"","statusGeral":"ok","pj":true,"condutorDif":false},{"n":5,"nome":"ALBENI GERALDO DE JESUS FILHO - PJ","veiculo":"FIORINO","tac":"058722377","registro":"TAC","statusTac":"VÁLIDO","placa":"OVT6H27","obs":"","statusGeral":"ok","pj":true,"condutorDif":false},{"n":6,"nome":"ALEX DE MORAES XAVIER - PJ","veiculo":"FIORINO","tac":"058354700","registro":"TAC","statusTac":"VÁLIDO","placa":"PAT1H39","obs":"","statusGeral":"ok","pj":true,"condutorDif":false},{"n":7,"nome":"ALEX SANDRO DA SILVA - PJ","veiculo":"FIORINO","tac":"059083288","registro":"ETC","statusTac":"VÁLIDO","placa":"JIP3J03","obs":"","statusGeral":"ok","pj":true,"condutorDif":false},{"n":8,"nome":"ALEXANDRA PAIVA - SEBASTIÃO SILVA (VAN)","veiculo":"VAN","tac":"047776254","registro":"TAC","statusTac":"VÁLIDO","placa":"HJI3556","obs":"","statusGeral":"ok","pj":false,"condutorDif":true},{"n":9,"nome":"ALINE LUTES DE LIMA GUIMARAES - PJ (ITALO)","veiculo":"FIORINO","tac":"059121455","registro":"TAC","statusTac":"VÁLIDO","placa":"OVU0E65","obs":"","statusGeral":"ok","pj":true,"condutorDif":false},{"n":10,"nome":"ANTONIO ALMIR CONCEIÇÃO DA SILVA","veiculo":"CAMINHÃO 3/4","tac":"059819688","registro":"ETC","statusTac":"VÁLIDO","placa":"JJZ6150","obs":"","statusGeral":"ok","pj":true,"condutorDif":false},{"n":11,"nome":"ANTONIO ALVES SANTOS - PJ","veiculo":"FIORINO","tac":"058943100","registro":"TAC","statusTac":"VÁLIDO","placa":"JFT5F98","obs":"","statusGeral":"ok","pj":true,"condutorDif":false},{"n":12,"nome":"ANTONIO CAVALCANTE - PJ","veiculo":"FIORINO","tac":"053144177","registro":"TAC","statusTac":"VÁLIDO","placa":"JHO4J03","obs":"","statusGeral":"ok","pj":true,"condutorDif":false},{"n":13,"nome":"ANTONIO WENDEL FERREIRA DE OLIVEIRA","veiculo":"FIORINO","tac":"059793877","registro":"TAC","statusTac":"VÁLIDO","placa":"RNK7H27","obs":"","statusGeral":"ok","pj":true,"condutorDif":false},{"n":14,"nome":"ARTHUR FERNANDES SANTIAGO OLIVEIRA - PJ","veiculo":"FIORINO","tac":"055811544","registro":"TAC","statusTac":"VÁLIDO","placa":"QXL6A45","obs":"","statusGeral":"ok","pj":true,"condutorDif":false},{"n":15,"nome":"BRENDEL LOPES DE JESUS","veiculo":"FIORINO","tac":"058639366","registro":"TAC","statusTac":"VÁLIDO","placa":"JFN4F73","obs":"","statusGeral":"ok","pj":true,"condutorDif":false},{"n":16,"nome":"CARLOS EDUARDO OLIVEIRA SILVA","veiculo":"FIORINO","tac":"059758511","registro":"TAC","statusTac":"VÁLIDO","placa":"RTR3D63","obs":"","statusGeral":"ok","pj":false,"condutorDif":false},{"n":17,"nome":"CELIO ALVES ALVES DE OLIVEIRA - PJ","veiculo":"HR","tac":"047853364","registro":"TAC","statusTac":"VÁLIDO","placa":"CUB7188","obs":"","statusGeral":"ok","pj":true,"condutorDif":true},{"n":18,"nome":"CICERO ERLANDIO LOPES SOARES","veiculo":"HR","tac":"059709488","registro":"TAC","statusTac":"VÁLIDO","placa":"JIK5C55","obs":"","statusGeral":"ok","pj":true,"condutorDif":false},{"n":19,"nome":"CLAUDIA GOMES DA SILVA","veiculo":"VAN","tac":"051898699","registro":"TAC","statusTac":"VÁLIDO","placa":"DFI0397","obs":"","statusGeral":"ok","pj":false,"condutorDif":false},{"n":20,"nome":"DANIEL DIVINO VIERA GONÇALVES","veiculo":"FIORINO","tac":"052688033","registro":"ETC","statusTac":"VÁLIDO","placa":"OZZ4I41","obs":"PLACA NÃO ESTA CADASTRADA","statusGeral":"pend","pj":true,"condutorDif":true},{"n":21,"nome":"DANIEL PEREIRA NORONHA","veiculo":"FIORINO","tac":"059685866","registro":"ETC","statusTac":"VÁLIDO","placa":"OVS4C36","obs":"","statusGeral":"ok","pj":true,"condutorDif":false},{"n":22,"nome":"DAVID ANDERSON OLIVEIRA NUNES","veiculo":"FIORINO","tac":"054758699","registro":"TAC","statusTac":"VÁLIDO","placa":"OOE4A87","obs":"PLACA NÃO ESTA CADASTRADA","statusGeral":"pend","pj":true,"condutorDif":true},{"n":23,"nome":"DERIVALDO SARAIVA DE OLIVEIRA","veiculo":"FIORINO","tac":"059699122","registro":"TAC","statusTac":"VÁLIDO","placa":"SYM6F10","obs":"","statusGeral":"ok","pj":false,"condutorDif":false},{"n":24,"nome":"DEUSANIRA DE SOUSA LIRA - JOSE ALES","veiculo":"VAN","tac":"002997687","registro":"TAC","statusTac":"INVÁLIDO","placa":"JSF7683","obs":"VEICULO TIPO PASSAGEIRO","statusGeral":"inval","pj":false,"condutorDif":false},{"n":25,"nome":"DEYLA CRISTINA DA SILVA COSTA - PJ","veiculo":"FIORINO","tac":"057710799","registro":"TAC","statusTac":"VÁLIDO","placa":"RMK6C64","obs":"","statusGeral":"ok","pj":true,"condutorDif":false},{"n":26,"nome":"DRENYSON NUNES DOS SANTOS - PJ","veiculo":"VAN","tac":"058779344","registro":"TAC","statusTac":"VÁLIDO","placa":"JJE5F21","obs":"","statusGeral":"ok","pj":true,"condutorDif":false},{"n":27,"nome":"EDER SOUZA DA SILVA - PJ","veiculo":"FIORINO","tac":"058302222","registro":"TAC","statusTac":"VÁLIDO","placa":"QXB8D30","obs":"","statusGeral":"ok","pj":true,"condutorDif":false},{"n":28,"nome":"EDINALDO FELIX DO NASCIMENTO - PJ","veiculo":"VAN","tac":"051089744","registro":"TAC","statusTac":"VÁLIDO","placa":"LWJ9H11","obs":"","statusGeral":"ok","pj":true,"condutorDif":false},{"n":29,"nome":"EDINHO DOS SANTOS SOUSA","veiculo":"VAN","tac":"056609099","registro":"TAC","statusTac":"VÁLIDO","placa":"JFP4H34","obs":"","statusGeral":"ok","pj":true,"condutorDif":false},{"n":30,"nome":"EDMAR ALVES DIAS - PJ","veiculo":"VAN","tac":"010556960","registro":"TAC","statusTac":"VÁLIDO","placa":"KEX4158","obs":"","statusGeral":"ok","pj":true,"condutorDif":false},{"n":31,"nome":"EDNALDO BARBOSA DA SILVA","veiculo":"CAMINHÃO 3/4","tac":"054091522","registro":"TAC","statusTac":"VÁLIDO","placa":"JJC1F23","obs":"","statusGeral":"ok","pj":false,"condutorDif":false},{"n":32,"nome":"EDSON JOSE DA SILVA - PJ","veiculo":"FIORINO","tac":"055776055","registro":"TAC","statusTac":"VÁLIDO","placa":"JGP9F31","obs":"","statusGeral":"ok","pj":true,"condutorDif":false},{"n":33,"nome":"EDUARDO DE SOUSA MARTINS - PJ","veiculo":"CAMINHÃO 3/4","tac":"056926722","registro":"TAC","statusTac":"VÁLIDO","placa":"FES4D55","obs":"","statusGeral":"ok","pj":true,"condutorDif":false},{"n":34,"nome":"ELLYON TRANSPORTADORA LTDA (ATLAS)","veiculo":"VAN","tac":"051035111","registro":"TAC","statusTac":"VÁLIDO","placa":"UJL0B23","obs":"","statusGeral":"ok","pj":true,"condutorDif":false},{"n":35,"nome":"ERIK ADRIANO ALVES DOS REIS-PJ","veiculo":"FIORINO","tac":"057043499","registro":"TAC","statusTac":"VÁLIDO","placa":"PBD2E28","obs":"","statusGeral":"ok","pj":true,"condutorDif":false},{"n":36,"nome":"ERIVAL DE OLIVEIRA SANTO","veiculo":"CAMINHÃO 3/4","tac":"012219480","registro":"TAC","statusTac":"VÁLIDO","placa":"JHH5B26","obs":"","statusGeral":"ok","pj":false,"condutorDif":false},{"n":37,"nome":"FELIPE DOS REIS BRAGA - PJ (MARIA JOSE)","veiculo":"VAN","tac":"053444033","registro":"TAC","statusTac":"VÁLIDO","placa":"JFT1I42","obs":"","statusGeral":"ok","pj":true,"condutorDif":false},{"n":38,"nome":"FERNANDA ALVES BORGES DINIZ - PJ","veiculo":"CARRETA","tac":"057979455","registro":"ETC","statusTac":"VÁLIDO","placa":"OPD0E17","obs":"","statusGeral":"ok","pj":true,"condutorDif":false},{"n":39,"nome":"FERNANDO ALVES DOS SANTOS LEAL-PJ","veiculo":"FIORINO","tac":"057006344","registro":"TAC","statusTac":"VÁLIDO","placa":"IUW7E31","obs":"","statusGeral":"ok","pj":true,"condutorDif":false},{"n":40,"nome":"FERNANDO RODRIGUES BRAGA","veiculo":"VAN","tac":"03532473","registro":"TAC","statusTac":"VÁLIDO","placa":"HWZ9587","obs":"","statusGeral":"ok","pj":false,"condutorDif":false},{"n":41,"nome":"FRANCISCO DE SOUSA CARVALHO - PJ","veiculo":"FIORINO","tac":"054562577","registro":"TAC","statusTac":"VÁLIDO","placa":"EWR9F24","obs":"","statusGeral":"ok","pj":true,"condutorDif":false},{"n":42,"nome":"FRANCISCO ROBERTO DE BRITO COSTA - PJ","veiculo":"FIORINO","tac":"058223000","registro":"TAC","statusTac":"VÁLIDO","placa":"RMK6C61","obs":"","statusGeral":"ok","pj":true,"condutorDif":false},{"n":43,"nome":"FRANCK CESAR MELO DE CARVALHO","veiculo":"VAN","tac":"059532622","registro":"ETC","statusTac":"VÁLIDO","placa":"AZA1H74","obs":"","statusGeral":"ok","pj":true,"condutorDif":false},{"n":44,"nome":"GABRIEL MARQUES SILVA","veiculo":"CAMINHÃO 3/4","tac":"054416855","registro":"TAC","statusTac":"VÁLIDO","placa":"CGG3E38","obs":"","statusGeral":"ok","pj":false,"condutorDif":false},{"n":45,"nome":"GCT LOGISTICA E TRANSPORTES (JACKSON)","veiculo":"FIORINO","tac":"052697288","registro":"TAC","statusTac":"VÁLIDO","placa":"RTI2I34","obs":"","statusGeral":"ok","pj":true,"condutorDif":true},{"n":46,"nome":"GENILTON DE SOUZA ALMEIDA - PJ","veiculo":"VAN","tac":"049220988","registro":"TAC","statusTac":"VÁLIDO","placa":"JGN3970","obs":"ALTERAR MODALIDADE DO VEICULO","statusGeral":"pend","pj":true,"condutorDif":false},{"n":47,"nome":"GGW TRANSPORTES E TURISMO LTDA","veiculo":"VAN","tac":"057805399","registro":"TAC","statusTac":"VÁLIDO","placa":"PBP8H36","obs":"","statusGeral":"ok","pj":true,"condutorDif":false},{"n":48,"nome":"GLORIA MARIA NUNES - PJ","veiculo":"FIORINO","tac":"055165144","registro":"TAC","statusTac":"VÁLIDO","placa":"HNH0G15","obs":"","statusGeral":"ok","pj":true,"condutorDif":false},{"n":49,"nome":"GRACINEIDE CRISTINA R G RODRIGUES - PJ - FIORINO","veiculo":"FIORINO","tac":"057559577","registro":"TAC","statusTac":"VÁLIDO","placa":"JKE5D96","obs":"","statusGeral":"ok","pj":true,"condutorDif":false},{"n":50,"nome":"GRACINEIDE CRISTINA R G RODRIGUES - PJ -VAN","veiculo":"VAN","tac":"057559577","registro":"TAC","statusTac":"INVÁLIDO","placa":"FLF1H15","obs":"PLACA NÃO VINCULADA","statusGeral":"inval","pj":true,"condutorDif":true},{"n":51,"nome":"HELIO ALVES DA SILVA","veiculo":"VAN","tac":"049825099","registro":"TAC","statusTac":"VÁLIDO","placa":"MAS0C54","obs":"","statusGeral":"ok","pj":false,"condutorDif":false},{"n":52,"nome":"HILDEGARDO SABBATINI FILHO - PJ (SABBATINI)","veiculo":"FIORINO","tac":"058607888","registro":"TAC","statusTac":"VÁLIDO","placa":"PAX7E16","obs":"","statusGeral":"ok","pj":true,"condutorDif":false},{"n":53,"nome":"IMEDLOG TRANSPORTES & LOGISTICA LTDA (ANDRÉ)","veiculo":"TRUCK","tac":"052862877","registro":"ETC","statusTac":"VÁLIDO","placa":"KGB2D27","obs":"CADASTRAR OS VEICULOS","statusGeral":"pend","pj":true,"condutorDif":false},{"n":54,"nome":"JEOVANE SANTOS DA SILVA","veiculo":"FIORINO","tac":"059347855","registro":"TAC","statusTac":"VÁLIDO","placa":"RTD7E47","obs":"","statusGeral":"ok","pj":true,"condutorDif":false},{"n":55,"nome":"JEOVANIO PEREIRA DE OLIVEIRA - PJ","veiculo":"FIORINO","tac":"059058688","registro":"TAC","statusTac":"VÁLIDO","placa":"REP5J47","obs":"","statusGeral":"ok","pj":true,"condutorDif":false},{"n":56,"nome":"JOAO MARCOS BEZERRA MARTINS - PJ","veiculo":"HR","tac":"056982555","registro":"TAC","statusTac":"VÁLIDO","placa":"PBK3C79","obs":"","statusGeral":"ok","pj":true,"condutorDif":false},{"n":57,"nome":"JORDAN RODRIGUES VASQUES","veiculo":"FIORINO","tac":"059178944","registro":"TAC","statusTac":"VÁLIDO","placa":"NKS5I76","obs":"","statusGeral":"ok","pj":true,"condutorDif":false},{"n":58,"nome":"JOSE DE JESUS ALVES FERREIRA","veiculo":"FIORINO","tac":"011936776","registro":"TAC","statusTac":"VÁLIDO","placa":"SSH9G57","obs":"","statusGeral":"ok","pj":true,"condutorDif":false},{"n":59,"nome":"JOSE GERALDO SOUZA SANTOS","veiculo":"CARRETA","tac":"048409877","registro":"TAC","statusTac":"VÁLIDO","placa":"JHK4G17","obs":"","statusGeral":"ok","pj":true,"condutorDif":false},{"n":60,"nome":"JOSE MACHADO DA COSTA NETO","veiculo":"CAMINHÃO 3/4","tac":"059579188","registro":"TAC","statusTac":"VÁLIDO","placa":"LOF5C13","obs":"","statusGeral":"ok","pj":true,"condutorDif":false},{"n":61,"nome":"JUCIELDO SILVA VALVERDE - PJ -FIORINO","veiculo":"FIORINO","tac":"056839088","registro":"TAC","statusTac":"VÁLIDO","placa":"GIF7G29","obs":"","statusGeral":"ok","pj":true,"condutorDif":false},{"n":62,"nome":"JUCIELDO SILVA VALVERDE - PJ (MATEUS)-VAN","veiculo":"VAN","tac":"056839090","registro":"TAC","statusTac":"VÁLIDO","placa":"NPK4D24","obs":"","statusGeral":"ok","pj":true,"condutorDif":true},{"n":63,"nome":"JUCIELDO SILVA VALVERDE - PJ-VAN","veiculo":"VAN","tac":"056839089","registro":"TAC","statusTac":"VÁLIDO","placa":"LON7C31","obs":"","statusGeral":"ok","pj":true,"condutorDif":false},{"n":64,"nome":"KAREN LACERDA DO NASCIMENTO - PJ","veiculo":"FIORINO","tac":"059537933","registro":"ETC","statusTac":"VÁLIDO","placa":"PAM3C77","obs":"","statusGeral":"ok","pj":true,"condutorDif":true},{"n":65,"nome":"KARINA ALVES AMARAL PINTO - PJ (DAMIAO)-VAN","veiculo":"VAN","tac":"058613255","registro":"TAC","statusTac":"VÁLIDO","placa":"PBG4C25","obs":"","statusGeral":"ok","pj":true,"condutorDif":false},{"n":66,"nome":"KARINA RODRIGUES DOS SANTOS / ORLANDO","veiculo":"FIORINO","tac":"057021166","registro":"TAC","statusTac":"VÁLIDO","placa":"REK5C58","obs":"","statusGeral":"ok","pj":false,"condutorDif":true},{"n":67,"nome":"KM CONSTRUCOES SERVICOS IMOB E AUTOM. (KLEBER)","veiculo":"VAN","tac":"058416077","registro":"TAC","statusTac":"VÁLIDO","placa":"REE8J60","obs":"","statusGeral":"ok","pj":true,"condutorDif":false},{"n":68,"nome":"LAIS IZAIAS DA SILVA - PJ (KOMBI)","veiculo":"KOMBI","tac":"057550200","registro":"TAC","statusTac":"VÁLIDO","placa":"JHT9G63","obs":"","statusGeral":"ok","pj":true,"condutorDif":false},{"n":69,"nome":"LAIS IZAIAS DA SILVA - PJ (VAN)","veiculo":"VAN","tac":"057550200","registro":"TAC","statusTac":"VÁLIDO","placa":"PAL3J88","obs":"","statusGeral":"ok","pj":true,"condutorDif":false},{"n":70,"nome":"LUCAS AGUIAR RIBEIRO","veiculo":"FIORINO","tac":"059689388","registro":"ETC","statusTac":"VÁLIDO","placa":"JIZ4J15","obs":"","statusGeral":"ok","pj":true,"condutorDif":false},{"n":71,"nome":"LUCAS DE SOUZA CELESTINO - PJ","veiculo":"FIORINO","tac":"058543822","registro":"ETC","statusTac":"VÁLIDO","placa":"DHP6J85","obs":"","statusGeral":"ok","pj":true,"condutorDif":false},{"n":72,"nome":"LUIZ FELIPE PEREIRA DA SILVA","veiculo":"FIORINO","tac":"058459199","registro":"ETC","statusTac":"VÁLIDO","placa":"RFQ9H18","obs":"","statusGeral":"ok","pj":true,"condutorDif":false},{"n":73,"nome":"MACIEL BISPO DOS SANTOS - PJ","veiculo":"HR","tac":"052558722","registro":"TAC","statusTac":"VÁLIDO","placa":"NGW5I11","obs":"","statusGeral":"ok","pj":true,"condutorDif":false},{"n":74,"nome":"MARCELO PEREIRA - PJ","veiculo":"CAMINHÃO 3/4","tac":"01079186","registro":"TAC","statusTac":"VÁLIDO","placa":"JFQ8958","obs":"","statusGeral":"ok","pj":true,"condutorDif":false},{"n":75,"nome":"MATHEUS BARBOSA DE ALMEIDA - PJ","veiculo":"CAMINHÃO 3/4","tac":"058803766","registro":"TAC","statusTac":"VÁLIDO","placa":"DXY2E52","obs":"","statusGeral":"ok","pj":true,"condutorDif":false},{"n":76,"nome":"MICHEL DOS SANTOS FREITAS - PJ","veiculo":"FIORINO","tac":"059357277","registro":"TAC","statusTac":"VÁLIDO","placa":"UIZ4A98","obs":"","statusGeral":"ok","pj":true,"condutorDif":false},{"n":77,"nome":"MOISES MAGALHAES DOS SANTOS SILVA - PJ","veiculo":"VAN","tac":"046422475","registro":"TAC","statusTac":"VÁLIDO","placa":"NAA3454","obs":"","statusGeral":"ok","pj":true,"condutorDif":false},{"n":78,"nome":"OSMAR ATHAIDES DOS SANTOS - PJ","veiculo":"FIORINO","tac":"056738444","registro":"TAC","statusTac":"VÁLIDO","placa":"JGM3185","obs":"","statusGeral":"ok","pj":true,"condutorDif":false},{"n":79,"nome":"PATRICIA ALVES MOITINHO - PJ","veiculo":"VAN","tac":"054667022","registro":"TAC","statusTac":"VÁLIDO","placa":"HFX7J66","obs":"","statusGeral":"ok","pj":true,"condutorDif":false},{"n":80,"nome":"PAULO BRITO DA SILVA DE JESUS - PJ","veiculo":"VAN","tac":"058111622","registro":"TAC","statusTac":"VÁLIDO","placa":"NKI0D77","obs":"","statusGeral":"ok","pj":true,"condutorDif":false},{"n":81,"nome":"PAULO HENRIQUE MARTINS P FERREIRA - PJ","veiculo":"FIORINO","tac":"059019899","registro":"TAC","statusTac":"VÁLIDO","placa":"OVV6G63","obs":"","statusGeral":"ok","pj":true,"condutorDif":false},{"n":82,"nome":"PAULO JOSE SEVERINO - PJ","veiculo":"HR","tac":"044252094","registro":"TAC","statusTac":"VÁLIDO","placa":"JJH0F65","obs":"","statusGeral":"ok","pj":true,"condutorDif":false},{"n":83,"nome":"POLLIANA PEREIRA DE DEUS","veiculo":"CAMINHÃO 3/4","tac":"057658744","registro":"ETC","statusTac":"VÁLIDO","placa":"RXK5C40","obs":"","statusGeral":"ok","pj":true,"condutorDif":false},{"n":84,"nome":"RAFAEL RYAN MEIRA LEITE - PJ","veiculo":"FIORINO","tac":"057274155","registro":"TAC","statusTac":"VÁLIDO","placa":"RVD6A95","obs":"","statusGeral":"ok","pj":true,"condutorDif":false},{"n":85,"nome":"RAFAEL VIERA DE OLIVEIRA","veiculo":"FIORINO","tac":"056626400","registro":"TAC","statusTac":"VÁLIDO","placa":"PAY3D22","obs":"","statusGeral":"ok","pj":true,"condutorDif":false},{"n":86,"nome":"RAICON RIBEIRO DE SOUSA LIRA - PJ","veiculo":"FIORINO","tac":"058091666","registro":"TAC","statusTac":"VÁLIDO","placa":"JIY5I68","obs":"","statusGeral":"ok","pj":true,"condutorDif":false},{"n":87,"nome":"RAIMUNDO NOBREGA BATISTA","veiculo":"CAMINHÃO 3/4","tac":"08320733","registro":"TAC","statusTac":"VÁLIDO","placa":"GSV8219","obs":"","statusGeral":"ok","pj":false,"condutorDif":false},{"n":88,"nome":"RANIEL RIBEIRO ROZA - PJ","veiculo":"FIORINO","tac":"054678900","registro":"TAC","statusTac":"VÁLIDO","placa":"HGG2F87","obs":"","statusGeral":"ok","pj":true,"condutorDif":false},{"n":89,"nome":"REGINALDO BARBOSA DA SILVA","veiculo":"TRUCK","tac":"09383984","registro":"TAC","statusTac":"VÁLIDO","placa":"JFP6641","obs":"","statusGeral":"ok","pj":false,"condutorDif":false},{"n":90,"nome":"RICARDO JOSE E SILVA - PJ","veiculo":"HR","tac":"051585277","registro":"TAC","statusTac":"VÁLIDO","placa":"JHH3E70","obs":"","statusGeral":"ok","pj":true,"condutorDif":false},{"n":91,"nome":"RICARDO NASCIMENTO COSTA - PJ","veiculo":"FIORINO","tac":"059265244","registro":"TAC","statusTac":"VÁLIDO","placa":"QPJ4H01","obs":"","statusGeral":"ok","pj":true,"condutorDif":false},{"n":92,"nome":"RODRIGO LOPES DOS SANTOS - PJ","veiculo":"VAN","tac":"054344766","registro":"TAC","statusTac":"VÁLIDO","placa":"KMC8D56","obs":"","statusGeral":"ok","pj":true,"condutorDif":false},{"n":93,"nome":"RODRIGO MARQUES RODRIGUES","veiculo":"VAN","tac":"059595711","registro":"ETC","statusTac":"VÁLIDO","placa":"SGN1B84","obs":"","statusGeral":"ok","pj":true,"condutorDif":false},{"n":94,"nome":"ROGERIO BARBOSA DA SILVA-PJ","veiculo":"VAN","tac":"053689933","registro":"TAC","statusTac":"VÁLIDO","placa":"EQB0J18","obs":"","statusGeral":"ok","pj":true,"condutorDif":false},{"n":95,"nome":"ROGERIO BARBOSA DA SILVA-PJ ETC","veiculo":"VAN","tac":"059711566","registro":"ETC","statusTac":"VÁLIDO","placa":"EQB0J18","obs":"","statusGeral":"ok","pj":true,"condutorDif":false},{"n":96,"nome":"ROGERIO JERONIMO DA SILVA","veiculo":"VAN","tac":"059436611","registro":"TAC","statusTac":"VÁLIDO","placa":"SSG2F85","obs":"","statusGeral":"ok","pj":true,"condutorDif":false},{"n":97,"nome":"SAMARA SILVA LEMOS FELIX - PJ","veiculo":"FIORINO","tac":"055462288","registro":"TAC","statusTac":"VÁLIDO","placa":"NVP9J07","obs":"","statusGeral":"ok","pj":true,"condutorDif":false},{"n":98,"nome":"SERGIO NERI DE JESUS","veiculo":"CAMINHÃO 3/4","tac":"049856911","registro":"TAC","statusTac":"VÁLIDO","placa":"JJI3541","obs":"","statusGeral":"ok","pj":false,"condutorDif":false},{"n":99,"nome":"SIRLEY RODRIGUES SANTANA - PJ","veiculo":"FIORINO","tac":"058846488","registro":"ETC","statusTac":"VÁLIDO","placa":"QDX3J18","obs":"","statusGeral":"ok","pj":true,"condutorDif":true},{"n":100,"nome":"SONIA ALVES DE MOURA - PJ","veiculo":"CAMINHÃO 3/4","tac":"058399277","registro":"TAC","statusTac":"VÁLIDO","placa":"AJO7A06","obs":"","statusGeral":"ok","pj":true,"condutorDif":true},{"n":101,"nome":"STANLEY ANDRADE MARTINS","veiculo":"CAMINHÃO 3/4","tac":"059618888","registro":"TAC","statusTac":"VÁLIDO","placa":"EWJ0D21","obs":"","statusGeral":"ok","pj":false,"condutorDif":false},{"n":102,"nome":"TARCIZIO PEREIRA DA SILVA - PJ","veiculo":"FIORINO","tac":"059292788","registro":"TAC","statusTac":"VÁLIDO","placa":"UIZ8E61","obs":"","statusGeral":"ok","pj":true,"condutorDif":false},{"n":103,"nome":"THIAGO DA SILVA REY - PJ","veiculo":"FIORINO","tac":"056639544","registro":"TAC","statusTac":"VÁLIDO","placa":"JHR7J66","obs":"","statusGeral":"ok","pj":true,"condutorDif":false},{"n":104,"nome":"THIAGO DE ALMEIDA DUTRA","veiculo":"FIORINO","tac":"054419322","registro":"TAC","statusTac":"VÁLIDO","placa":"JKD4H78","obs":"","statusGeral":"ok","pj":false,"condutorDif":false},{"n":105,"nome":"THINDARO FERNANDO DE SOUZA CASTRO","veiculo":"FIORINO","tac":"059369722","registro":"TAC","statusTac":"VÁLIDO","placa":"PVQ2J09","obs":"","statusGeral":"ok","pj":true,"condutorDif":true},{"n":106,"nome":"VALDENIR SOUSA DA COSTA - PJ","veiculo":"FIORINO","tac":"058210311","registro":"TAC","statusTac":"VÁLIDO","placa":"RVJ3A51","obs":"","statusGeral":"ok","pj":true,"condutorDif":false},{"n":107,"nome":"VALDIVINO VIEIRA SANTOS - PJ","veiculo":"FIORINO","tac":"055477099","registro":"TAC","statusTac":"VÁLIDO","placa":"PAR8J84","obs":"","statusGeral":"ok","pj":true,"condutorDif":false},{"n":108,"nome":"VANESSA RODRIGUES DOS SANTOS","veiculo":"VAN","tac":"056886477","registro":"TAC","statusTac":"VÁLIDO","placa":"JMN2B56","obs":"","statusGeral":"ok","pj":true,"condutorDif":true},{"n":109,"nome":"WASHINGTON BEZERRA DA COSTA","veiculo":"FIORINO","tac":"059667400","registro":"TAC","statusTac":"VÁLIDO","placa":"JGK2J81","obs":"","statusGeral":"ok","pj":false,"condutorDif":false},{"n":110,"nome":"WILIANE VIANA CAMPOS - PJ","veiculo":"CAMINHÃO 3/4","tac":"056609099","registro":"TAC","statusTac":"VÁLIDO","placa":"JEO5G77","obs":"","statusGeral":"ok","pj":true,"condutorDif":true},{"n":111,"nome":"FALCON SEGURANCA E SAUDE UNIPESSOAL LTDA","veiculo":"VAN","tac":"055301300","registro":"ETC","statusTac":"VÁLIDO","placa":"HMD4A37","obs":"","statusGeral":"ok","pj":true,"condutorDif":false},{"n":112,"nome":"JEFFERSON SANTOS DE ALCANTARA","veiculo":"FIORINO","tac":"059320222","registro":"TAC","statusTac":"VÁLIDO","placa":"RMK6C81","obs":"","statusGeral":"ok","pj":true,"condutorDif":false},{"n":113,"nome":"ELIOENAI SANTOS ASSIS MATTOS","veiculo":"FIORINO","tac":"059840255","registro":"TAC","statusTac":"VÁLIDO","placa":"QXG8B04","obs":"","statusGeral":"ok","pj":true,"condutorDif":false},{"n":114,"nome":"LUPERCIO BORGES GOMES","veiculo":"FIORINO","tac":"059607577","registro":"TAC","statusTac":"VÁLIDO","placa":"OWI1A10","obs":"","statusGeral":"ok","pj":true,"condutorDif":false},{"n":115,"nome":"ADEYLSON DE CARVALHO DE ARAUJO SA","veiculo":"CARRETA","tac":"059223766","registro":"ETC","statusTac":"VÁLIDO","placa":"OCR8C39","obs":"","statusGeral":"ok","pj":true,"condutorDif":false},{"n":116,"nome":"MARIZA DOS SANTOS BASTOS MORAIS","veiculo":"FIORINO","tac":"059898666","registro":"TAC","statusTac":"VÁLIDO","placa":"RME5H97","obs":"","statusGeral":"ok","pj":true,"condutorDif":false},{"n":117,"nome":"VAGNER FERREIRA RODRIGUES","veiculo":"FIORINO","tac":"056649177","registro":"TAC","statusTac":"VÁLIDO","placa":"RBR9G94","obs":"","statusGeral":"ok","pj":true,"condutorDif":false},{"n":118,"nome":"ALEXSANDER TEIXEIRA DOS SANTOS","veiculo":"FIORINO","tac":"059960766","registro":"TAC","statusTac":"VÁLIDO","placa":"JFV8I99","obs":"","statusGeral":"ok","pj":false,"condutorDif":false},{"n":119,"nome":"AGNALDO FEREIRA DA SILVA FILHO","veiculo":"FIORINO","tac":"059886822","registro":"TAC","statusTac":"VÁLIDO","placa":"RUH5A61","obs":"","statusGeral":"ok","pj":true,"condutorDif":false},{"n":120,"nome":"W A G DOS SANTOS TRANSPORTES LTDA - CLEITON PAULINO BARBOSA","veiculo":"CAMINHÃO 3/4","tac":"059417666","registro":"ETC","statusTac":"VÁLIDO","placa":"APY6D18","obs":"","statusGeral":"ok","pj":true,"condutorDif":false},{"n":121,"nome":"PEDRO ARTHUR SOARES MARTINS","veiculo":"FIORINO","tac":"059990622","registro":"TAC","statusTac":"VÁLIDO","placa":"UJL5I15","obs":"","statusGeral":"ok","pj":true,"condutorDif":false},{"n":122,"nome":"ADRIANO SANTOS PINHO","veiculo":"FIORINO","tac":"059116344","registro":"TAC","statusTac":"VÁLIDO","placa":"JIL0E52","obs":"","statusGeral":"ok","pj":true,"condutorDif":false},{"n":123,"nome":"ANTONIO FEREIRA DIAS","veiculo":"FIORINO","tac":"059934633","registro":"TAC","statusTac":"VÁLIDO","placa":"RUH6C65","obs":"","statusGeral":"ok","pj":false,"condutorDif":false},{"n":124,"nome":"INACIO GOES OLIVEIRA","veiculo":"TOCO","tac":"049571355","registro":"TAC","statusTac":"VÁLIDO","placa":"GQQ5519","obs":"","statusGeral":"ok","pj":false,"condutorDif":false},{"n":125,"nome":"KARLA ALVES DE QUEIROZ","veiculo":"CAMINHÃO 3/4","tac":"058472244","registro":"TAC","statusTac":"VÁLIDO","placa":"NGC9E66","obs":"","statusGeral":"ok","pj":true,"condutorDif":false},{"n":126,"nome":"WEVERSON DE LIMA SIQUEIRA SOUSA","veiculo":"VAN","tac":"048311942","registro":"TAC","statusTac":"VÁLIDO","placa":"RGK3G70","obs":"","statusGeral":"ok","pj":true,"condutorDif":false}];
+
+/* ---------------------------- utilidades ---------------------------- */
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt = n => Number(n||0).toLocaleString('pt-BR');
+const pct = (a,b) => b ? Math.round(a/b*100)+'%' : '0%';
+const hojeISO = () => { const d=new Date(); d.setMinutes(d.getMinutes()-d.getTimezoneOffset()); return d.toISOString().slice(0,10); };
+const addDias = (iso, n) => { const d=new Date(iso+'T12:00:00'); d.setDate(d.getDate()+Number(n||0)); return d.toISOString().slice(0,10); };
+const difDias = (a, b) => Math.round((new Date(a+'T12:00:00') - new Date(b+'T12:00:00'))/864e5);   // a - b
+const brData = iso => iso ? iso.split('-').reverse().join('/') : '';
+const brCurta = iso => iso ? iso.slice(8,10)+'/'+iso.slice(5,7) : '';
+const isoDeBr = br => { const s=String(br||'').trim(); let m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})/); if(m){ const a=m[3].length===2?'20'+m[3]:m[3]; return `${a}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`; } m=s.match(/^(\d{4})-(\d{2})-(\d{2})/); return m?m[0]:''; };
+const SEMANA = ['dom','seg','ter','qua','qui','sex','sáb'];
+const diaSem = iso => SEMANA[new Date(iso+'T12:00:00').getDay()];
+const norm = s => String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().trim();
+const titulo = s => String(s||'').toLowerCase().replace(/(^|[\s(\-/])(\S)/g,(m,a,b)=>a+b.toUpperCase()).replace(/\b(Da|De|Do|Dos|Das|E)\b/g,w=>w.toLowerCase()).replace(/\bPj\b/g,'PJ').replace(/\bLtda\b/g,'LTDA');
+const iniciais = s => { const p=String(s||'').replace(/\(.*?\)/g,'').replace(/-\s*PJ\b/gi,'').trim().split(/\s+/).filter(w=>w && !/^(da|de|do|dos|das|e|-|&)$/i.test(w)); return p.length ? (p[0][0]+(p.length>1?p[p.length-1][0]:'')).toUpperCase() : '—'; };
+const AV_CORES = ['#3478f6','#14161b','#f5a524','#6b5bd6','#22a861','#e5484d','#0ea5b7','#8a5a2b'];
+const avCor = s => { let h=0; for(const c of String(s||'')) h=(h*31+c.charCodeAt(0))>>>0; return AV_CORES[h%AV_CORES.length]; };
+const placaHTML = (p, sm) => p ? `<span class="placa${sm?' sm':''}" aria-label="Placa ${esc(p)}"><i>BRASIL</i><b>${esc(p)}</b></span>` : '<span class="muted">sem placa</span>';
+const idMot = nome => 'm_' + norm(nome).replace(/[^A-Z0-9]+/g,'_').replace(/^_|_$/g,'').slice(0,120);
+function toast(t){ const el=$('toast'); el.textContent=t; el.classList.add('on'); clearTimeout(toast._t); toast._t=setTimeout(()=>el.classList.remove('on'),3400); }
+function preencherSelect(id, vals, rot){ const el=$(id), atual=el.value; el.innerHTML = `<option value="">${rot}</option>` + vals.map(v=>`<option value="${esc(v.v??v)}">${esc(v.l??v)}</option>`).join(''); if(vals.some(v=>(v.v??v)===atual)) el.value=atual; }
+const MESES = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+
+/* ---------------------------- estado ---------------------------- */
+let canWrite = false, carregou = false, semRegras = false;
+let motsDb = [], regs = [], hist = [], cfg = {dias:10};
+let cFiltro = 'abertos', mFiltro = '', alFiltro = '', cSel = null, mSel = null;
+let cSort = {k:'validade', dir:1}, mSort = {k:'nome', dir:1};
+let ciotEditando = null, motEditando = null;
+
+/* ---------------------------- regras de negócio ---------------------------- */
+const CAD_LABEL = {ok:['OK','uso'], pend:['Pendência','aten'], inval:['Inválido','crit']};
+function motoristas(){
+  // banco do Firestore; enquanto não houver nada (ou sem regras), mostra o cadastro da planilha
+  const base = motsDb.length ? motsDb : BASE_CAD.map(b=>({...b, id:idMot(b.nome), _seed:true}));
+  return base.filter(m=>!m.inativo);
+}
+function sitCiot(r){
+  if(r.status==='encerrado') return {k:'enc', l:'Encerrado', cls:'dev', ord:5};
+  if(r.status==='cancelado') return {k:'canc', l:'Cancelado', cls:'dev', ord:6};
+  const d = difDias(r.validade, hojeISO());
+  if(d<0) return {k:'venc', l:`Vencido há ${-d} d`, cls:'crit', d, ord:0};
+  if(d===0) return {k:'vence', l:'Vence hoje', cls:'aten', d, ord:1};
+  if(d===1) return {k:'vence', l:'Vence amanhã', cls:'aten', d, ord:2};
+  return {k:'ativo', l:`Ativo · ${d} d`, cls:'uso', d, ord:3};
+}
+const aberto = r => r.status!=='encerrado' && r.status!=='cancelado';
+function ciotsDe(m){ return regs.filter(r=>r.motoristaId===m.id || (!r.motoristaId && norm(r.nome)===norm(m.nome))); }
+function ciotAberto(m){ return ciotsDe(m).filter(aberto).sort((a,b)=>String(b.abertura).localeCompare(String(a.abertura)))[0] || null; }
+function motDe(r){ return motoristas().find(m=>m.id===r.motoristaId) || motoristas().find(m=>norm(m.nome)===norm(r.nome)) || null; }
+const idadeCiot = r => difDias(hojeISO(), r.abertura);
+function calcAlertas(){
+  const A = [], ms = motoristas();
+  regs.filter(aberto).forEach(r=>{
+    const s = sitCiot(r), m = motDe(r);
+    if(s.k==='venc') A.push({nivel:'Crítico', nome:r.nome, placa:r.placa, alerta:'CIOT vencido sem encerrar', detalhe:`CIOT ${r.numero} · validade ${brData(r.validade)}`, ciot:r.id});
+    else if(s.k==='vence') A.push({nivel:'Atenção', nome:r.nome, placa:r.placa, alerta:s.l, detalhe:`CIOT ${r.numero} · encerrar até ${brData(r.validade)}`, ciot:r.id});
+    if(idadeCiot(r)>15) A.push({nivel:'Atenção', nome:r.nome, placa:r.placa, alerta:'CIOT aberto há mais de 15 dias', detalhe:`CIOT ${r.numero} · aberto em ${brData(r.abertura)} (${idadeCiot(r)} d)`, ciot:r.id});
+    if(m && (m.statusTac==='INVÁLIDO' || m.statusGeral==='inval')) A.push({nivel:'Crítico', nome:r.nome, placa:r.placa, alerta:'CIOT aberto com RNTRC inválido', detalhe:`CIOT ${r.numero}${m.obs?' · '+m.obs:''}`, ciot:r.id});
+  });
+  ms.forEach(m=>{
+    const ab = ciotsDe(m).filter(aberto);
+    if(ab.length>1) A.push({nivel:'Atenção', nome:m.nome, placa:m.placa, alerta:'Mais de um CIOT aberto', detalhe:ab.map(r=>r.numero).join(', '), mot:m.id});
+    if(m.statusTac==='INVÁLIDO' || m.statusGeral==='inval') A.push({nivel:'Crítico', nome:m.nome, placa:m.placa, alerta:'RNTRC inválido', detalhe:m.obs||'regularizar antes de abrir CIOT', mot:m.id});
+    else if(m.statusGeral==='pend') A.push({nivel:'Atenção', nome:m.nome, placa:m.placa, alerta:'Pendência no cadastro', detalhe:m.obs||'—', mot:m.id});
+  });
+  const o = {'Crítico':0,'Atenção':1};
+  return A.sort((a,b)=>o[a.nivel]-o[b.nivel] || norm(a.nome).localeCompare(norm(b.nome)));
+}
+
+/* ---------------------------- painel ---------------------------- */
+function renderPainel(){
+  const ms = motoristas(), ab = regs.filter(aberto);
+  const n = k => ab.filter(r=>sitCiot(r).k===k).length;
+  const comCiot = ms.filter(m=>ciotAberto(m)).length;
+  const pend = ms.filter(m=>m.statusGeral==='pend').length, inval = ms.filter(m=>m.statusGeral==='inval'||m.statusTac==='INVÁLIDO').length;
+  const aptos = ms.filter(m=>m.statusGeral==='ok' && m.statusTac!=='INVÁLIDO');
+  const semAptos = aptos.filter(m=>!ciotAberto(m)).length;
+  const hoje = hojeISO();
+  const abHoje = regs.filter(r=>r.abertura===hoje).length, encHoje = regs.filter(r=>r.status==='encerrado' && r.encerradoEm===hoje).length;
+  const kp = [
+    ['Motoristas cadastrados', ms.length, `${ms.filter(m=>m.registro==='TAC').length} TAC · ${ms.filter(m=>m.registro==='ETC').length} ETC`, 'var(--blue)'],
+    ['CIOTs abertos', ab.length, `${pct(comCiot, ms.length)} dos motoristas`, 'var(--green)'],
+    ['Vencem hoje/amanhã', n('vence'), 'encerrar e renovar', 'var(--orange)'],
+    ['Vencidos sem encerrar', n('venc'), 'encerrar no portal', 'var(--red)'],
+    ['Aptos sem CIOT', semAptos, 'cadastro OK, sem CIOT aberto', 'var(--black)'],
+    ['Cadastro com problema', pend+inval, `${pend} pendência(s) · ${inval} inválido(s)`, 'var(--muted)'],
+  ];
+  $('kpis').innerHTML = kp.map(([t,v,p,c])=>`<div class="kpi" style="--c:${c}"><div class="t"><i></i>${t}</div><div class="n">${fmt(v)}</div><div class="p">${esc(p)}</div></div>`).join('');
+  const prox = ab.filter(r=>{ const d=difDias(r.validade,hoje); return d>=0 && d<=2; }).length;
+  $('resumo').innerHTML = !carregou ? 'Carregando…' :
+    `Hoje (${new Date().toLocaleDateString('pt-BR',{weekday:'long'})}) há <b>${fmt(ab.length)} CIOT(s) aberto(s)</b> para ${fmt(ms.length)} motoristas cadastrados.`
+    + (n('venc') ? ` <b style="color:var(--red)">${n('venc')} vencido(s)</b> precisam ser encerrados.` : ' Nenhum CIOT vencido.')
+    + (prox ? ` ${prox} vence(m) nos próximos 2 dias.` : '')
+    + ` Hoje: ${abHoje} aberto(s) e ${encHoje} encerrado(s).`
+    + (motsDb.length ? '' : ' <span class="muted">(cadastro exibido direto da planilha — importe-o no Modo edição para editar.)</span>');
+  $('bannerTxt').textContent = `${ab.length} aberto(s) · ${n('vence')} vencendo · ${n('venc')} vencido(s) · ${regs.filter(r=>r.status==='encerrado').length} encerrado(s) no histórico.`;
+  // situação
+  const t = ab.length || 1, at = n('ativo'), ve = n('vence'), vc = n('venc');
+  $('chSit').innerHTML = ab.length ? `<div class="stackbar">${at?`<div style="flex:${at};background:var(--green);color:#fff">${pct(at,t)}</div>`:''}${ve?`<div style="flex:${ve};background:var(--orange);color:#fff">${pct(ve,t)}</div>`:''}${vc?`<div style="flex:${vc};background:var(--red);color:#fff">${pct(vc,t)}</div>`:''}</div>
+    <div class="sb-lab" style="display:flex;justify-content:space-between;font-size:12px;color:var(--muted)"><span>${at} ativo(s)</span><span>${ve} vencendo</span><span>${vc} vencido(s)</span></div>` : '<div class="empty">Nenhum CIOT aberto no momento.</div>';
+  const mx = Math.max(1, ms.length);
+  const linha = (nm, v, c) => `<div class="hbar"><span class="nm">${nm}</span><div class="tr"><i style="width:${v/mx*100}%; background:${c}"></i></div><span class="vl">${v}</span></div>`;
+  $('chMot').innerHTML = linha('Com CIOT aberto', comCiot, 'var(--black)') + linha('Aptos sem CIOT', semAptos, 'var(--blue)') + linha('Pendência', pend, 'var(--orange)') + linha('Inválido', inval, 'var(--red)');
+  // alertas críticos
+  const crit = calcAlertas().filter(a=>a.nivel==='Crítico');
+  $('alertasTop').innerHTML = crit.length ? crit.slice(0,30).map(a=>`<div class="alert-mini"><div><b>${esc(titulo(a.nome))}</b> · ${esc(a.alerta)}<small>${a.placa?esc(a.placa)+' · ':''}${esc(a.detalhe)}</small></div><span class="badge crit">Crítico</span></div>`).join('') : '<div class="empty">Nenhum alerta crítico no momento.</div>';
+  // agenda 10 dias
+  const dias = Array.from({length:10},(_,i)=>addDias(hoje,i));
+  const cont = dias.map(d=>ab.filter(r=>r.validade===d).length);
+  const atr = ab.filter(r=>r.validade<hoje).length;
+  const mxA = Math.max(1, ...cont, atr);
+  $('chAgenda').innerHTML = `<div class="cl old" title="Vencidos"><b>${atr}</b><i style="height:${atr/mxA*120}px; background:var(--red)"></i></div>` + cont.map((c,i)=>`<div class="cl${i===0?' old':''}" title="${brData(dias[i])}"><b>${c}</b><i style="height:${c/mxA*120}px"></i></div>`).join('');
+  $('chAgendaLab').innerHTML = `<span>Venc.</span>` + dias.map((d,i)=>`<span>${i===0?'Hoje':i===1?'Amanhã':diaSem(d)+' '+brCurta(d)}</span>`).join('');
+  // por tipo de veículo
+  const tipos = {}; ms.forEach(m=>{ const k=m.veiculo||'—'; (tipos[k] ||= {t:0,c:0}); tipos[k].t++; if(ciotAberto(m)) tipos[k].c++; });
+  const mxT = Math.max(1, ...Object.values(tipos).map(x=>x.t));
+  $('chVeic').innerHTML = Object.entries(tipos).sort((a,b)=>b[1].t-a[1].t).map(([k,x])=>`<div class="hbar"><span class="nm">${esc(titulo(k))}</span><div class="tr"><i style="width:${x.c/mxT*100}%; background:var(--black)"></i><i style="width:${(x.t-x.c)/mxT*100}%; background:var(--lav)"></i></div><span class="vl" style="min-width:44px">${x.c}/${x.t}</span></div>`).join('');
+}
+
+/* ---------------------------- controle de CIOT ---------------------------- */
+function renderCiot(){
+  const ms = motoristas();
+  const all = regs.map(r=>({...r, _s:sitCiot(r), _m:motDe(r)}));
+  const ab = all.filter(r=>aberto(r));
+  const n = k => all.filter(r=>r._s.k===k).length;
+  const hoje = hojeISO();
+  const semana = all.filter(r=>difDias(hoje, r.abertura)>=0 && difDias(hoje, r.abertura)<7).length;
+  $('cKpis').innerHTML = [
+    ['Abertos', ab.length, `${new Set(ab.map(r=>r.motoristaId||r.nome)).size} motoristas`, 'var(--green)'],
+    ['Vencem hoje/amanhã', n('vence'), 'programar encerramento', 'var(--orange)'],
+    ['Vencidos', n('venc'), 'encerrar no portal', 'var(--red)'],
+    ['Abertos há +15 dias', ab.filter(r=>idadeCiot(r)>15).length, 'analisar', 'var(--black)'],
+    ['Abertos nos últimos 7 dias', semana, `${all.filter(r=>r.abertura===hoje).length} hoje`, 'var(--blue)'],
+    ['Encerrados', n('enc'), `${all.filter(r=>r.status==='encerrado'&&r.encerradoEm===hoje).length} hoje`, 'var(--muted)'],
+  ].map(([t,v,p,c])=>`<div class="kpi" style="--c:${c}"><div class="t"><i></i>${t}</div><div class="n">${fmt(v)}</div><div class="p">${esc(p)}</div></div>`).join('');
+  $('cAcoes').innerHTML = canWrite ? `<button type="button" class="btn-mini" id="btnLoteAbrir">Lançar em lote</button>` : '';
+  preencherSelect('cVeic', [...new Set(all.map(r=>r._m?.veiculo||r.veiculo).filter(Boolean))].sort(), 'Veículo: todos');
+  const meses = [...new Set(all.map(r=>String(r.abertura||'').slice(0,7)).filter(Boolean))].sort().reverse();
+  preencherSelect('cMes', meses.map(m=>({v:m, l:MESES[+m.slice(5,7)-1]+'/'+m.slice(0,4)})), 'Abertura: todas');
+  const chips = [['abertos','Abertos',ab.length],['vence','Vencendo',n('vence')],['venc','Vencidos',n('venc')],['15','+15 dias',ab.filter(r=>idadeCiot(r)>15).length],['enc','Encerrados',n('enc')],['canc','Cancelados',n('canc')],['','Todos',all.length]];
+  $('cChips').innerHTML = chips.map(([f,l,c])=>`<button type="button" class="fchip${cFiltro===f?' on':''}" data-cf="${f}">${l} · ${c}</button>`).join('');
+  const q = norm($('cBusca').value), fv = $('cVeic').value, fm = $('cMes').value;
+  let rows = all.filter(r => (!fv || (r._m?.veiculo||r.veiculo)===fv) && (!fm || String(r.abertura).startsWith(fm)) && (!q || norm([r.numero,r.nome,r.placa,r.mdfe,r.rota,r.obs].join(' ')).includes(q)))
+    .filter(r => !cFiltro || (cFiltro==='abertos'&&aberto(r)) || (cFiltro==='15'&&aberto(r)&&idadeCiot(r)>15) || r._s.k===cFiltro);
+  const {k:sk, dir} = cSort;
+  const val = r => sk==='sit' ? r._s.ord*1000+(r._s.d??0) : sk==='nome' ? norm(r.nome) : String(r[sk]||'~');
+  rows.sort((a,b)=>(val(a)>val(b)?1:val(a)<val(b)?-1:0)*dir || String(a.validade).localeCompare(String(b.validade)));
+  document.querySelectorAll('#cHead th.sortable').forEach(th=>th.setAttribute('aria-sort', th.dataset.k===sk?(dir>0?'ascending':'descending'):'none'));
+  $('cCount').textContent = `${rows.length} de ${all.length}`;
+  if(!rows.find(r=>r.id===cSel)) cSel = rows[0]?.id || null;
+  const dur = r => Math.max(1, difDias(r.validade, r.abertura));
+  $('cBody').innerHTML = rows.length ? rows.map(r => {
+    const s=r._s, usado = aberto(r) ? Math.min(1, Math.max(0, difDias(hoje, r.abertura)/dur(r))) : 1;
+    const cor = s.k==='venc'?'var(--red)':s.k==='vence'?'var(--orange)':aberto(r)?'var(--green)':'#c4c8d0';
+    return `<tr class="${r.id===cSel?'on':''}" data-c="${esc(r.id)}" tabindex="0">
+      <td><span class="num">${esc(r.numero)}</span>${r.mdfe?`<small class="muted" style="display:block;font-size:11px">MDF-e ${esc(r.mdfe)}</small>`:''}</td>
+      <td><div class="who"><span class="av" style="background:${avCor(r.nome)}; --s:${cor}">${esc(iniciais(r.nome))}</span><span style="min-width:0"><b>${esc(titulo(r.nome))}</b><small>${esc(r.placa||'—')} · ${esc(titulo(r._m?.veiculo||r.veiculo||''))}</small></span></div></td>
+      <td class="hide-sm">${brData(r.abertura)}<small class="muted" style="display:block;font-size:11px">${diaSem(r.abertura)}</small></td>
+      <td>${brData(r.validade)}<div class="dbar"><i style="width:${usado*100}%; background:${cor}"></i></div></td>
+      <td><span class="badge ${s.cls}">${esc(s.l)}</span></td></tr>`; }).join('')
+    : `<tr><td colspan="5" class="empty">${regs.length ? 'Nenhum CIOT com esse filtro.' : (canWrite ? 'Nenhum CIOT lançado ainda. Use o botão <b>Novo CIOT</b> ou <b>Lançar em lote</b>.' : 'Nenhum CIOT lançado ainda.')}</td></tr>`;
+  $('cFicha').innerHTML = fichaCiot(all.find(r=>r.id===cSel));
+}
+function fichaCiot(r){
+  if(!r) return '<div class="card empty">Selecione um CIOT.</div>';
+  const s = r._s || sitCiot(r), m = r._m || motDe(r);
+  const outros = m ? ciotsDe(m).filter(x=>x.id!==r.id).sort((a,b)=>String(b.abertura).localeCompare(String(a.abertura))).slice(0,6) : [];
+  const hv = hist.filter(h=>h.ref===r.id || norm(h.resumo).includes(norm(r.numero))).slice(0,6);
+  return `<div class="card ficha-card">
+    <div class="vh" style="margin-bottom:14px;">
+      <div class="vh-who"><span class="av" style="background:${avCor(r.nome)}">${esc(iniciais(r.nome))}</span><div style="min-width:0"><b>CIOT ${esc(r.numero)}</b><small>${esc(titulo(r.nome))}</small></div></div>
+      <span class="badge ${s.cls}">${esc(s.l)}</span>
+    </div>
+    <div class="ficha">
+      <div><span>Abertura</span><b>${brData(r.abertura)} (${diaSem(r.abertura)})</b></div>
+      <div><span>Validade</span><b>${brData(r.validade)} (${diaSem(r.validade)})</b></div>
+      <div><span>Placa</span><b>${placaHTML(r.placa||m?.placa, true)}</b></div>
+      <div><span>Veículo</span><b>${esc(titulo(m?.veiculo||r.veiculo||'—'))}</b></div>
+      <div><span>RNTRC</span><b>${esc(m?.tac||'—')} ${m?`<small class="muted">${esc(m.registro||'')}</small>`:''}</b></div>
+      <div><span>MDF-e</span><b>${esc(r.mdfe||'—')}</b></div>
+      ${r.rota?`<div class="full"><span>Rota / destino</span><b>${esc(r.rota)}</b></div>`:''}
+      ${r.status==='encerrado'?`<div class="full"><span>Encerrado em</span><b>${brData(r.encerradoEm)}</b></div>`:''}
+      ${r.obs?`<div class="full"><span>Observação</span><b>${esc(r.obs)}</b></div>`:''}
+    </div>
+    ${m && (m.statusTac==='INVÁLIDO'||m.statusGeral!=='ok') ? `<div class="ci-warn ${m.statusGeral==='inval'||m.statusTac==='INVÁLIDO'?'cr':'at'}" style="margin-top:12px;">Cadastro do motorista: <b>${CAD_LABEL[m.statusGeral]?.[0]||'—'}</b>${m.obs?' · '+esc(m.obs):''}</div>`:''}
+    ${canWrite ? `<div class="edit-actions" style="margin-top:14px;">
+      ${aberto(r)?`<button class="btn btn-dark" type="button" data-enc="${esc(r.id)}">Encerrar CIOT</button>`:`<button class="btn btn-line" type="button" data-reab="${esc(r.id)}">Reabrir</button>`}
+      <button class="btn btn-line" type="button" data-edc="${esc(r.id)}">Editar</button>
+      ${aberto(r)&&m?`<button class="btn btn-line" type="button" data-renova="${esc(r.id)}" title="Encerra este e abre um novo para o mesmo motorista">Encerrar e renovar</button>`:''}
+      ${aberto(r)?`<button class="btn btn-del" type="button" data-canc="${esc(r.id)}">Cancelar</button>`:''}
+    </div>` : ''}
+    ${m?`<button type="button" class="link" data-vermot="${esc(m.id)}" style="margin-top:12px;">Ver cadastro do motorista</button>`:''}
+    <div class="eyebrow" style="margin:16px 0 10px;">Outros CIOTs do motorista</div>
+    ${outros.length?`<ul class="tl">${outros.map(x=>{const sx=sitCiot(x); return `<li class="${sx.k==='venc'?'al':''}"><b>${esc(x.numero)}</b> · ${esc(sx.l)}<small>${brData(x.abertura)} → ${brData(x.validade)}</small></li>`;}).join('')}</ul>`:'<div class="muted" style="font-size:12.5px;">Nenhum outro CIOT registrado.</div>'}
+    <div class="eyebrow" style="margin:16px 0 10px;">Histórico</div>
+    ${hv.length?`<ul class="tl">${hv.map(h=>{const dt=h.quando?.toDate?h.quando.toDate():null; return `<li><b>${esc(h.resumo)}</b><small>${dt?dt.toLocaleString('pt-BR'):''}</small></li>`;}).join('')}</ul>`:'<div class="muted" style="font-size:12.5px;">Nenhuma alteração registrada.</div>'}
+  </div>`;
+}
+['cBusca','cVeic','cMes'].forEach(id=>$(id).addEventListener('input', renderCiot));
+$('cChips').addEventListener('click', e=>{ const b=e.target.closest('[data-cf]'); if(!b) return; cFiltro=b.dataset.cf; renderCiot(); });
+document.querySelectorAll('#cHead th.sortable').forEach(th=>th.addEventListener('click',()=>{ const k=th.dataset.k; cSort={k, dir: cSort.k===k?-cSort.dir:1}; renderCiot(); }));
+function selCiot(id){ cSel=id; document.querySelectorAll('#cBody tr').forEach(tr=>tr.classList.toggle('on', tr.dataset.c===id)); const r=regs.find(x=>x.id===id); $('cFicha').innerHTML = fichaCiot(r?{...r,_s:sitCiot(r),_m:motDe(r)}:null); if(window.innerWidth<=1180) $('cFicha').scrollIntoView({behavior:'smooth', block:'start'}); }
+$('cBody').addEventListener('click', e=>{ const tr=e.target.closest('tr[data-c]'); if(tr) selCiot(tr.dataset.c); });
+$('cBody').addEventListener('keydown', e=>{ const tr=e.target.closest('tr[data-c]'); if(tr && (e.key==='Enter'||e.key===' ')){ e.preventDefault(); selCiot(tr.dataset.c); } });
+$('cAcoes').addEventListener('click', e=>{ if(e.target.closest('#btnLoteAbrir')){ $('impCiotBox').style.display=''; $('ciotBulk').focus(); } });
+$('btnCiotBulkFechar').addEventListener('click', ()=>{ $('impCiotBox').style.display='none'; });
+$('cFicha').addEventListener('click', async e=>{
+  const g = a => e.target.closest('['+a+']')?.getAttribute(a);
+  if(g('data-vermot')){ mSel=g('data-vermot'); showView('motoristas'); renderMotoristas(); return; }
+  if(!canWrite) return;
+  if(g('data-edc')) return abrirCiot(regs.find(r=>r.id===g('data-edc')));
+  const id = g('data-enc')||g('data-canc')||g('data-reab')||g('data-renova'); if(!id) return;
+  const r = regs.find(x=>x.id===id); if(!r) return;
+  try{
+    if(g('data-enc') || g('data-renova')){
+      if(g('data-enc') && !confirm(`Encerrar o CIOT ${r.numero} de ${titulo(r.nome)}?`)) return;
+      await updateDoc(doc(db,'ciot_registros',id), {status:'encerrado', encerradoEm:hojeISO(), atualizadoEm:serverTimestamp()});
+      await logHist('encerrado', id, `CIOT ${r.numero} encerrado · ${titulo(r.nome)}`);
+      toast('CIOT encerrado.');
+      if(g('data-renova')){ const m=motDe(r); abrirCiot(null, m); }
+    } else if(g('data-canc')){
+      if(!confirm(`Cancelar o CIOT ${r.numero}? Ele sai das contagens de abertos.`)) return;
+      await updateDoc(doc(db,'ciot_registros',id), {status:'cancelado', atualizadoEm:serverTimestamp()});
+      await logHist('cancelado', id, `CIOT ${r.numero} cancelado · ${titulo(r.nome)}`); toast('CIOT cancelado.');
+    } else if(g('data-reab')){
+      await updateDoc(doc(db,'ciot_registros',id), {status:'ativo', encerradoEm:'', atualizadoEm:serverTimestamp()});
+      await logHist('atualizado', id, `CIOT ${r.numero} reaberto · ${titulo(r.nome)}`); toast('CIOT reaberto.');
+    }
+  }catch(err){ toast(erroTxt(err)); }
+});
+const erroTxt = err => String(err?.code||'').includes('permission') ? 'Sem permissão: publique as regras do Firestore (arquivo firestore.rules).' : 'Não foi possível salvar: '+(err?.code||err?.message||err);
+
+/* ---------------------------- modal do CIOT ---------------------------- */
+const rotMot = m => `${titulo(m.nome)} — ${m.placa||'sem placa'}`;
+function acharMot(txt){
+  const t = norm(txt); if(!t) return null; const ms = motoristas();
+  return ms.find(m=>norm(rotMot(m))===t) || ms.find(m=>norm(m.nome)===t) || ms.find(m=>norm(m.placa)===t.replace(/[^A-Z0-9]/g,'')) || (ms.filter(m=>norm(m.nome).includes(t)).length===1 ? ms.find(m=>norm(m.nome).includes(t)) : null);
+}
+function infoMot(){
+  const m = acharMot($('cm_mot').value), el = $('cm_info');
+  if(!m){ el.innerHTML = $('cm_mot').value ? '<div class="ci-warn at">Motorista não encontrado no cadastro — escolha da lista.</div>' : ''; return null; }
+  const ab = ciotsDe(m).filter(r=>aberto(r) && r.id!==ciotEditando?.id);
+  const bad = m.statusTac==='INVÁLIDO' || m.statusGeral==='inval';
+  el.innerHTML = `<div class="ci-warn ${bad?'cr':m.statusGeral==='pend'||ab.length?'at':'ok'}">${esc(titulo(m.veiculo||''))} · placa <b>${esc(m.placa||'—')}</b> · ${esc(m.registro||'')} <b>${esc(m.tac||'—')}</b> (${esc(m.statusTac||'—')})${m.statusGeral!=='ok'?` · cadastro: <b>${CAD_LABEL[m.statusGeral]?.[0]||'—'}</b>${m.obs?' — '+esc(m.obs):''}`:''}${ab.length?`<br>Já tem CIOT aberto: <b>${ab.map(r=>r.numero+' (até '+brData(r.validade)+')').join(', ')}</b>`:''}</div>`;
+  return m;
+}
+function abrirCiot(r, mot){
+  if(!canWrite){ toast('Entre no Modo edição para lançar CIOT.'); showView('edicao'); return; }
+  if(!motsDb.length && !semRegras){ /* cadastro ainda só da planilha: ok, grava o motoristaId mesmo assim */ }
+  ciotEditando = r || null;
+  $('cmTitle').textContent = r ? `Editar CIOT ${r.numero}` : 'Novo CIOT';
+  $('dlMot').innerHTML = motoristas().sort((a,b)=>norm(a.nome).localeCompare(norm(b.nome))).map(m=>`<option value="${esc(rotMot(m))}">`).join('');
+  const m = r ? motDe(r) : mot;
+  $('cm_mot').value = m ? rotMot(m) : (r ? r.nome : '');
+  $('cm_num').value = r?.numero||''; $('cm_mdfe').value = r?.mdfe||''; $('cm_rota').value = r?.rota||''; $('cm_obs').value = r?.obs||'';
+  $('cm_ab').value = r?.abertura || hojeISO();
+  $('cm_dias').value = r ? Math.max(1,difDias(r.validade, r.abertura)) : (cfg.dias||10);
+  $('cm_val').value = r?.validade || addDias($('cm_ab').value, $('cm_dias').value);
+  $('cmMsg').textContent=''; infoMot();
+  $('ciotModal').classList.add('on'); setTimeout(()=>$(m?'cm_num':'cm_mot').focus(), 50);
+}
+const recalcVal = () => { if($('cm_ab').value && $('cm_dias').value) $('cm_val').value = addDias($('cm_ab').value, $('cm_dias').value); };
+$('cm_ab').addEventListener('input', recalcVal); $('cm_dias').addEventListener('input', recalcVal);
+$('cm_val').addEventListener('input', ()=>{ if($('cm_ab').value && $('cm_val').value) $('cm_dias').value = Math.max(0, difDias($('cm_val').value, $('cm_ab').value)); });
+$('cm_mot').addEventListener('input', infoMot);
+const fecharCiot = () => { $('ciotModal').classList.remove('on'); ciotEditando=null; };
+$('btnCmCancelar').addEventListener('click', fecharCiot);
+$('ciotModal').addEventListener('click', e=>{ if(e.target.id==='ciotModal') fecharCiot(); });
+$('btnCmSalvar').addEventListener('click', async ()=>{
+  const m = acharMot($('cm_mot').value), numero = $('cm_num').value.replace(/\s+/g,'').trim();
+  const abertura = $('cm_ab').value, validade = $('cm_val').value;
+  if(!m){ $('cmMsg').textContent='Escolha o motorista da lista.'; return; }
+  if(!numero){ $('cmMsg').textContent='Informe o número do CIOT.'; $('cm_num').focus(); return; }
+  if(!abertura || !validade || validade<abertura){ $('cmMsg').textContent='Confira a data de abertura e a validade.'; return; }
+  const dup = regs.find(r=>r.numero===numero && r.id!==ciotEditando?.id);
+  if(dup && !confirm(`O CIOT ${numero} já está lançado para ${titulo(dup.nome)}. Salvar mesmo assim?`)) return;
+  const bad = m.statusTac==='INVÁLIDO' || m.statusGeral==='inval';
+  if(!ciotEditando && bad && !confirm(`${titulo(m.nome)} está com RNTRC/cadastro INVÁLIDO. Abrir CIOT mesmo assim?`)) return;
+  const outros = ciotsDe(m).filter(r=>aberto(r) && r.id!==ciotEditando?.id);
+  if(!ciotEditando && outros.length && !confirm(`${titulo(m.nome)} já tem CIOT aberto (${outros.map(r=>r.numero).join(', ')}). Abrir outro?`)) return;
+  const d = {numero, motoristaId:m.id, nome:m.nome, placa:m.placa||'', veiculo:m.veiculo||'', tac:m.tac||'', abertura, validade,
+    mdfe:$('cm_mdfe').value.trim(), rota:$('cm_rota').value.trim(), obs:$('cm_obs').value.trim(), atualizadoEm:serverTimestamp()};
+  $('btnCmSalvar').disabled = true;
+  try{
+    if(ciotEditando){ await setDoc(doc(db,'ciot_registros',ciotEditando.id), d, {merge:true}); await logHist('atualizado', ciotEditando.id, `CIOT ${numero} editado · ${titulo(m.nome)} · validade ${brData(validade)}`); cSel=ciotEditando.id; }
+    else { const ref = await addDoc(regRef, {...d, status:'ativo', criadoEm:serverTimestamp()}); cSel=ref.id; await logHist('criado', ref.id, `CIOT ${numero} aberto · ${titulo(m.nome)} · ${m.placa||''} · até ${brData(validade)}`); }
+    toast('CIOT salvo.'); fecharCiot(); if(currentView!=='ciot'){ cFiltro='abertos'; showView('ciot'); } renderAll();
+  }catch(err){ $('cmMsg').textContent = erroTxt(err); }
+  $('btnCmSalvar').disabled = false;
+});
+['goNovoTop'].forEach(id=>$(id).addEventListener('click', ()=>abrirCiot(null)));
+
+/* ---------------------------- lote de CIOTs ---------------------------- */
+const CIOT_COLS = {numero:['CIOT','NCIOT','NUMEROCIOT','NUMCIOT','CODIGOCIOT','CIOTN'], mot:['MOTORISTA','NOME','FRETEIRO','CONTRATADO','TRANSPORTADOR'], placa:['PLACA','VEICULO'], abertura:['ABERTURA','DATA','DATAABERTURA','INICIO','DATAINICIO','EMISSAO','DATAEMISSAO','CRIACAO'], validade:['VALIDADE','FIM','DATAFIM','ENCERRAMENTO','VENCIMENTO','TERMINO','DIAS'], mdfe:['MDFE','MDF','NMDFE','MANIFESTO']};
+const colKey = t => norm(t).replace(/[^A-Z0-9]/g,'');
+let loteCiot = null;
+$('btnCiotBulk').addEventListener('click', ()=>{
+  const lines = $('ciotBulk').value.split(/\r?\n/).filter(l=>l.trim()).map(l=>l.split('\t').map(c=>c.trim()));
+  if(!lines.length){ $('ciotBulkMsg').textContent='Cole as linhas primeiro.'; return; }
+  let idx=null, start=0;
+  const ks = lines[0].map(colKey), map={};
+  Object.entries(CIOT_COLS).forEach(([f,al])=>{ const k=ks.findIndex(x=>al.includes(x)); if(k>=0) map[f]=k; });
+  if(map.numero!=null && (map.mot!=null||map.placa!=null)){ idx=map; start=1; } else idx={numero:0, mot:1, abertura:2, validade:3, mdfe:4};
+  const ok=[], err=[];
+  lines.slice(start).forEach((c,i)=>{
+    const n=i+start+1, numero=String(c[idx.numero]||'').replace(/\s+/g,'');
+    if(!numero){ err.push(`Linha ${n}: sem número de CIOT.`); return; }
+    const txt = idx.mot!=null ? c[idx.mot] : '', pl = idx.placa!=null ? c[idx.placa] : '';
+    const m = (pl && acharMot(pl)) || acharMot(txt) || (txt && acharMot(txt.split(/\s+/).slice(0,3).join(' ')));
+    if(!m){ err.push(`Linha ${n} (CIOT ${numero}): motorista "${txt||pl}" não encontrado no cadastro.`); return; }
+    const abertura = isoDeBr(c[idx.abertura]) || hojeISO();
+    const vRaw = idx.validade!=null ? String(c[idx.validade]||'').trim() : '';
+    const validade = isoDeBr(vRaw) || (/^\d{1,2}$/.test(vRaw) ? addDias(abertura, +vRaw) : addDias(abertura, cfg.dias||10));
+    if(regs.some(r=>r.numero===numero)){ err.push(`Linha ${n}: CIOT ${numero} já lançado — ignorado.`); return; }
+    if(ok.some(r=>r.numero===numero)){ err.push(`Linha ${n}: CIOT ${numero} repetido na colagem.`); return; }
+    ok.push({numero, m, abertura, validade, mdfe: idx.mdfe!=null ? String(c[idx.mdfe]||'').trim() : ''});
+  });
+  loteCiot = ok;
+  $('ciotBulkMsg').innerHTML = `<b>${ok.length}</b> CIOT(s) prontos para lançar${err.length?` · <span style="color:var(--red)">${err.length} linha(s) com problema</span>`:''}.`
+    + (ok.length?`<div class="prev-tb"><table><thead><tr><th>CIOT</th><th>Motorista</th><th>Placa</th><th>Abertura</th><th>Validade</th><th>MDF-e</th></tr></thead><tbody>${ok.map(r=>`<tr><td>${esc(r.numero)}</td><td>${esc(titulo(r.m.nome))}</td><td>${esc(r.m.placa)}</td><td>${brData(r.abertura)}</td><td>${brData(r.validade)}</td><td>${esc(r.mdfe||'—')}</td></tr>`).join('')}</tbody></table></div><button class="btn btn-dark" type="button" id="btnCiotBulkOk">Lançar ${ok.length} CIOT(s)</button>`:'')
+    + (err.length?`<div style="color:var(--red); margin-top:8px; max-height:140px; overflow:auto;">${err.map(esc).join('<br>')}</div>`:'');
+});
+$('ciotBulkMsg').addEventListener('click', async e=>{
+  if(!e.target.closest('#btnCiotBulkOk') || !loteCiot?.length || !canWrite) return;
+  e.target.disabled = true;
+  try{
+    for(let i=0;i<loteCiot.length;i+=400){
+      const b = writeBatch(db);
+      loteCiot.slice(i,i+400).forEach(r=>b.set(doc(regRef), {numero:r.numero, motoristaId:r.m.id, nome:r.m.nome, placa:r.m.placa||'', veiculo:r.m.veiculo||'', tac:r.m.tac||'', abertura:r.abertura, validade:r.validade, mdfe:r.mdfe, rota:'', obs:'', status:'ativo', criadoEm:serverTimestamp(), atualizadoEm:serverTimestamp()}));
+      await b.commit();
+    }
+    await logHist('criado', '—', `${loteCiot.length} CIOT(s) lançados em lote`);
+    toast(`${loteCiot.length} CIOT(s) lançados.`); $('ciotBulk').value=''; $('ciotBulkMsg').textContent=''; loteCiot=null; $('impCiotBox').style.display='none';
+  }catch(err){ toast(erroTxt(err)); e.target.disabled=false; }
+});
+
+/* ---------------------------- motoristas ---------------------------- */
+function renderMotoristas(){
+  const ms = motoristas();
+  // importação do cadastro da planilha
+  const cad = new Map(motsDb.map(m=>[m.id, m]));
+  const novos = BASE_CAD.filter(b=>!cad.has(idMot(b.nome)));
+  $('impCadBox').style.display = (canWrite && carregou && !semRegras && novos.length) ? '' : 'none';
+  $('impCadTxt').textContent = `${BASE_CAD.length} motoristas na planilha de cadastro enviada; ${novos.length} ainda não estão no banco. Vão nome, tipo de veículo, placa, nº TAC/ETC, tipo de registro, status, observação e status geral. CPF, telefone e CNPJ não são importados, porque o painel é público.`;
+  const k = f => ms.filter(f).length;
+  const com = k(m=>ciotAberto(m)), venc = k(m=>{ const r=ciotAberto(m); return r && sitCiot(r).k==='venc'; });
+  $('mKpis').innerHTML = [
+    ['Motoristas', ms.length, `${k(m=>m.pj)} PJ · ${ms.length-k(m=>m.pj)} PF`, 'var(--blue)'],
+    ['Com CIOT aberto', com, pct(com, ms.length)+' do total', 'var(--green)'],
+    ['Sem CIOT', ms.length-com, 'sem CIOT aberto', 'var(--muted)'],
+    ['CIOT vencido', venc, 'encerrar no portal', 'var(--red)'],
+    ['Pendência no cadastro', k(m=>m.statusGeral==='pend'), 'resolver antes do CIOT', 'var(--orange)'],
+    ['RNTRC inválido', k(m=>m.statusTac==='INVÁLIDO'||m.statusGeral==='inval'), 'não pode receber CIOT', 'var(--black)'],
+  ].map(([t,v,p,c])=>`<div class="kpi" style="--c:${c}"><div class="t"><i></i>${t}</div><div class="n">${fmt(v)}</div><div class="p">${esc(p)}</div></div>`).join('');
+  preencherSelect('mVeic', [...new Set(ms.map(m=>m.veiculo).filter(Boolean))].sort(), 'Veículo: todos');
+  $('dlVeic').innerHTML = [...new Set(ms.map(m=>m.veiculo).filter(Boolean))].sort().map(v=>`<option value="${esc(v)}">`).join('');
+  const chips = [['','Todos',ms.length],['com','Com CIOT',com],['sem','Sem CIOT',ms.length-com],['venc','CIOT vencido',venc],['pend','Pendência',k(m=>m.statusGeral==='pend')],['inval','Inválido',k(m=>m.statusGeral==='inval'||m.statusTac==='INVÁLIDO')],['pj','PJ',k(m=>m.pj)],['cond','Condutor ≠ titular',k(m=>m.condutorDif)]];
+  $('mChips').innerHTML = chips.map(([f,l,c])=>`<button type="button" class="fchip${mFiltro===f?' on':''}" data-mf="${f}">${l} · ${c}</button>`).join('');
+  const q = norm($('mBusca').value), fv=$('mVeic').value, fr=$('mReg').value;
+  let rows = ms.map(m=>({...m, _c:ciotAberto(m)})).filter(m => (!fv||m.veiculo===fv) && (!fr||m.registro===fr) && (!q || norm([m.nome,m.placa,m.tac,m.veiculo,m.obs].join(' ')).includes(q)))
+    .filter(m => !mFiltro || (mFiltro==='com'&&m._c) || (mFiltro==='sem'&&!m._c) || (mFiltro==='venc'&&m._c&&sitCiot(m._c).k==='venc') || (mFiltro==='pend'&&m.statusGeral==='pend') || (mFiltro==='inval'&&(m.statusGeral==='inval'||m.statusTac==='INVÁLIDO')) || (mFiltro==='pj'&&m.pj) || (mFiltro==='cond'&&m.condutorDif));
+  const {k:sk, dir} = mSort;
+  const ordCad = {inval:0, pend:1, ok:2};
+  const val = m => sk==='cad' ? ordCad[m.statusGeral]??3 : sk==='ciot' ? (m._c ? sitCiot(m._c).ord : 9) : norm(m[sk]||'~');
+  rows.sort((a,b)=>(val(a)>val(b)?1:val(a)<val(b)?-1:0)*dir || norm(a.nome).localeCompare(norm(b.nome)));
+  document.querySelectorAll('#mHead th.sortable').forEach(th=>th.setAttribute('aria-sort', th.dataset.k===sk?(dir>0?'ascending':'descending'):'none'));
+  $('mCount').textContent = `${rows.length} de ${ms.length}`;
+  if(!rows.find(m=>m.id===mSel)) mSel = rows[0]?.id || null;
+  $('mBody').innerHTML = rows.length ? rows.map(m=>{
+    const cl = CAD_LABEL[m.statusGeral]||['—','dev'], s = m._c ? sitCiot(m._c) : null;
+    const cor = s ? (s.k==='venc'?'var(--red)':s.k==='vence'?'var(--orange)':'var(--green)') : '#c4c8d0';
+    return `<tr class="${m.id===mSel?'on':''}" data-m="${esc(m.id)}" tabindex="0">
+      <td><div class="who"><span class="av" style="background:${avCor(m.nome)}; --s:${cor}">${esc(iniciais(m.nome))}</span><span style="min-width:0"><b>${esc(titulo(m.nome))}</b><small>${m.pj?'PJ':'PF'}${m.condutorDif?' · condutor ≠ titular':''}</small></span></div></td>
+      <td>${placaHTML(m.placa,true)}<div class="muted" style="font-size:11px; margin-top:3px;">${esc(titulo(m.veiculo||''))}</div></td>
+      <td class="hide-sm"><span class="mono">${esc(m.tac||'—')}</span><small class="muted" style="display:block;font-size:11px">${esc(m.registro||'')} · ${esc(m.statusTac||'')}</small></td>
+      <td><span class="badge ${cl[1]}">${cl[0]}</span>${m.obs?`<small class="muted" style="display:block;font-size:11px;margin-top:3px;max-width:190px;white-space:normal">${esc(m.obs)}</small>`:''}</td>
+      <td>${s?`<span class="badge ${s.cls}">${esc(s.l)}</span><small class="muted" style="display:block;font-size:11px;margin-top:3px">${esc(m._c.numero)}</small>`:'<span class="muted">sem CIOT</span>'}</td></tr>`; }).join('')
+    : '<tr><td colspan="5" class="empty">Nenhum motorista com esse filtro.</td></tr>';
+  $('mFicha').innerHTML = fichaMot(ms.find(m=>m.id===mSel));
+}
+function fichaMot(m){
+  if(!m) return '<div class="card empty">Selecione um motorista.</div>';
+  const cl = CAD_LABEL[m.statusGeral]||['—','dev'], cs = ciotsDe(m).sort((a,b)=>String(b.abertura).localeCompare(String(a.abertura)));
+  const ab = cs.find(aberto), s = ab ? sitCiot(ab) : null;
+  return `<div class="card ficha-card">
+    <div class="vh" style="margin-bottom:14px;">
+      <div class="vh-who"><span class="av" style="background:${avCor(m.nome)}">${esc(iniciais(m.nome))}</span><div style="min-width:0"><b>${esc(titulo(m.nome))}</b><small>${m.pj?'Pessoa jurídica':'Pessoa física'} · ${esc(m.registro||'')}</small></div></div>
+      ${canWrite && !m._seed?`<button type="button" class="icon-btn" data-editm="${esc(m.id)}" aria-label="Editar ${esc(titulo(m.nome))}" title="Editar motorista"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg></button>`:''}
+    </div>
+    <div class="ficha">
+      <div><span>Placa</span><b>${placaHTML(m.placa,true)}</b></div>
+      <div><span>Veículo</span><b>${esc(titulo(m.veiculo||'—'))}</b></div>
+      <div><span>Nº ${esc(m.registro||'TAC/ETC')}</span><b class="mono">${esc(m.tac||'—')}</b></div>
+      <div><span>Status do RNTRC</span><b style="color:${m.statusTac==='INVÁLIDO'?'var(--red)':'inherit'}">${esc(m.statusTac||'—')}</b></div>
+      <div><span>Cadastro</span><b><span class="badge ${cl[1]}">${cl[0]}</span></b></div>
+      <div><span>Condutor</span><b>${m.condutorDif?'Diferente do titular':'O próprio titular'}</b></div>
+      ${m.obs?`<div class="full"><span>Obs / pendências</span><b>${esc(m.obs)}</b></div>`:''}
+    </div>
+    <div class="eyebrow" style="margin:16px 0 8px;">CIOT atual</div>
+    ${ab?`<button type="button" class="cl-veic" data-verc="${esc(ab.id)}" style="width:100%; text-align:left; cursor:pointer; display:block;"><b style="font-size:13px">CIOT ${esc(ab.numero)}</b> <span class="badge ${s.cls}" style="margin-left:6px">${esc(s.l)}</span><small class="muted" style="display:block;margin-top:4px">${brData(ab.abertura)} → ${brData(ab.validade)}${ab.mdfe?' · MDF-e '+esc(ab.mdfe):''}</small></button>`:'<div class="muted" style="font-size:12.5px;">Sem CIOT aberto.</div>'}
+    ${canWrite?`<div class="edit-actions" style="margin-top:12px;"><button class="btn btn-dark" type="button" data-novoc="${esc(m.id)}">${ab?'Abrir outro CIOT':'Abrir CIOT'}</button></div>`:''}
+    <div class="eyebrow" style="margin:16px 0 10px;">Histórico de CIOTs (${cs.length})</div>
+    ${cs.length?`<ul class="tl">${cs.slice(0,12).map(x=>{const sx=sitCiot(x); return `<li class="${sx.k==='venc'?'al':''}"><b>${esc(x.numero)}</b> · ${esc(sx.l)}<small>${brData(x.abertura)} → ${brData(x.validade)}${x.status==='encerrado'&&x.encerradoEm?' · encerrado '+brData(x.encerradoEm):''}</small></li>`;}).join('')}</ul>`:'<div class="muted" style="font-size:12.5px;">Nenhum CIOT registrado para este motorista.</div>'}
+    ${m._seed?`<div class="note">Cadastro vindo da planilha. ${canWrite?'Importe o cadastro (aviso no topo da aba) para poder editar.':''}</div>`:''}
+  </div>`;
+}
+['mBusca','mVeic','mReg'].forEach(id=>$(id).addEventListener('input', renderMotoristas));
+$('mChips').addEventListener('click', e=>{ const b=e.target.closest('[data-mf]'); if(!b) return; mFiltro=b.dataset.mf; renderMotoristas(); });
+document.querySelectorAll('#mHead th.sortable').forEach(th=>th.addEventListener('click',()=>{ const k=th.dataset.k; mSort={k, dir: mSort.k===k?-mSort.dir:1}; renderMotoristas(); }));
+function selMot(id){ mSel=id; document.querySelectorAll('#mBody tr').forEach(tr=>tr.classList.toggle('on', tr.dataset.m===id)); $('mFicha').innerHTML = fichaMot(motoristas().find(m=>m.id===id)); if(window.innerWidth<=1180) $('mFicha').scrollIntoView({behavior:'smooth', block:'start'}); }
+$('mBody').addEventListener('click', e=>{ const tr=e.target.closest('tr[data-m]'); if(tr) selMot(tr.dataset.m); });
+$('mBody').addEventListener('keydown', e=>{ const tr=e.target.closest('tr[data-m]'); if(tr && (e.key==='Enter'||e.key===' ')){ e.preventDefault(); selMot(tr.dataset.m); } });
+$('mFicha').addEventListener('click', e=>{
+  const g = a => e.target.closest('['+a+']')?.getAttribute(a);
+  if(g('data-verc')){ cSel=g('data-verc'); cFiltro=''; showView('ciot'); renderCiot(); return; }
+  if(g('data-novoc')) return abrirCiot(null, motoristas().find(m=>m.id===g('data-novoc')));
+  if(g('data-editm')) return abrirMot(g('data-editm'));
+});
+function abrirMot(id){
+  const m = motsDb.find(x=>x.id===id); if(!m || !canWrite) return;
+  motEditando = m;
+  $('mmTitle').textContent = `Editar ${titulo(m.nome)}`;
+  $('mm_nome').value=m.nome||''; $('mm_veic').value=m.veiculo||''; $('mm_placa').value=m.placa||''; $('mm_tac').value=m.tac||'';
+  $('mm_reg').value=m.registro||'TAC'; $('mm_sttac').value=m.statusTac||'VÁLIDO'; $('mm_stg').value=m.statusGeral||'ok'; $('mm_obs').value=m.obs||''; $('mm_inativo').checked=!!m.inativo; $('mmMsg').textContent='';
+  $('motModal').classList.add('on');
+}
+const fecharMot = () => { $('motModal').classList.remove('on'); motEditando=null; };
+$('btnMmCancelar').addEventListener('click', fecharMot);
+$('motModal').addEventListener('click', e=>{ if(e.target.id==='motModal') fecharMot(); });
+document.addEventListener('keydown', e=>{ if(e.key==='Escape'){ fecharMot(); fecharCiot(); } });
+$('btnMmSalvar').addEventListener('click', async ()=>{
+  const m = motEditando; if(!m) return;
+  const d = {nome:$('mm_nome').value.trim().toUpperCase(), veiculo:$('mm_veic').value.trim().toUpperCase(), placa:$('mm_placa').value.trim().toUpperCase().replace(/[^A-Z0-9]/g,''), tac:$('mm_tac').value.trim(), registro:$('mm_reg').value, statusTac:$('mm_sttac').value, statusGeral:$('mm_stg').value, obs:$('mm_obs').value.trim(), inativo:$('mm_inativo').checked, atualizadoEm:serverTimestamp()};
+  if(!d.nome){ $('mmMsg').textContent='Informe o nome.'; return; }
+  const mud = [['nome','Nome'],['veiculo','Veículo'],['placa','Placa'],['tac','RNTRC'],['registro','Registro'],['statusTac','Status RNTRC'],['statusGeral','Status geral'],['obs','Obs'],['inativo','Inativo']].filter(([k])=>String(m[k]??'')!==String(d[k]??'')).map(([k,l])=>`${l}: ${k==='statusGeral'?CAD_LABEL[d[k]][0]:k==='inativo'?(d[k]?'sim':'não'):d[k]||'—'}`);
+  if(!mud.length){ fecharMot(); return; }
+  $('btnMmSalvar').disabled = true;
+  try{ await setDoc(doc(db,'ciot_motoristas',m.id), d, {merge:true}); await logHist('atualizado', m.id, `Motorista ${titulo(d.nome)} · ${mud.join(' · ')}`); toast('Motorista salvo.'); fecharMot(); }
+  catch(err){ $('mmMsg').textContent = erroTxt(err); }
+  $('btnMmSalvar').disabled = false;
+});
+$('btnImpCad').addEventListener('click', async ()=>{
+  if(!canWrite) return;
+  const cad = new Set(motsDb.map(m=>m.id));
+  const novos = BASE_CAD.filter(b=>!cad.has(idMot(b.nome)));
+  if(!novos.length) return;
+  $('btnImpCad').disabled = true;
+  try{
+    for(let i=0;i<novos.length;i+=400){ const b=writeBatch(db); novos.slice(i,i+400).forEach(x=>b.set(doc(db,'ciot_motoristas',idMot(x.nome)), {...x, criadoEm:serverTimestamp(), atualizadoEm:serverTimestamp()})); await b.commit(); }
+    await logHist('criado','—',`Cadastro importado da planilha: ${novos.length} motorista(s)`);
+    toast(`${novos.length} motorista(s) importados.`);
+  }catch(err){ toast(erroTxt(err)); }
+  $('btnImpCad').disabled = false;
+});
+
+/* ---------------------------- atualizar cadastro colando a planilha ---------------------------- */
+let loteCad = null;
+function parseCad(text){
+  const lines = String(text||'').split(/\r?\n/).filter(l=>l.trim()).map(l=>l.split('\t').map(c=>c.trim()));
+  const ok=[], err=[];
+  lines.forEach((c,i)=>{
+    if(c.some(x=>/^MOTORISTA$/i.test(x))) return;          // cabeçalho
+    // aceita com ou sem a coluna A (0=): acha a coluna do nome pela posição do tipo de registro (TAC/ETC)
+    let o = c.findIndex(x=>/^(TAC|ETC)$/i.test(x)) - 3;
+    if(o<0) o = /^\d+$/.test(c[0]||'') ? 1 : 0;
+    const nome=(c[o]||'').trim(); if(!nome){ return; }
+    const stg = norm(c[o+11]||'');
+    ok.push({nome:nome.toUpperCase(), veiculo:(c[o+1]||'').toUpperCase(), tac:(c[o+2]||''), registro:(c[o+3]||'').toUpperCase(), statusTac:/INV/.test(norm(c[o+4]))?'INVÁLIDO':'VÁLIDO', placa:(c[o+5]||'').toUpperCase().replace(/[^A-Z0-9]/g,''),
+      // o+6 telefone, o+7 CPF titular, o+8 CPF condutor, o+9 CNPJ: NÃO gravados (só usados para os indicadores PJ/condutor)
+      pj: /\bPJ\b/.test(nome.toUpperCase()) || (c[o+9]||'').replace(/\D/g,'').length===14,
+      condutorDif: !!(c[o+8]||'').replace(/\D/g,'') && (c[o+8]||'').replace(/\D/g,'')!==(c[o+7]||'').replace(/\D/g,''),
+      obs:(c[o+10]||''), statusGeral: /OK/.test(stg)?'ok':/PEND/.test(stg)?'pend':/INV/.test(stg)?'inval':'ok'});
+  });
+  return {ok, err};
+}
+$('btnCadBulk').addEventListener('click', ()=>{
+  const p = parseCad($('cadBulk').value);
+  if(!p.ok.length){ $('cadBulkMsg').textContent='Nenhum motorista reconhecido. Copie da coluna A até a M da planilha de cadastro.'; return; }
+  const cad = new Map(motsDb.map(m=>[m.id,m]));
+  const campos = ['veiculo','tac','registro','statusTac','placa','obs','statusGeral','pj','condutorDif'];
+  p.ok.forEach(x=>{ const e=cad.get(idMot(x.nome)); x._tipo = !e ? 'novo' : campos.some(k=>String(e[k]??'')!==String(x[k]??'')) ? 'atualiza' : 'igual'; });
+  loteCad = p.ok.filter(x=>x._tipo!=='igual');
+  const nN = p.ok.filter(x=>x._tipo==='novo').length, nA = p.ok.filter(x=>x._tipo==='atualiza').length;
+  $('cadBulkMsg').innerHTML = `${p.ok.length} motorista(s) lidos: <b>${nN}</b> novo(s), <b>${nA}</b> com alteração, ${p.ok.length-nN-nA} sem mudança.`
+    + (loteCad.length?`<div class="prev-tb"><table><thead><tr><th></th><th>Motorista</th><th>Veículo</th><th>Placa</th><th>RNTRC</th><th>Status</th><th>Obs</th></tr></thead><tbody>${loteCad.map(x=>`<tr><td><span class="flag ${x._tipo==='novo'?'n':'u'}">${x._tipo==='novo'?'novo':'atualiza'}</span></td><td>${esc(titulo(x.nome))}</td><td>${esc(x.veiculo)}</td><td>${esc(x.placa)}</td><td>${esc(x.registro)} ${esc(x.tac)} (${esc(x.statusTac)})</td><td>${CAD_LABEL[x.statusGeral][0]}</td><td>${esc(x.obs)}</td></tr>`).join('')}</tbody></table></div><button class="btn btn-dark" type="button" id="btnCadBulkOk">Gravar ${loteCad.length} motorista(s)</button>`:'');
+});
+$('cadBulkMsg').addEventListener('click', async e=>{
+  if(!e.target.closest('#btnCadBulkOk') || !loteCad?.length || !canWrite) return;
+  e.target.disabled = true;
+  try{
+    for(let i=0;i<loteCad.length;i+=400){ const b=writeBatch(db); loteCad.slice(i,i+400).forEach(x=>{ const {_tipo, ...d}=x; b.set(doc(db,'ciot_motoristas',idMot(x.nome)), {...d, atualizadoEm:serverTimestamp(), ...(_tipo==='novo'?{criadoEm:serverTimestamp()}:{})}, {merge:true}); }); await b.commit(); }
+    await logHist('atualizado','—',`Cadastro atualizado pela planilha: ${loteCad.filter(x=>x._tipo==='novo').length} novo(s), ${loteCad.filter(x=>x._tipo==='atualiza').length} alterado(s)`);
+    toast('Cadastro atualizado.'); $('cadBulk').value=''; $('cadBulkMsg').textContent=''; loteCad=null;
+  }catch(err){ toast(erroTxt(err)); e.target.disabled=false; }
+});
+
+/* ---------------------------- agenda ---------------------------- */
+function renderAgenda(){
+  const hoje = hojeISO(), ab = regs.filter(aberto);
+  const atras = ab.filter(r=>r.validade<hoje).sort((a,b)=>a.validade.localeCompare(b.validade));
+  const ult = ab.reduce((m,r)=>r.validade>m?r.validade:m, addDias(hoje,13));
+  const ndias = Math.min(45, Math.max(14, difDias(ult, hoje)+1));
+  const item = r => `<li data-agc="${esc(r.id)}"><span><b>${esc(titulo(r.nome))}</b><small style="display:block">${esc(r.placa||'')} · CIOT ${esc(r.numero)}</small></span><small>${r.validade<hoje?brCurta(r.validade):''}</small></li>`;
+  let h = `<div class="ag-day atras"><h4>Vencidos <span>${atras.length}</span></h4>${atras.length?`<ul>${atras.map(item).join('')}</ul>`:'<div class="vazio">Nenhum CIOT vencido.</div>'}</div>`;
+  for(let i=0;i<ndias;i++){
+    const d = addDias(hoje,i), l = ab.filter(r=>r.validade===d);
+    h += `<div class="ag-day${i===0?' hoje':''}"><h4>${i===0?'Hoje':i===1?'Amanhã':diaSem(d)[0].toUpperCase()+diaSem(d).slice(1)} · ${brCurta(d)} <span>${l.length}</span></h4>${l.length?`<ul>${l.map(item).join('')}</ul>`:'<div class="vazio">—</div>'}</div>`;
+  }
+  $('agGrid').innerHTML = h;
+}
+$('agGrid').addEventListener('click', e=>{ const li=e.target.closest('[data-agc]'); if(!li) return; cSel=li.dataset.agc; cFiltro='abertos'; showView('ciot'); renderCiot(); });
+
+/* ---------------------------- alertas ---------------------------- */
+function renderAlertas(){
+  const A = calcAlertas();
+  const tipos = [...new Set(A.map(a=>a.alerta))];
+  $('alChips').innerHTML = [['','Todos',A.length],['Crítico','Críticos',A.filter(a=>a.nivel==='Crítico').length],['Atenção','Atenção',A.filter(a=>a.nivel==='Atenção').length]].concat(tipos.map(t=>[t,t,A.filter(a=>a.alerta===t).length]))
+    .map(([f,l,c])=>`<button type="button" class="fchip${alFiltro===f?' on':''}" data-alf="${esc(f)}">${esc(l)} · ${c}</button>`).join('');
+  const rows = A.filter(a=>!alFiltro || a.nivel===alFiltro || a.alerta===alFiltro);
+  $('alBody').innerHTML = rows.length ? rows.map(a=>`<tr ${a.ciot?`data-alc="${esc(a.ciot)}"`:`data-alm="${esc(a.mot)}"`} style="cursor:pointer"><td><span class="badge ${a.nivel==='Crítico'?'crit':'aten'}">${a.nivel}</span></td><td><b>${esc(titulo(a.nome))}</b></td><td class="hide-sm">${esc(a.placa||'—')}</td><td>${esc(a.alerta)}</td><td class="hide-sm">${esc(a.detalhe)}</td></tr>`).join('') : '<tr><td colspan="5" class="empty">Nada pedindo ação. 👍</td></tr>';
+}
+$('alChips').addEventListener('click', e=>{ const b=e.target.closest('[data-alf]'); if(!b) return; alFiltro=b.dataset.alf; renderAlertas(); });
+$('alBody').addEventListener('click', e=>{ const tr=e.target.closest('tr'); if(!tr) return; if(tr.dataset.alc){ cSel=tr.dataset.alc; cFiltro=''; showView('ciot'); renderCiot(); } else if(tr.dataset.alm){ mSel=tr.dataset.alm; mFiltro=''; showView('motoristas'); renderMotoristas(); } });
+
+/* ---------------------------- histórico ---------------------------- */
+async function logHist(tipo, ref, resumo){ try{ await addDoc(histRef, {tipo, ref, resumo, quando:serverTimestamp()}); }catch(e){} }
+function renderHist(){
+  $('histList').innerHTML = hist.length ? hist.map(h => { const d = h.quando?.toDate ? h.quando.toDate() : null;
+    const cls = h.tipo==='encerrado'?'atualizado':h.tipo==='cancelado'?'excluido':h.tipo;
+    return `<div class="hist-item"><span class="hist-tipo ${esc(cls)}">${esc(h.tipo)}</span><span class="hist-data">${d?d.toLocaleString('pt-BR'):''}</span><div class="hist-resumo">${esc(h.resumo)}</div></div>`; }).join('') : '<div class="empty">Nenhuma alteração registrada ainda.</div>';
+}
+
+/* ---------------------------- configuração ---------------------------- */
+$('btnCfgDias').addEventListener('click', async ()=>{
+  const n = parseInt($('cfgDias').value,10); if(!(n>=1 && n<=60)){ toast('Informe entre 1 e 60 dias.'); return; }
+  try{ await setDoc(doc(db,'ciot_motoristas','_config'), {_config:true, dias:n, inativo:true, nome:'_config', atualizadoEm:serverTimestamp()}, {merge:true}); await logHist('atualizado','—',`Duração padrão do CIOT: ${n} dias`); toast('Duração padrão salva.'); }
+  catch(err){ toast(erroTxt(err)); }
+});
+
+/* ---------------------------- navegação ---------------------------- */
+const VIEWS = {painel:['viewPainel','Painel do CIOT'], ciot:['viewCiot','Controle de CIOT'], motoristas:['viewMotoristas','Motoristas (cadastro)'], agenda:['viewAgenda','Agenda de encerramentos'], alertas:['viewAlertas','Alertas'], hist:['viewHist','Histórico de alterações'], edicao:['viewEdicao','Modo edição']};
+let currentView = 'painel';
+function showView(v){
+  if(!VIEWS[v]) v='painel';
+  currentView = v;
+  Object.entries(VIEWS).forEach(([k,[id]]) => $(id).style.display = k===v ? '' : 'none');
+  document.querySelectorAll('.rail-btn').forEach(b => { b.classList.toggle('on', b.dataset.view===v); b.toggleAttribute('aria-current', b.dataset.view===v); });
+  $('pageTitle').firstChild.textContent = VIEWS[v][1];
+  try{ localStorage.setItem('ciot_view', v); }catch(e){}
+  if(location.hash.slice(1)!==v) history.replaceState(null,'','#'+v);
+  window.scrollTo({top:0});
+  renderAtual();
+}
+function renderAtual(){
+  if(currentView==='painel') renderPainel(); else if(currentView==='ciot') renderCiot(); else if(currentView==='motoristas') renderMotoristas();
+  else if(currentView==='agenda') renderAgenda(); else if(currentView==='alertas') renderAlertas(); else if(currentView==='hist') renderHist();
+}
+function renderAll(){
+  const modalAberto = $('ciotModal').classList.contains('on') || $('motModal').classList.contains('on');
+  if(!modalAberto) renderAtual();
+  // selo de alertas no trilho
+  const nc = calcAlertas().filter(a=>a.nivel==='Crítico').length, b = document.querySelector('.rail-btn[data-view="alertas"]');
+  let sp = b.querySelector('.novo'); if(nc){ if(!sp){ sp=document.createElement('span'); sp.className='novo'; b.appendChild(sp); } sp.textContent=nc>99?'99+':nc; sp.style.background='var(--red)'; sp.style.color='#fff'; } else if(sp) sp.remove();
+}
+document.querySelectorAll('.rail-btn').forEach(b => b.addEventListener('click', () => showView(b.dataset.view)));
+window.addEventListener('hashchange', () => { const h=location.hash.slice(1); if(VIEWS[h] && h!==currentView) showView(h); });
+$('goCiotBanner').addEventListener('click', ()=>showView('ciot'));
+$('verAlertas').addEventListener('click', ()=>showView('alertas'));
+$('verAgenda').addEventListener('click', ()=>showView('agenda'));
+
+/* ---------------------------- relógio ---------------------------- */
+let _dia = hojeISO();
+function tick(){ const d=new Date(); $('clock').textContent=d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}); $('dateTag').textContent=d.toLocaleDateString('pt-BR',{weekday:'long', day:'2-digit', month:'long', year:'numeric'}); if(hojeISO()!==_dia){ _dia=hojeISO(); renderAll(); } }
+tick(); setInterval(tick, 15000);
+
+/* ---------------------------- login de edição ---------------------------- */
+if(USE_EMAIL_LOGIN){ $('emailInput').style.display='block'; $('pinLabel').textContent='Senha'; }
+async function entrar(){
+  if(USE_EMAIL_LOGIN){
+    try{ await signInWithEmailAndPassword(auth, $('emailInput').value.trim(), $('pinInput').value); }
+    catch(e){ alert('Login não autorizado: '+(e.code||e.message)); return; }
+  } else {
+    if($('pinInput').value !== EDIT_PIN){ alert('PIN incorreto.'); return; }
+    try{ await signInAnonymously(auth); }catch(e){ alert('Erro ao autenticar: '+e.message); return; }
+  }
+  canWrite = true;
+  $('gateLocked').style.display='none'; $('formPanel').style.display='block'; $('editPill').style.display='';
+  $('cfgDias').value = cfg.dias||10;
+  toast('Modo edição liberado.');
+  renderAll();
+}
+$('btnUnlock').addEventListener('click', entrar);
+$('pinInput').addEventListener('keydown', e => { if(e.key==='Enter') entrar(); });
+
+/* ---------------------------- tempo real ---------------------------- */
+function online(){ $('statusTxt').textContent='ao vivo'; $('statusTag').className='pill live'; }
+function falhou(err){
+  console.error(err);
+  if(String(err?.code).includes('permission')){ semRegras = true; $('regrasBox').style.display=''; $('statusTxt').textContent='sem permissão'; $('statusTag').className='pill bad'; carregou = true; renderAll(); }
+  else { $('statusTxt').textContent='sem conexão'; $('statusTag').className='pill bad'; }
+}
+onSnapshot(motRef, snap => {
+  const all = snap.docs.map(d => ({id:d.id, ...d.data()}));
+  const c = all.find(x=>x._config); if(c) cfg = {...cfg, dias:c.dias||10};
+  motsDb = all.filter(x=>!x._config);
+  carregou = true; semRegras = false; $('regrasBox').style.display='none'; online(); renderAll();
+}, falhou);
+onSnapshot(regRef, snap => { regs = snap.docs.map(d => ({id:d.id, ...d.data()})).filter(r=>r.numero && r.abertura && r.validade); renderAll(); }, falhou);
+onSnapshot(query(histRef, orderBy('quando','desc'), limit(200)), snap => { hist = snap.docs.map(d => d.data()); if(currentView==='hist') renderHist(); }, err => console.warn('ciot_historico:', err.code||err));
+
+let inicial = location.hash.slice(1); try{ inicial = inicial || localStorage.getItem('ciot_view') || 'painel'; }catch(e){ inicial = inicial || 'painel'; }
+showView(inicial);
+
+</script>
+</body>
+</html>
