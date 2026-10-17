@@ -725,7 +725,7 @@ html.theme-anim, html.theme-anim *, html.theme-anim *::before{transition:backgro
 </div>
 <div id="viewDia" style="display:none;">
   <div class="panel">
-    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:6px;"><h3 style="margin:0;">Entregas do Dia <span class="hint">cargas que saíram no dia · andamento das entregas · regiões</span></h3><button type="button" class="btn-ghost" id="btnDiaImport" style="width:auto;padding:7px 14px;display:none;" title="Colar as cargas que saem no dia">📥 Importar cargas do dia</button></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:6px;"><h3 style="margin:0;">Entregas do Dia <span class="hint">cargas que saíram no dia · andamento das entregas · regiões</span></h3><div style="display:flex;gap:8px;flex-wrap:wrap;"><button type="button" class="btn-ghost" id="btnDiaImport" style="width:auto;padding:7px 14px;display:none;" title="Colar as cargas que saem no dia">📥 Importar cargas do dia</button><button type="button" class="btn-ghost" id="btnRelDia" style="width:auto;padding:7px 14px;" title="Relatório completo do dia, com os filtros atuais, pronto para imprimir ou salvar em PDF">📄 Exportar relatório</button></div></div>
     <div class="dia-import" id="diaImportBox" style="display:none;">
       <p class="bulk-note">Copie da planilha as linhas das cargas que saem no dia e cole aqui. Aceita a mesma ordem da aba Lança — <b>NUMCAR, DTSAIDA, VLTOTAL_PED, NUMNOTA, NOME, DESTINO</b> (ATRASO e GA opcionais) — ou qualquer ordem, desde que a linha de cabeçalho venha junto (reconhece também CLIENTE, PESO, VOLUME, PLACA e OBS). Importar de novo o mesmo dia substitui as cargas e mantém os status de entrega já marcados.</p>
       <textarea id="diaInput" placeholder="Cole aqui as linhas copiadas da planilha…" spellcheck="false"></textarea>
@@ -2513,6 +2513,195 @@ async function confirmarDia(){
     diaImportMsg.innerHTML='<span style="color:var(--red)">Erro ao gravar: '+esc(e.code==='permission-denied'?'sem permissão — confira as Regras do Firestore e o login.':e.message)+'</span>'; btn.disabled=false;
   }
 }
+
+/* ---------- Relatório das Entregas do Dia (imprimir / PDF) ---------- */
+function diaBase(){
+  const docDia = diasEntrega.find(d=>d.dia===dSel.value) || diasEntrega[0];
+  if(!docDia) return null;
+  const st = docDia.st||{};
+  const rastMap = new Map(allRows.concat(bancoRows).map(r=>[String(r.nf), r]));
+  const todas = (docDia.rows||[]).map(r=>{ const x={...r, _rast:rastMap.get(String(r.nf))||null}; const s=diaStatus(x,st); x._st=s.k; x._auto=s.auto; return x; });
+  const rows = todas.filter(r=>(!dCarga.value||r.numcar===dCarga.value) && (!dMot.value||r.motorista===dMot.value) && (!dReg.value||(r.regiao||'Não identificado')===dReg.value) && (!dSt.value||r._st===dSt.value));
+  return {docDia, st, todas, rows};
+}
+function gerarRelatorioDia(){
+  const B = diaBase();
+  if(!B){ toast('Nenhuma carga do dia importada para gerar o relatório.','var(--amber)'); return; }
+  const w = window.open('', '_blank');
+  if(!w){ toast('O navegador bloqueou a nova aba — permita pop-ups para este site e tente de novo.','var(--amber)'); return; }
+  const {docDia, st, todas, rows} = B;
+  const P = (a,b)=> b ? (a/b*100).toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})+'%' : '0,0%';
+  const M = fmtMoney, E = esc;
+  const T = diaAgg(rows), TT = diaAgg(todas);
+  const filtrado = rows.length!==todas.length;
+  const pendV = o=> o.st.rota.v + o.st.reentrega.v, pendN = o=> o.st.rota.n + o.st.reentrega.n;
+  const feito = diaFeito;
+  const cargas = diaAgrupar(rows, r=>r.numcar||'—');
+  const regsAll = diaAgrupar(rows, r=>r.regiao||'Não identificado');
+  const regs = regsAll.filter(g=>g.k!=='Não identificado');
+  const mots = diaAgrupar(rows, r=>r.motorista||'—');
+  const idxDev = T.v? T.st.devolvida.v/T.v : 0, idxPend = T.v? pendV(T)/T.v : 0, idxReent = T.v? T.st.reentrega.v/T.v : 0;
+  const motDe = g=>{ const m={}; g.rs.forEach(r=>{ const k=r.motorista||'—'; m[k]=(m[k]||0)+(Number(r.valor)||0); }); return Object.entries(m).sort((a,b)=>b[1]-a[1]); };
+  const ant = diasEntrega.filter(d=>d.dia<docDia.dia).slice(0,7);
+  // ---------- insights ----------
+  const ins = [];
+  if(!filtrado && ant.length){
+    const mv = ant.reduce((s,d)=>s+(d.resumo?d.resumo.v:0),0)/ant.length, mn = ant.reduce((s,d)=>s+(d.resumo?d.resumo.n:0),0)/ant.length;
+    if(mv){ const dv=(TT.v-mv)/mv*100, ab=Math.abs(dv).toLocaleString('pt-BR',{maximumFractionDigits:1});
+      ins.push([Math.abs(dv)>=30?'atencao':'info','Comparativo com os dias anteriores',`Saíram ${M(TT.v)} em ${TT.n} NFs — ${ab}% ${dv>=0?'acima':'abaixo'} da média dos ${ant.length} dia(s) anteriores importados (${M(mv)}; ${Math.round(mn)} NFs em média).${Math.abs(dv)>=30?' Variação forte: conferir se a frota e as janelas de entrega acompanharam.':''}`]); }
+  }
+  const fe = T.v? feito(T)/T.v : 0;
+  if(fe>=.9) ins.push(['oportunidade','Entregas do dia praticamente concluídas',`${P(feito(T),T.v)} do valor já foi entregue (${T.st.entregue.n+T.st.parcial.n} NFs). Restam ${M(pendV(T))} sem baixa.`]);
+  else ins.push([fe>=.5?'info':'atencao','Andamento das entregas',`${P(feito(T),T.v)} do valor entregue até agora; ${M(T.st.rota.v)} (${T.st.rota.n} NFs) ainda em rota sem baixa. Cobrar a confirmação dos motoristas ao fim da rota mantém o painel fiel.`]);
+  if(cargas.length){
+    const c=cargas[0], sh=c.o.v/T.v, top3=cargas.slice(0,3).reduce((s,x)=>s+x.o.v,0);
+    if(sh>=.25) ins.push(['atencao','Concentração em uma carga',`O carregamento ${E(c.k)} (${E(Array.from(c.o.mot).join(', ')||'sem motorista')}) leva ${P(c.o.v,T.v)} do valor do dia (${M(c.o.v)}). Um problema nessa rota afeta boa parte do faturamento: acompanhar em tempo real.`]);
+    else ins.push(['oportunidade','Valor bem distribuído entre as cargas',`A maior carga (${E(c.k)}) leva ${P(c.o.v,T.v)} do valor e as 3 maiores ${P(top3,T.v)}.`]);
+  }
+  const atras = cargas.filter(c=>c.o.n>=2 && c.o.v>=T.v/Math.max(cargas.length,1) && feito(c.o)/c.o.v<.5 && pendV(c.o)>0).sort((a,b)=>pendV(b.o)-pendV(a.o));
+  if(atras.length && fe<.9) ins.push(['atencao','Cargas de alto valor com pouca baixa',`${atras.slice(0,4).map(c=>E(c.k)+' ('+E(Array.from(c.o.mot).join(', ')||'—')+', '+M(pendV(c.o))+' sem baixa)').join('; ')}. Priorizar contato com esses motoristas.`]);
+  if(T.st.reentrega.n){ const g=mots.filter(m=>m.o.st.reentrega.n).sort((a,b)=>b.o.st.reentrega.v-a.o.st.reentrega.v);
+    ins.push(['critico','NFs não entregues — programar reentrega',`${T.st.reentrega.n} NF(s), ${M(T.st.reentrega.v)} (${P(T.st.reentrega.v,T.v)} do valor). Mais casos com: ${g.slice(0,4).map(m=>E(m.k)+' ('+m.o.st.reentrega.n+')').join(', ')}. Confirmar o motivo (cliente fechado, recusa, endereço) antes de reprogramar.`]); }
+  if(T.st.devolvida.v){ const g=mots.filter(m=>m.o.st.devolvida.v).sort((a,b)=>b.o.st.devolvida.v-a.o.st.devolvida.v);
+    ins.push([idxDev>=.05?'critico':'info','Devoluções do dia',`${M(T.st.devolvida.v)} devolvidos (${P(T.st.devolvida.v,T.v)} do valor, ${T.st.devolvida.n} NF(s)). Principais: ${g.slice(0,4).map(m=>E(m.k)+' ('+M(m.o.st.devolvida.v)+')').join(', ')}.`]); }
+  if(regs.length) ins.push(['info','Áreas mais abastecidas',`${regs.slice(0,3).map(o=>E(o.k)+' ('+M(o.o.v)+', '+P(o.o.v,T.v)+')').join(', ')} concentram a maior parte do valor do dia.`]);
+  const regPend = regs.filter(o=>o.o.n>=2 && pendV(o.o)/o.o.v>=Math.max(.3, idxPend*1.3) && pendV(o.o)>0).sort((a,b)=>pendV(b.o)-pendV(a.o));
+  if(regPend.length && fe<.95) ins.push(['atencao','Áreas com mais pendência',`${regPend.slice(0,4).map(o=>E(o.k)+' ('+P(pendV(o.o),o.o.v)+' sem baixa)').join(', ')} estão acima da média do dia (${P(pendV(T),T.v)}).`]);
+  const regDev = regs.filter(o=>(o.o.st.devolvida.v+o.o.st.reentrega.v)>0 && (o.o.st.devolvida.v+o.o.st.reentrega.v)/o.o.v>=Math.max(.08,(idxDev+idxReent)*1.5)).sort((a,b)=>(b.o.st.devolvida.v+b.o.st.reentrega.v)-(a.o.st.devolvida.v+a.o.st.reentrega.v));
+  if(regDev.length) ins.push(['critico','Áreas com mais devoluções / não entregas',`${regDev.slice(0,4).map(o=>E(o.k)+' ('+M(o.o.st.devolvida.v+o.o.st.reentrega.v)+')').join(', ')}. Verificar acesso, horário de recebimento e perfil dos clientes antes das próximas cargas.`]);
+  const cons = regs.filter(o=>o.o.car.size>=3 && o.o.n/o.o.car.size<=2).sort((a,b)=>b.o.car.size-a.o.car.size);
+  if(cons.length) ins.push(['oportunidade','Oportunidade de consolidar rotas',`${cons.slice(0,4).map(o=>E(o.k)+' ('+o.o.car.size+' cargas, '+o.o.n+' NFs)').join(', ')} receberam várias cargas com poucas NFs cada. Avaliar juntar essas entregas na roteirização.`]);
+  const dom = regs.filter(o=>o.o.n>=3).map(o=>{ const t=motDe(o)[0]; return {o, m:t[0], sh:t[1]/o.o.v}; }).filter(x=>x.sh>=.7 && x.o.o.mot.size>=1).slice(0,4);
+  if(dom.length) ins.push(['info','Áreas atendidas por um único motorista',`${dom.map(x=>E(x.o.k)+' — '+E(x.m)+' ('+P(x.sh,1)+')').join('; ')}.`]);
+  const reent = todas.filter(r=>r._rast && r._rast.dtsaida && r.dtsaida && r._rast.dtsaida<r.dtsaida);
+  if(reent.length) ins.push(['atencao','Possíveis reentregas',`${reent.length} NF(s) do dia já estavam no rastreamento com saída anterior (${M(reent.reduce((s,r)=>s+(Number(r.valor)||0),0))}). Custo de frete repetido: entender por que não foram entregues na primeira saída.`]);
+  const abRast = todas.filter(r=>r._rast && isOpen(r._rast) && !st[r.nf]);
+  if(abRast.length) ins.push(['info','Pendências no rastreamento de canhotos',`${abRast.length} NF(s) do dia constam como pendentes/analisando no rastreamento de canhotos.`]);
+  const semReg = rows.filter(r=>!r.regiao);
+  if(semReg.length) ins.push(['info','NFs sem Bairro/RA',`${semReg.length} NF(s) (${M(semReg.reduce((s,r)=>s+(Number(r.valor)||0),0))}) não tiveram o Bairro/RA reconhecido pelo DESTINO e ficaram fora da análise por área.`]);
+  // ---------- HTML ----------
+  const filtros = [dCarga.value&&('Carregamento '+dCarga.value), dMot.value&&('Motorista: '+dMot.value), dReg.value&&('Bairro/RA: '+dReg.value), dSt.value&&('Status: '+DIA_ST_MAP[dSt.value].l)].filter(Boolean).join(' · ') || 'Todas as cargas do dia';
+  const bar = (x,max,cls)=>`<div class="bar"><i class="${cls||''}" style="width:${max?Math.max(1,x/max*100):0}%"></i></div>`;
+  const stack = o=> o.v ? `<div class="stk">${DIA_ST.map(s=>o.st[s.k].v?`<i style="width:${o.st[s.k].v/o.v*100}%;background:${s.c.replace('var(--','var(--r')}"></i>`:'').join('')}</div>` : '';
+  const cor = {critico:'Crítico',atencao:'Atenção',oportunidade:'Oportunidade',info:'Análise'};
+  const vazio = c=>`<tr><td colspan="${c}" class="muted">Sem dados para os filtros.</td></tr>`;
+  const maxC = cargas[0]?cargas[0].o.v:0, maxR = regs[0]?regs[0].o.v:0;
+  const rP = regs.filter(o=>pendV(o.o)>0).sort((a,b)=>pendV(b.o)-pendV(a.o)), maxRP = rP[0]?pendV(rP[0].o):0;
+  const dvr = o=> o.st.devolvida.v + o.st.reentrega.v;
+  const rD = regs.filter(o=>dvr(o.o)>0).sort((a,b)=>dvr(b.o)-dvr(a.o)), maxRD = rD[0]?dvr(rD[0].o):0;
+  const nfLin = r=>`<tr><td><b>${E(r.nf)}</b></td><td>${E(r.numcar||'—')}</td><td>${E(r.motorista||'—')}</td><td>${E(r.cliente||r.destino||'—')}${r.cliente&&r.destino?'<small>'+E(r.destino)+'</small>':''}</td><td>${E(r.regiao||'—')}</td><td class="n">${M(r.valor)}</td><td>${DIA_ST_MAP[r._st].l}</td></tr>`;
+  const nfHead = '<thead><tr><th>NF</th><th>Carreg.</th><th>Motorista</th><th>Cliente / destino</th><th>Bairro/RA</th><th class="n">Valor</th><th>Status</th></tr></thead>';
+  const naoEnt = rows.filter(r=>r._st==='reentrega').sort((a,b)=>b.valor-a.valor);
+  const devs = rows.filter(r=>r._st==='devolvida').sort((a,b)=>b.valor-a.valor);
+  const altas = rows.slice().sort((a,b)=>b.valor-a.valor).slice(0,15);
+  const imp = docDia.importadoEm && docDia.importadoEm.toDate ? docDia.importadoEm.toDate().toLocaleString('pt-BR') : '';
+  const hist = [docDia].concat(ant).filter(d=>d.resumo);
+  const h = `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Entregas do Dia ${E(diaFmtData(docDia.dia))} — Rastreamento de Cargas</title>
+<style>
+:root{--ink:#16233a;--muted:#5d6b80;--line:#d8e0ea;--bg:#f4f7fb;--teal:#0e8fa3;--blue:#2860c9;--amber:#c47d00;--red:#c8323f;--violet:#7a4cc4;
+--rteal:#0e8fa3;--rblue:#2860c9;--ramber:#e0a100;--rred:#c8323f;--rviolet:#7a4cc4;}
+*{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--ink);font:13px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;}
+.page{max-width:1080px;margin:0 auto;padding:28px 28px 60px;background:#fff;}
+header{display:flex;justify-content:space-between;gap:16px;align-items:flex-end;border-bottom:3px solid var(--teal);padding-bottom:12px;margin-bottom:18px;}
+h1{margin:0;font-size:22px;} h1 small{display:block;font-size:12px;color:var(--muted);font-weight:500;margin-top:3px;}
+h2{font-size:15px;margin:26px 0 8px;padding-bottom:4px;border-bottom:1px solid var(--line);color:#0b3d5c;}
+.meta{text-align:right;color:var(--muted);font-size:12px;}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;} .kpi{border:1px solid var(--line);border-top:3px solid var(--c,var(--teal));border-radius:6px;padding:10px 12px;}
+.kpi b{display:block;font-size:18px;color:var(--c,var(--teal));} .kpi span{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;}
+.ins{display:grid;gap:8px;} .in{border:1px solid var(--line);border-left:4px solid var(--c);border-radius:6px;padding:9px 12px;break-inside:avoid;}
+.in .tag{display:inline-block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--c);margin-right:6px;}
+.in.critico{--c:var(--red);} .in.atencao{--c:var(--amber);} .in.oportunidade{--c:var(--teal);} .in.info{--c:var(--blue);}
+table{width:100%;border-collapse:collapse;font-size:12px;margin:4px 0 6px;} th{background:#eef3f8;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:#33445c;}
+th,td{padding:6px 7px;border-bottom:1px solid var(--line);vertical-align:top;} td.n,th.n{text-align:right;white-space:nowrap;} tfoot td{font-weight:700;border-top:2px solid var(--ink);}
+td small{display:block;color:var(--muted);font-size:10.5px;} .muted{color:var(--muted);}
+.bar{height:7px;background:#e6edf4;border-radius:4px;overflow:hidden;min-width:80px;margin-top:3px;} .bar i{display:block;height:100%;background:var(--teal);} .bar i.amber{background:var(--amber);} .bar i.red{background:var(--red);}
+.stk{display:flex;height:9px;min-width:110px;border-radius:4px;overflow:hidden;background:#e6edf4;} .stk i{display:block;height:100%;}
+.prog{display:flex;height:20px;border-radius:5px;overflow:hidden;background:#e6edf4;margin:6px 0;} .prog i{display:flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:700;color:#fff;font-style:normal;white-space:nowrap;overflow:hidden;}
+.sw{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px;}
+.hl-r{background:#fdecee;} .hl-a{background:#fff6e3;} .hl-g{background:#e6f6f8;}
+.legend{font-size:11px;color:var(--muted);margin:2px 0 8px;}
+.toolbar{position:sticky;top:0;z-index:5;display:flex;gap:8px;justify-content:flex-end;padding:8px 28px;background:#0b2a44;}
+.toolbar button{border:0;border-radius:5px;padding:7px 14px;font-weight:600;cursor:pointer;background:#27e6ff;color:#04121f;} .toolbar button.sec{background:#fff;}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+@media(max-width:800px){.kpis{grid-template-columns:repeat(2,1fr);} .two{grid-template-columns:1fr;} .page{padding:16px;}}
+@media print{.toolbar{display:none;} body{background:#fff;} .page{padding:0;max-width:none;} h2{break-after:avoid;} tr{break-inside:avoid;} .prog i,.stk i,.bar i,.sw{-webkit-print-color-adjust:exact;print-color-adjust:exact;} @page{size:A4;margin:12mm;}}
+</style></head><body>
+<div class="toolbar"><button onclick="window.print()">Imprimir / Salvar PDF</button><button class="sec" onclick="window.close()">Fechar</button></div>
+<div class="page">
+<header><div><h1>Relatório das Entregas do Dia — ${E(diaFmtData(docDia.dia))} (${E(diaSemana(docDia.dia))})<small>Rastreamento de Cargas — DF e Entorno</small></h1></div>
+<div class="meta">Gerado em ${E(new Date().toLocaleString('pt-BR'))}${imp?'<br>Cargas importadas em '+E(imp):''}<br>Filtros: ${E(filtros)}<br>${T.n} NFs${filtrado?' de '+TT.n+' do dia':''}</div></header>
+
+<h2>1. Resumo executivo</h2>
+<div class="kpis">
+  <div class="kpi" style="--c:var(--blue)"><span>Valor que saiu</span><b>${M(T.v)}</b>${T.n} NFs · ticket médio ${M(T.n?T.v/T.n:0)}</div>
+  <div class="kpi" style="--c:var(--blue)"><span>Cargas / motoristas</span><b>${T.car.size} / ${T.mot.size}</b>média ${M(T.car.size?T.v/T.car.size:0)} por carga</div>
+  <div class="kpi"><span>Bairros/RA atendidos</span><b>${T.reg.size}</b>${T.car.size?(T.n/T.car.size).toLocaleString('pt-BR',{maximumFractionDigits:1}):0} NFs por carga</div>
+  <div class="kpi"><span>Entregue</span><b>${P(feito(T),T.v)}</b>${M(feito(T))} · ${T.st.entregue.n+T.st.parcial.n} NFs</div>
+  <div class="kpi" style="--c:var(--amber)"><span>Em rota (sem baixa)</span><b>${M(T.st.rota.v)}</b>${P(T.st.rota.v,T.v)} · ${T.st.rota.n} NFs</div>
+  <div class="kpi" style="--c:var(--amber)"><span>Entrega parcial</span><b>${M(T.st.parcial.v)}</b>${T.st.parcial.n} NFs</div>
+  <div class="kpi" style="--c:var(--red)"><span>Não entregue / reentrega</span><b>${M(T.st.reentrega.v)}</b>${P(T.st.reentrega.v,T.v)} · ${T.st.reentrega.n} NFs</div>
+  <div class="kpi" style="--c:var(--violet)"><span>Devolvido</span><b>${M(T.st.devolvida.v)}</b>${P(T.st.devolvida.v,T.v)} · ${T.st.devolvida.n} NFs</div>
+</div>
+${T.peso||T.vol?`<p class="muted" style="margin:8px 0 0;">Carga do dia: ${T.peso?T.peso.toLocaleString('pt-BR',{maximumFractionDigits:0})+' kg':''}${T.peso&&T.vol?' · ':''}${T.vol?T.vol.toLocaleString('pt-BR',{maximumFractionDigits:0})+' volumes':''}.</p>`:''}
+
+<h2>2. Insights e recomendações</h2>
+<div class="ins">${ins.map(([t,ti,tx])=>`<div class="in ${t}"><span class="tag">${cor[t]}</span><b>${ti}</b><br>${tx}</div>`).join('') || '<div class="muted">Sem dados suficientes para gerar insights.</div>'}</div>
+
+<h2>3. Andamento das entregas (por valor)</h2>
+<div class="prog">${T.v?DIA_ST.map(s=>{ const x=T.st[s.k].v/T.v*100; return x?`<i style="width:${x}%;background:${s.c.replace('var(--','var(--r')}">${x>=8?P(T.st[s.k].v,T.v):''}</i>`:''; }).join(''):''}</div>
+<table><thead><tr><th>Status</th><th class="n">NFs</th><th class="n">% das NFs</th><th class="n">Valor</th><th class="n">% do valor</th></tr></thead><tbody>
+${DIA_ST.map(s=>`<tr><td><span class="sw" style="background:${s.c.replace('var(--','var(--r')}"></span>${s.l}</td><td class="n">${T.st[s.k].n}</td><td class="n">${P(T.st[s.k].n,T.n)}</td><td class="n">${M(T.st[s.k].v)}</td><td class="n">${P(T.st[s.k].v,T.v)}</td></tr>`).join('')}
+</tbody><tfoot><tr><td>Total</td><td class="n">${T.n}</td><td class="n">100,0%</td><td class="n">${M(T.v)}</td><td class="n">100,0%</td></tr></tfoot></table>
+
+<h2>4. Cargas do dia (por carregamento)</h2>
+<div class="legend">Linhas destacadas: <span class="hl-r">&nbsp;não entregue + devolvido ≥ 10% da carga&nbsp;</span> <span class="hl-a">&nbsp;menos da metade entregue&nbsp;</span></div>
+<table><thead><tr><th>#</th><th>Carreg.</th><th>Motorista</th><th class="n">NFs</th><th class="n">Valor</th><th class="n">% do dia</th><th>Bairros/RA</th><th>Andamento</th><th class="n">Entregue</th><th class="n">Em rota</th><th class="n">Não entr.</th><th class="n">Devolvido</th></tr></thead><tbody>
+${cargas.map((c,i)=>{ const o=c.o, rg=diaAgrupar(c.rs,r=>r.regiao||'Não identificado').map(x=>x.k), cl = dvr(o)/o.v>=.10?'hl-r':(feito(o)/o.v<.5?'hl-a':'');
+ return `<tr class="${cl}"><td>${i+1}</td><td><b>${E(c.k)}</b>${bar(o.v,maxC)}</td><td>${E(Array.from(o.mot).join(', ')||'—')}</td><td class="n">${o.n}</td><td class="n">${M(o.v)}</td><td class="n">${P(o.v,T.v)}</td><td>${E(rg.slice(0,4).join(', '))}${rg.length>4?' +'+(rg.length-4):''}</td><td>${stack(o)}</td><td class="n">${P(feito(o),o.v)}</td><td class="n">${M(o.st.rota.v)}</td><td class="n">${M(o.st.reentrega.v)}</td><td class="n">${M(o.st.devolvida.v)}</td></tr>`; }).join('') || vazio(12)}
+</tbody>${cargas.length?`<tfoot><tr><td></td><td>Total</td><td></td><td class="n">${T.n}</td><td class="n">${M(T.v)}</td><td class="n">100,0%</td><td></td><td></td><td class="n">${P(feito(T),T.v)}</td><td class="n">${M(T.st.rota.v)}</td><td class="n">${M(T.st.reentrega.v)}</td><td class="n">${M(T.st.devolvida.v)}</td></tr></tfoot>`:''}</table>
+
+<h2>5. Áreas mais abastecidas (Bairro/RA por valor)</h2>
+<table><thead><tr><th>#</th><th>Bairro/RA</th><th class="n">Valor</th><th class="n">% do dia</th><th class="n">NFs</th><th class="n">Cargas</th><th>Principal motorista</th><th class="n">Entregue</th></tr></thead><tbody>
+${regs.map((g,i)=>{ const t=motDe(g)[0]; return `<tr class="${i<3?'hl-g':''}"><td>${i+1}</td><td><b>${E(g.k)}</b>${bar(g.o.v,maxR)}</td><td class="n">${M(g.o.v)}</td><td class="n">${P(g.o.v,T.v)}</td><td class="n">${g.o.n}</td><td class="n">${g.o.car.size}</td><td>${E(t[0])}<small>${M(t[1])} · ${P(t[1],g.o.v)}</small></td><td class="n">${P(feito(g.o),g.o.v)}</td></tr>`; }).join('') || vazio(8)}
+</tbody></table>
+
+<div class="two"><div>
+<h2>6. Áreas com mais pendências</h2>
+<div class="legend">Em rota + não entregue</div>
+<table><thead><tr><th>Bairro/RA</th><th class="n">Pendente</th><th class="n">% da área</th><th class="n">NFs</th></tr></thead><tbody>
+${rP.slice(0,15).map(g=>`<tr class="${pendV(g.o)/g.o.v>=Math.max(.3,idxPend*1.3)?'hl-a':''}"><td><b>${E(g.k)}</b>${bar(pendV(g.o),maxRP,'amber')}</td><td class="n">${M(pendV(g.o))}</td><td class="n">${P(pendV(g.o),g.o.v)}</td><td class="n">${pendN(g.o)}</td></tr>`).join('') || vazio(4)}
+</tbody></table>
+</div><div>
+<h2>7. Áreas com mais devoluções</h2>
+<div class="legend">Devolvido + não entregue</div>
+<table><thead><tr><th>Bairro/RA</th><th class="n">Devolvido</th><th class="n">Não entr.</th><th class="n">% da área</th></tr></thead><tbody>
+${rD.slice(0,15).map(g=>`<tr class="${dvr(g.o)/g.o.v>=.10?'hl-r':''}"><td><b>${E(g.k)}</b>${bar(dvr(g.o),maxRD,'red')}</td><td class="n">${M(g.o.st.devolvida.v)}</td><td class="n">${M(g.o.st.reentrega.v)}</td><td class="n">${P(dvr(g.o),g.o.v)}</td></tr>`).join('') || vazio(4)}
+</tbody></table>
+</div></div>
+
+<h2>8. Desempenho por motorista</h2>
+<table><thead><tr><th>#</th><th>Motorista</th><th class="n">Cargas</th><th class="n">NFs</th><th class="n">Valor</th><th>Andamento</th><th class="n">Entregue</th><th class="n">Em rota</th><th class="n">Não entr.</th><th class="n">Devolvido</th></tr></thead><tbody>
+${mots.map((g,i)=>`<tr class="${dvr(g.o)/g.o.v>=.10?'hl-r':''}"><td>${i+1}</td><td><b>${E(g.k)}</b></td><td class="n">${g.o.car.size}</td><td class="n">${g.o.n}</td><td class="n">${M(g.o.v)}</td><td>${stack(g.o)}</td><td class="n">${P(feito(g.o),g.o.v)}</td><td class="n">${M(g.o.st.rota.v)}</td><td class="n">${M(g.o.st.reentrega.v)}</td><td class="n">${M(g.o.st.devolvida.v)}</td></tr>`).join('') || vazio(10)}
+</tbody></table>
+
+<h2>9. NFs não entregues — programar reentrega</h2>
+<table>${nfHead}<tbody>${naoEnt.map(nfLin).join('') || vazio(7)}</tbody></table>
+
+<h2>10. NFs devolvidas</h2>
+<table>${nfHead}<tbody>${devs.map(nfLin).join('') || vazio(7)}</tbody></table>
+
+<h2>11. NFs de maior valor do dia</h2>
+<table>${nfHead}<tbody>${altas.map(nfLin).join('') || vazio(7)}</tbody></table>
+
+${hist.length>1?`<h2>12. Comparativo com os dias anteriores</h2>
+<table><thead><tr><th>Dia</th><th class="n">NFs</th><th class="n">Cargas</th><th class="n">Motoristas</th><th class="n">Valor</th><th class="n">Variação</th></tr></thead><tbody>
+${hist.map((d,i)=>{ const p=hist[i+1]; const vr=p&&p.resumo.v?(d.resumo.v-p.resumo.v)/p.resumo.v*100:null; return `<tr class="${i===0?'hl-g':''}"><td>${E(diaFmtData(d.dia))} (${E(diaSemana(d.dia))})</td><td class="n">${d.resumo.n}</td><td class="n">${d.resumo.cargas||'—'}</td><td class="n">${d.resumo.motoristas||'—'}</td><td class="n">${M(d.resumo.v)}</td><td class="n">${vr===null?'—':(vr>=0?'+':'')+vr.toLocaleString('pt-BR',{maximumFractionDigits:1})+'%'}</td></tr>`; }).join('')}
+</tbody></table>`:''}
+</div></body></html>`;
+  w.document.open(); w.document.write(h); w.document.close();
+}
+document.getElementById('btnRelDia').addEventListener('click', gerarRelatorioDia);
 
 const VIEWS = {painel:'viewPainel', ind:'viewInd', ga:'viewGA', mot:'viewMot', dia:'viewDia', notas:'viewNotas', hist:'viewHist', atraso:'viewAtraso', reg:'viewReg', banco:'viewBanco', edicao:'viewEdicao'};
 const filtersPanelEl = document.getElementById('filtersPanel');
